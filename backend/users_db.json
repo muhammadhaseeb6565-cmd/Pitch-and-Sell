@@ -1,0 +1,24 @@
+[
+  {
+    "id": "19f2fad2-8150-41e4-9f9c-c218ee540a37",
+    "email": "haseeb@emulgic.com",
+    "name": "haseeb",
+    "avatarUrl": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100",
+    "role": "USER",
+    "businessProfile": {
+      "id": "fac5fad4-9117-4cc4-8405-a88c70f54762",
+      "userId": "19f2fad2-8150-41e4-9f9c-c218ee540a37",
+      "name": "wrqw",
+      "category": "Electronics",
+      "description": "rqw",
+      "phone": "ew",
+      "email": "emulgic@emulgic.com",
+      "logoUrl": null,
+      "city": "Lahore",
+      "address": "dkkd",
+      "status": "PENDING",
+      "createdAt": "2026-08-15T08:42:16.598Z",
+      "updatedAt": "2026-08-16T09:44:14.948Z"
+    }
+  }
+]

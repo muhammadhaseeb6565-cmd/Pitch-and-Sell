@@ -1,0 +1,335 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id              String           @id @default(uuid())
+  email           String           @unique
+  name            String
+  avatarUrl       String?
+  role            Role             @default(USER)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  
+  businessProfile BusinessProfile?
+  orders          Order[]          @relation("CustomerOrders")
+  chats           Chat[]           @relation("UserChats")
+  messagesSent    Message[]
+  comments        Comment[]
+  likes           Like[]
+  savedItems      SavedItem[]
+  reviews         Review[]
+  reportsSubmitted Report[]        @relation("ReportReporter")
+  notifications   Notification[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model BusinessProfile {
+  id          String         @id @default(uuid())
+  userId      String         @unique
+  user        User           @relation(fields: [userId], references: [id])
+  name        String
+  category    String
+  description String
+  phone       String
+  email       String
+  logoUrl     String?
+  city        String
+  address     String
+  status      BusinessStatus @default(PENDING)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  products    Product[]
+  ledger      LedgerEntry[]
+  payouts     Payout[]
+}
+
+enum BusinessStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  SUSPENDED
+}
+
+model Product {
+  id                 String        @id @default(uuid())
+  businessId         String
+  business           BusinessProfile @relation(fields: [businessId], references: [id])
+  name               String
+  description        String
+  price              Decimal
+  oldPrice           Decimal?
+  discount           Decimal?
+  category           String
+  stock              Int           @default(0)
+  status             ProductStatus @default(DRAFT)
+  isFeatured         Boolean       @default(false)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  video              Video?
+  orders             Order[]
+}
+
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+  OUT_OF_STOCK
+  ARCHIVED
+}
+
+model Video {
+  id            String   @id @default(uuid())
+  productId     String   @unique
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url           String
+  duration      Float
+  allowDownload Boolean  @default(true)
+  likesCount    Int      @default(0)
+  viewsCount    Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  comments      Comment[]
+  likes         Like[]
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videoId   String
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, videoId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videoId   String
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SavedItem {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      SavedType
+  targetId  String   // ID of product, video, business, or deal
+  createdAt DateTime @default(now())
+
+  @@unique([userId, type, targetId])
+}
+
+enum SavedType {
+  PRODUCT
+  VIDEO
+  BUSINESS
+  DEAL
+}
+
+model Chat {
+  id          String    @id @default(uuid())
+  users       User[]    @relation("UserChats")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  messages    Message[]
+  offers      Offer[]
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model Offer {
+  id            String      @id @default(uuid())
+  chatId        String
+  chat          Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  productId     String
+  quantity      Int
+  unitPrice     Decimal
+  deliveryFee   Decimal
+  totalAmount   Decimal
+  paymentMethod PaymentMethod
+  status        OfferStatus @default(PENDING)
+  expiresAt     DateTime
+  createdAt     DateTime    @default(now())
+}
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+model Order {
+  id              String        @id @default(uuid()) // Can map format EMU-ORD-XXXXXX locally
+  customerId      String
+  customer        User          @relation("CustomerOrders", fields: [customerId], references: [id])
+  productId       String
+  product         Product       @relation(fields: [productId], references: [id])
+  quantity        Int
+  unitPrice       Decimal
+  totalAmount     Decimal
+  deliveryFee     Decimal
+  paymentMethod   PaymentMethod
+  paymentStatus   PaymentStatus @default(PENDING)
+  orderStatus     OrderStatus   @default(PENDING)
+  courier         String?
+  trackingNumber  String?
+  emulgicFee      Decimal
+  sellerEarnings  Decimal
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  ledgerEntries   LedgerEntry[]
+  reviews         Review[]
+}
+
+enum PaymentMethod {
+  PAY_NOW
+  COD
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  RETURNED
+  REFUNDED
+}
+
+model LedgerEntry {
+  id          String          @id @default(uuid())
+  businessId  String
+  business    BusinessProfile @relation(fields: [businessId], references: [id])
+  orderId     String?
+  order       Order?          @relation(fields: [orderId], references: [id])
+  amount      Decimal
+  type        LedgerType
+  description String
+  createdAt   DateTime        @default(now())
+}
+
+enum LedgerType {
+  SALE_EARNING
+  PLATFORM_FEE
+  PAYOUT
+  REFUND_ADJUSTMENT
+}
+
+model Payout {
+  id          String          @id @default(uuid())
+  businessId  String
+  business    BusinessProfile @relation(fields: [businessId], references: [id])
+  amount      Decimal
+  method      PayoutMethod
+  status      PayoutStatus    @default(REQUESTED)
+  details     String          // JSON or string formatted details
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+enum PayoutMethod {
+  BANK_ACCOUNT
+  EASYPAISA
+  JAZZCASH
+}
+
+enum PayoutStatus {
+  REQUESTED
+  APPROVED
+  PROCESSING
+  COMPLETED
+  REJECTED
+  FAILED
+}
+
+model Deal {
+  id              String      @id @default(uuid())
+  merchantName    String
+  category        String
+  bankName        String
+  cardType        String
+  discountPercent Decimal
+  maxDiscount     Decimal?
+  minSpend        Decimal?
+  validFrom       DateTime
+  validTo         DateTime
+  terms           String
+  location        String
+  createdAt       DateTime    @default(now())
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  rating     Int      // 1 to 5
+  comment    String
+  createdAt  DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  reporterId  String
+  reporter    User     @relation("ReportReporter", fields: [reporterId], references: [id])
+  targetType  String   // "VIDEO", "SELLER", "COMMENT", "PRODUCT"
+  targetId    String
+  reason      String
+  createdAt   DateTime @default(now())
+}
+
+model SystemConfig {
+  key   String @id
+  value String
+}
