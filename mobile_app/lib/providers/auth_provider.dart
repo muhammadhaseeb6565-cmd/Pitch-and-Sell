@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import '../services/socket_service.dart';
 
@@ -46,6 +47,7 @@ class AuthProvider with ChangeNotifier {
           SocketService.connect(_user!['id']);
         } catch (_) {}
         
+        await _saveSessionLocally();
         _isLoading = false;
         notifyListeners();
         return true;
@@ -64,6 +66,7 @@ class AuthProvider with ChangeNotifier {
         'businessProfile': null
       };
       _isAuthenticated = true;
+      await _saveSessionLocally();
       _isLoading = false;
       notifyListeners();
       return true;
@@ -74,18 +77,42 @@ class AuthProvider with ChangeNotifier {
     return false;
   }
 
+  Future<void> _saveSessionLocally() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (_user != null) {
+        await prefs.setString('user_data', jsonEncode(_user));
+      }
+    } catch (e) {
+      print('Error saving session locally: $e');
+    }
+  }
+
   Future<void> checkSession() async {
     await ApiService.init();
     try {
-      final response = await ApiService.getMe();
+      final response = await ApiService.getMe().timeout(const Duration(seconds: 2));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         _user = data['user'];
         _isAuthenticated = true;
+        await _saveSessionLocally();
         SocketService.connect(_user!['id']);
       }
     } catch (e) {
-      print('Session check failed: $e');
+      print('Session check failed via API: $e. Checking local storage...');
+      // Fallback to local shared preferences
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final userData = prefs.getString('user_data');
+        if (userData != null) {
+          _user = jsonDecode(userData);
+          _isAuthenticated = true;
+          // Optionally connect socket if it makes sense offline
+        }
+      } catch (err) {
+        print('Local session restore failed: $err');
+      }
     }
     notifyListeners();
   }
@@ -105,6 +132,7 @@ class AuthProvider with ChangeNotifier {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         _user = data['user'];
+        await _saveSessionLocally();
         notifyListeners();
       }
     } catch (e) {
@@ -112,8 +140,21 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  // Allow updating user fields like avatar locally without hitting the server
+  Future<void> updateUserLocalField(String key, dynamic value) async {
+    if (_user != null) {
+      _user![key] = value;
+      await _saveSessionLocally();
+      notifyListeners();
+    }
+  }
+
   Future<void> logout() async {
     await ApiService.clearToken();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_data');
+    } catch (e) {}
     SocketService.disconnect();
     _user = null;
     _isAuthenticated = false;

@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import '../providers/auth_provider.dart';
 import 'main_navigation_screen.dart';
 
@@ -24,6 +26,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   bool _obscurePassword = true;
   String _selectedRole = 'Both';
   bool _acceptTerms = true;
+  String? _profileImagePath;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _profileImagePath = pickedFile.path;
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -80,7 +93,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     final success = await auth.loginMockGoogle(
       emailText,
       displayName,
-      'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=100',
+      _profileImagePath ?? 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=100',
     );
     if (success && mounted) {
       Navigator.pushReplacement(
@@ -102,22 +115,32 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
           child: Column(
             children: [
               // Logo
-              const SizedBox(height: 12),
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: const Color(0xffFF5722).withOpacity(0.15),
-                child: const Icon(Icons.smart_toy_outlined, size: 40, color: Color(0xffFF5722)),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: const Color(0xffFF5722).withOpacity(0.15),
+                    child: const Icon(Icons.smart_toy_outlined, size: 28, color: Color(0xffFF5722)),
+                  ),
+                  const SizedBox(width: 12),
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'PITCH & SELL',
+                        style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: 1),
+                      ),
+                      Text(
+                        'Pitch It. Sell It. Grow It.',
+                        style: TextStyle(color: Colors.grey, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'PITCHNSELL',
-                style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: 1),
-              ),
-              const Text(
-                'Pitch It. Sell It. Grow It.',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
-              ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
               // Tab Selector
               TabBar(
@@ -191,6 +214,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                       Column(
                         key: const ValueKey('signup'),
                         children: [
+                          GestureDetector(
+                            onTap: _pickImage,
+                            child: CircleAvatar(
+                              radius: 40,
+                              backgroundColor: Colors.white12,
+                              backgroundImage: _profileImagePath != null ? FileImage(File(_profileImagePath!)) : null,
+                              child: _profileImagePath == null
+                                  ? const Icon(Icons.add_a_photo, color: Colors.grey)
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
                           Row(
                             children: [
                               Expanded(

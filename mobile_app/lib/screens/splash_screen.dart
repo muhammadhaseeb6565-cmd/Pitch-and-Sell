@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'onboarding_screen.dart';
-import '../main.dart';
+import 'main_navigation_screen.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -28,10 +30,18 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     Timer(const Duration(milliseconds: 1800), () {
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const OnboardingScreen()),
-        );
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        if (authProvider.isAuthenticated) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+          );
+        }
       }
     });
   }
@@ -54,15 +64,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               animation: _glowAnimation,
               builder: (context, child) {
                 return Text(
-                  'PITCHNSELL',
+                  'PITCH & SELL',
                   style: TextStyle(
                     color: const Color(0xffFF5722),
-                    fontSize: 38,
+                    fontSize: 34,
                     fontWeight: FontWeight.w900,
-                    letterSpacing: 2,
+                    letterSpacing: 2.0,
                     shadows: [
                       Shadow(
-                        color: const Color(0xffFF5722).withOpacity(0.6),
+                        color: const Color(0xffFF5722),
                         blurRadius: _glowAnimation.value,
                       ),
                     ],

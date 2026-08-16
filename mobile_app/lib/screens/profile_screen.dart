@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -372,7 +373,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                     radius: 46,
                     backgroundColor: const Color(0xffFF5722).withOpacity(0.1),
                     backgroundImage: user['avatarUrl'] != null && user['avatarUrl'].toString().isNotEmpty
-                        ? NetworkImage(user['avatarUrl'])
+                        ? (user['avatarUrl'].toString().startsWith('http') 
+                            ? NetworkImage(user['avatarUrl']) as ImageProvider
+                            : FileImage(File(user['avatarUrl'])))
                         : null,
                     child: user['avatarUrl'] != null && user['avatarUrl'].toString().isNotEmpty
                         ? null
