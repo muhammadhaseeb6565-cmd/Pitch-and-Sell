@@ -29,6 +29,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -45,13 +48,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   }
 
   void _handleMockLogin(AuthProvider auth) async {
-    final email = _signInEmailController.text.trim().isNotEmpty
-        ? _signInEmailController.text.trim()
-        : 'haseeb@emulgic.com';
-    final name = email.split('@')[0];
+    final emailText = _signInEmailController.text.trim();
+    if (emailText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter an email address', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+      return;
+    }
+    final name = emailText.split('@')[0];
     
     final success = await auth.loginMockGoogle(
-      email,
+      emailText,
       name,
       'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100',
     );
@@ -64,14 +69,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   }
 
   void _handleMockSignUp(AuthProvider auth) async {
-    final email = _signUpEmailController.text.trim().isNotEmpty
-        ? _signUpEmailController.text.trim()
-        : 'newuser@emulgic.com';
+    final emailText = _signUpEmailController.text.trim();
+    if (emailText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter an email address', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+      return;
+    }
     final name = '${_signUpFirstNameController.text.trim()} ${_signUpLastNameController.text.trim()}'.trim();
-    final displayName = name.isNotEmpty ? name : 'Haseeb Seller';
+    final displayName = name.isNotEmpty ? name : emailText.split('@')[0];
 
     final success = await auth.loginMockGoogle(
-      email,
+      emailText,
       displayName,
       'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=100',
     );
@@ -126,65 +133,63 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
               const SizedBox(height: 24),
 
               // Tabs Body Area
-              SizedBox(
-                height: 380,
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    // Sign In Form View
-                    Column(
-                      children: [
-                        TextField(
-                          controller: _signInEmailController,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: const InputDecoration(
-                            labelText: 'Email Address',
-                            labelStyle: TextStyle(color: Colors.grey),
-                            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: _signInPasswordController,
-                          obscureText: _obscurePassword,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            labelStyle: const TextStyle(color: Colors.grey),
-                            enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
-                            suffixIcon: IconButton(
-                              icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
-                              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: _tabController.index == 0
+                    ? // Sign In Form View
+                      Column(
+                        key: const ValueKey('signin'),
+                        children: [
+                          TextField(
+                            controller: _signInEmailController,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(
+                              labelText: 'Email Address',
+                              labelStyle: TextStyle(color: Colors.grey),
+                              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
                             ),
                           ),
-                        ),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Password reset link sent to your email address!')),
-                              );
-                            },
-                            child: const Text('Forgot Password?', style: TextStyle(color: Color(0xffFF5722), fontSize: 12)),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _signInPasswordController,
+                            obscureText: _obscurePassword,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              labelStyle: const TextStyle(color: Colors.grey),
+                              enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                              suffixIcon: IconButton(
+                                icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
+                                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 24),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 48,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722)),
-                            onPressed: () => _handleMockLogin(authProvider),
-                            child: const Text('Sign In', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Password reset link sent to your email address!')),
+                                );
+                              },
+                              child: const Text('Forgot Password?', style: TextStyle(color: Color(0xffFF5722), fontSize: 12)),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-
-                    // Sign Up Form View
-                    SingleChildScrollView(
-                      child: Column(
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722)),
+                              onPressed: () => _handleMockLogin(authProvider),
+                              child: const Text('Sign In', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                        ],
+                      )
+                    : // Sign Up Form View
+                      Column(
+                        key: const ValueKey('signup'),
                         children: [
                           Row(
                             children: [
@@ -258,9 +263,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
               ),
 
               const SizedBox(height: 24),

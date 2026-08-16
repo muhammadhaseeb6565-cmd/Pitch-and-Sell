@@ -269,7 +269,7 @@ class _FeedScreenState extends State<FeedScreen> {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                authProvider.user?.name ?? 'Add Story',
+                                authProvider.user?['name'] ?? 'Add Story',
                                 style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                               ),
                             ],
