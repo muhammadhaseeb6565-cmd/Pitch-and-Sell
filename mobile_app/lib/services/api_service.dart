@@ -2,8 +2,19 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 class ApiService {
-  static const String baseUrl = 'http://127.0.0.1:5000/api'; // Change to local IP when running on physical device
+  static String get baseUrl {
+    if (kIsWeb) {
+      return 'http://127.0.0.1:5000/api';
+    } else if (Platform.isAndroid) {
+      return 'http://10.0.2.2:5000/api';
+    } else {
+      return 'http://127.0.0.1:5000/api';
+    }
+  }
   static String? _token;
 
   static Future<void> init() async {

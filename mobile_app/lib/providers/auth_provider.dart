@@ -34,7 +34,7 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await ApiService.googleSignIn(email, name, avatarUrl);
+      final response = await ApiService.googleSignIn(email, name, avatarUrl).timeout(const Duration(seconds: 3));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         await ApiService.setToken(data['token']);
@@ -42,14 +42,31 @@ class AuthProvider with ChangeNotifier {
         _isAuthenticated = true;
         
         // Initialize Socket.io session
-        SocketService.connect(_user!['id']);
+        try {
+          SocketService.connect(_user!['id']);
+        } catch (_) {}
         
         _isLoading = false;
         notifyListeners();
         return true;
       }
     } catch (e) {
-      print('Mock Google Auth Login Failed: $e');
+      print('Mock Google Auth API Failed (backend unreachable). Falling back to offline mock: $e');
+      
+      // Fallback for UI testing when backend is not running or unreachable
+      await Future.delayed(const Duration(milliseconds: 500));
+      await ApiService.setToken('mock_offline_token');
+      _user = {
+        'id': 'offline_user_1',
+        'email': email,
+        'name': name,
+        'avatarUrl': avatarUrl,
+        'businessProfile': null
+      };
+      _isAuthenticated = true;
+      _isLoading = false;
+      notifyListeners();
+      return true;
     }
 
     _isLoading = false;
