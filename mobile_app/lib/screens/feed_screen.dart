@@ -139,31 +139,37 @@ class _FeedScreenState extends State<FeedScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.smart_toy_outlined, color: Color(0xffFF5722), size: 28),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const LiveStreamScreen()),
-                            );
-                          },
-                          child: const Text(
-                            'PITCH & SELL',
-                            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          const Icon(Icons.smart_toy_outlined, color: Color(0xffFF5722), size: 24),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const LiveStreamScreen()),
+                                );
+                              },
+                              child: const Text(
+                                'PITCH & SELL',
+                                style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: 1),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         // Search button
                         IconButton(
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
-                          icon: const Icon(Icons.search, color: Colors.white, size: 24),
+                          icon: const Icon(Icons.search, color: Colors.white, size: 22),
                           onPressed: () {
                             Navigator.push(
                               context,
@@ -171,12 +177,12 @@ class _FeedScreenState extends State<FeedScreen> {
                             );
                           },
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 8),
                         // Cart button
                         IconButton(
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
-                          icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 24),
+                          icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 22),
                           onPressed: () {
                             Navigator.push(
                               context,
@@ -184,7 +190,7 @@ class _FeedScreenState extends State<FeedScreen> {
                             );
                           },
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 8),
                         // Notification Bell with Badge
                         GestureDetector(
                           onTap: () {
@@ -195,20 +201,20 @@ class _FeedScreenState extends State<FeedScreen> {
                           },
                           child: Stack(
                             children: [
-                              const Icon(Icons.notifications_none, color: Colors.white, size: 24),
+                              const Icon(Icons.notifications_none, color: Colors.white, size: 22),
                               Positioned(
                                 right: 0,
                                 top: 0,
                                 child: Container(
-                                  padding: const EdgeInsets.all(3),
+                                  padding: const EdgeInsets.all(2),
                                   decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                                  child: const Text('2', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+                                  child: const Text('2', style: TextStyle(color: Colors.white, fontSize: 7, fontWeight: FontWeight.bold)),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 10),
                         // Mode switch button
                         GestureDetector(
                           onTap: () {
@@ -221,16 +227,16 @@ class _FeedScreenState extends State<FeedScreen> {
                             }
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               color: const Color(0xffFF5722),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Row(
                               children: [
-                                Icon(Icons.swap_horiz, size: 14, color: Colors.white),
-                                SizedBox(width: 4),
-                                Text('Sell', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                                Icon(Icons.swap_horiz, size: 12, color: Colors.white),
+                                SizedBox(width: 2),
+                                Text('Sell', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                               ],
                             ),
                           ),
