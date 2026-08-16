@@ -7,7 +7,7 @@ import 'feed_screen.dart';
 import 'messages_list_screen.dart';
 import 'orders_history_screen.dart';
 import 'profile_screen.dart';
-import 'dart:html' as html;
+import 'package:image_picker/image_picker.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -63,7 +63,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     String category = 'Electronics';
     bool allowDownload = true;
     String? selectedFileName;
-    html.File? selectedVideoFile;
+    XFile? selectedVideoFile;
 
     showModalBottomSheet(
       context: context,
@@ -180,17 +180,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               foregroundColor: const Color(0xffFF5722),
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             ),
-                            onPressed: () {
-                              final html.FileUploadInputElement input = html.FileUploadInputElement()..accept = 'video/*';
-                              input.click();
-                              input.onChange.listen((event) {
-                                if (input.files != null && input.files!.isNotEmpty) {
-                                  setModalState(() {
-                                    selectedVideoFile = input.files!.first;
-                                    selectedFileName = selectedVideoFile!.name;
-                                  });
-                                }
-                              });
+                            onPressed: () async {
+                              final ImagePicker picker = ImagePicker();
+                              final XFile? file = await picker.pickVideo(source: ImageSource.gallery);
+                              if (file != null) {
+                                setModalState(() {
+                                  selectedVideoFile = file;
+                                  selectedFileName = file.name;
+                                });
+                              }
                             },
                             icon: const Icon(Icons.video_library, size: 16),
                             label: const Text('Choose Video', style: TextStyle(fontSize: 12)),
