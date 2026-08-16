@@ -30,12 +30,13 @@ jobs:
       - name: Get dependencies
         run: |
           cd mobile_app
+          flutter clean
           flutter pub get
 
       - name: Build APK
         run: |
           cd mobile_app
-          flutter build apk --release
+          flutter build apk --release -v
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
