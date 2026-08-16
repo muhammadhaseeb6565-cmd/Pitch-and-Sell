@@ -532,7 +532,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const IPhone16ProWrapper(child: PitchGeneratorScreen())),
+                MaterialPageRoute(builder: (_) => const PitchGeneratorScreen()),
               );
             },
           ),

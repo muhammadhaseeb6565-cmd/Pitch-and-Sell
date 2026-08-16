@@ -712,7 +712,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   if (mounted) {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (_) => const IPhone16ProWrapper(child: WelcomeScreen())),
+                      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
                     );
                   }
                 },
