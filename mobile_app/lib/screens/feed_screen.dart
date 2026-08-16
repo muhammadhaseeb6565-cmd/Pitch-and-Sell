@@ -241,86 +241,67 @@ class _FeedScreenState extends State<FeedScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // Horizontal Category Filter Bar
+                // Horizontal Row: Add Story + Category Filter Bar
                 SizedBox(
-                  height: 30,
+                  height: 36,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
-                    children: ['All', 'Fashion', 'Tech', 'Food', 'Handmade'].map((cat) {
-                      final isSelected = _selectedCategory == cat;
-                      return GestureDetector(
-                        onTap: () => setState(() => _selectedCategory = cat),
+                    children: [
+                      // Add Story Button
+                      GestureDetector(
+                        onTap: () {
+                          // Handle add story / profile picture
+                        },
                         child: Container(
-                          margin: const EdgeInsets.only(right: 8),
+                          margin: const EdgeInsets.only(right: 12),
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xffFF5722) : Colors.black45,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white12),
+                            color: Colors.white.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: Colors.white24),
                           ),
-                          child: Text(
-                            cat,
-                            style: TextStyle(color: isSelected ? Colors.white : Colors.grey, fontSize: 11, fontWeight: FontWeight.bold),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 10,
+                                backgroundColor: const Color(0xffFF5722),
+                                child: const Icon(Icons.add, size: 14, color: Colors.white),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                authProvider.user?.name ?? 'Add Story',
+                                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
+                            ],
                           ),
                         ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Horizontal disappearing stories row
-                SizedBox(
-                  height: 75,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: 5,
-                    itemBuilder: (context, idx) {
-                      final names = ['Haseeb', 'Tahir', 'Fahad', 'Usman', 'Ali'];
-                      final isLive = idx == 0;
-                      return Container(
-                        margin: const EdgeInsets.only(right: 12),
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: isLive ? Colors.red : const Color(0xffFF5722),
-                                  width: 2,
+                      ),
+                      // Categories
+                      ...['All', 'Fashion', 'Tech', 'Food', 'Handmade'].map((cat) {
+                        final isSelected = _selectedCategory == cat;
+                        return GestureDetector(
+                          onTap: () => setState(() => _selectedCategory = cat),
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isSelected ? const Color(0xffFF5722) : Colors.black45,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: isSelected ? const Color(0xffFF5722) : Colors.white12),
+                            ),
+                            child: Center(
+                              child: Text(
+                                cat,
+                                style: TextStyle(
+                                  color: isSelected ? Colors.white : Colors.white70, 
+                                  fontSize: 12, 
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal
                                 ),
                               ),
-                              child: CircleAvatar(
-                                radius: 18,
-                                backgroundColor: Colors.grey[800],
-                                child: Text(names[idx][0], style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                              ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              isLive ? 'LIVE' : names[idx],
-                              style: TextStyle(color: isLive ? Colors.red : Colors.grey, fontSize: 9, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                
-                // Flash Sale Countdown Banner
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.redAccent.withOpacity(0.85),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('🔥 FLASH SALE COUNTDOWN', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                      Text('Ends In: 02h : 14m : 55s', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                          ),
+                        );
+                      }),
                     ],
                   ),
                 ),
@@ -768,7 +749,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
 
         // Right Action Column
         Positioned(
-          right: 16,
+          right: 12,
           bottom: 32,
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -781,27 +762,27 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                     Icon(
                       _isLiked ? Icons.favorite : Icons.favorite_border,
                       color: _isLiked ? const Color(0xffFF5722) : Colors.white,
-                      size: 32,
+                      size: 28,
                     ),
-                    const SizedBox(height: 4),
-                    Text('$_likesCount', style: const TextStyle(color: Colors.white)),
+                    const SizedBox(height: 2),
+                    Text('$_likesCount', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 18),
 
               // Comment
               GestureDetector(
                 onTap: () {}, // Trigger comments sheet
                 child: const Column(
                   children: [
-                    Icon(Icons.comment, color: Colors.white, size: 32),
-                    const SizedBox(height: 4),
-                    Text('Comments', style: TextStyle(color: Colors.white, fontSize: 12)),
+                    Icon(Icons.comment_rounded, color: Colors.white, size: 26),
+                    SizedBox(height: 2),
+                    Text('142', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 18),
 
               // Chat
               GestureDetector(
@@ -813,13 +794,13 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 },
                 child: const Column(
                   children: [
-                    Icon(Icons.chat_bubble_outline, color: Colors.white, size: 32),
-                    const SizedBox(height: 4),
-                    Text('Chat', style: TextStyle(color: Colors.white, fontSize: 12)),
+                    Icon(Icons.chat_bubble_outline_rounded, color: Colors.white, size: 26),
+                    SizedBox(height: 2),
+                    Text('Chat', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 18),
 
               // Save (Download) Video - conditional on allowDownload
               if (widget.productData['video']?['allowDownload'] != false) ...[
@@ -827,13 +808,13 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                   onTap: _handleDownloadVideo,
                   child: const Column(
                     children: [
-                      Icon(Icons.download, color: Colors.white, size: 32),
-                      const SizedBox(height: 4),
-                      Text('Save', style: TextStyle(color: Colors.white, fontSize: 12)),
+                      Icon(Icons.download_rounded, color: Colors.white, size: 26),
+                      SizedBox(height: 2),
+                      Text('Save', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 18),
               ],
 
               // Share Product Link
@@ -841,23 +822,27 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 onTap: _handleShareProduct,
                 child: const Column(
                   children: [
-                    Icon(Icons.share, color: Colors.white, size: 32),
-                    const SizedBox(height: 4),
-                    Text('Share', style: TextStyle(color: Colors.white, fontSize: 12)),
+                    Icon(Icons.share_rounded, color: Colors.white, size: 26),
+                    SizedBox(height: 2),
+                    Text('Share', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 18),
 
               // Order Now Action Button (Cart)
               GestureDetector(
                 onTap: _showOrderCheckoutSheet,
-                child: const Column(
-                  children: [
-                    Icon(Icons.shopping_cart, color: Colors.white, size: 32),
-                    const SizedBox(height: 4),
-                    Text('Cart', style: TextStyle(color: Colors.white, fontSize: 12)),
-                  ],
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xffFF5722),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4, offset: const Offset(0, 2)),
+                    ],
+                  ),
+                  child: const Icon(Icons.shopping_cart_rounded, color: Colors.white, size: 22),
                 ),
               ),
             ],
