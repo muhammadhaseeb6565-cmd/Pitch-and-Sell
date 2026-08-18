@@ -171,6 +171,7 @@ class CartScreen extends StatelessWidget {
                                   product: {
                                     'name': items.length == 1 ? items.first.name : '${items.length} items in Cart',
                                     'price': subtotal,
+                                    'items': items.map((i) => {'id': i.id, 'quantity': i.quantity}).toList(),
                                   },
                                 ),
                               ),

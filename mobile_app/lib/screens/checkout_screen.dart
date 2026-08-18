@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -9,7 +10,7 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  String _selectedPayment = 'JazzCash';
+  String _selectedPayment = 'Cash on Delivery (COD)';
   final String _deliveryAddress = 'House 14-A, Block C, Gulberg III, Lahore';
 
   @override
@@ -118,10 +119,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             // Payment Options
             const Text('Select Payment Method', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            _buildPaymentRadio('JazzCash'),
-            _buildPaymentRadio('Easypaisa'),
-            _buildPaymentRadio('PitchnSell Wallet'),
-            _buildPaymentRadio('HBL Credit/Debit Card'),
+            _buildPaymentRadio('Pay Now (Card/Wallet)'),
+            _buildPaymentRadio('Cash on Delivery (COD)'),
             const SizedBox(height: 24),
 
             // Order Cost breakdowns
@@ -144,27 +143,48 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   backgroundColor: const Color(0xffFF5722),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      backgroundColor: const Color(0xff1e1e1e),
-                      title: const Text('Order Placed Successfully!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      content: const Text(
-                        'Your payment is held securely in escrow. Release to seller will happen post-delivery verification.',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context); // close alert dialog
-                            Navigator.pop(context); // close checkout screen
-                          },
-                          child: const Text('Back to Feed', style: TextStyle(color: Color(0xffFF5722))),
+                onPressed: () async {
+                  final String method = _selectedPayment.contains('COD') ? 'COD' : 'PAY_NOW';
+                  bool success = true;
+
+                  if (widget.product.containsKey('items') && widget.product['items'] != null) {
+                    final items = widget.product['items'] as List;
+                    for (var item in items) {
+                      final response = await ApiService.createOrder(item['id'], item['quantity'], method);
+                      if (response.statusCode != 201) success = false;
+                    }
+                  } else if (widget.product.containsKey('id')) {
+                    final qty = widget.product['quantity'] ?? 1;
+                    final response = await ApiService.createOrder(widget.product['id'], qty, method);
+                    if (response.statusCode != 201) success = false;
+                  } else {
+                    success = false;
+                  }
+
+                  if (success && context.mounted) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        backgroundColor: const Color(0xff1e1e1e),
+                        title: const Text('Order Placed Successfully!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        content: const Text(
+                          'Your order has been recorded securely in the Emulgic ledger.',
+                          style: TextStyle(color: Colors.grey),
                         ),
-                      ],
-                    ),
-                  );
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context); // close alert dialog
+                              Navigator.pop(context); // close checkout screen
+                            },
+                            child: const Text('Back to Feed', style: TextStyle(color: Color(0xffFF5722))),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to place order. Check network.')));
+                  }
                 },
                 child: Text(
                   'Place Order via $_selectedPayment',

@@ -580,10 +580,12 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => CheckoutScreen(
-                                    product: {
-                                      'name': widget.productData['name'],
-                                      'price': price * qty,
-                                    },
+                                      product: {
+                                        'id': widget.productData['id'],
+                                        'name': widget.productData['name'],
+                                        'price': price * qty, // subtotal
+                                        'quantity': qty,
+                                      },
                                   ),
                                 ),
                               );
