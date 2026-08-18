@@ -238,10 +238,25 @@ class ApiService {
 
   // Promote/Boost Product API
   static Future<http.Response> promoteProduct(String productId, String plan) async {
-    return http.post(
+    return await http.post(
       Uri.parse('$baseUrl/products/$productId/promote'),
       headers: _headers,
       body: jsonEncode({'plan': plan}),
+    );
+  }
+
+  static Future<http.Response> getComments(String videoId) async {
+    return await http.get(
+      Uri.parse('$baseUrl/products/video/$videoId/comments'),
+      headers: _headers,
+    );
+  }
+
+  static Future<http.Response> addComment(String videoId, String text) async {
+    return await http.post(
+      Uri.parse('$baseUrl/products/video/$videoId/comments'),
+      headers: _headers,
+      body: jsonEncode({'text': text}),
     );
   }
 

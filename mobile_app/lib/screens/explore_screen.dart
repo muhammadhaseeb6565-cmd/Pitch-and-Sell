@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'feed_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -51,6 +52,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   borderSide: BorderSide.none,
                 ),
               ),
+              onSubmitted: (val) {
+                if (val.trim().isNotEmpty) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => Scaffold(
+                        appBar: AppBar(title: Text('Search: $val'), backgroundColor: const Color(0xff1e1e1e)),
+                        body: FeedScreen(initialSearch: val),
+                      ),
+                    ),
+                  );
+                }
+              },
             ),
             const SizedBox(height: 24),
 
@@ -105,15 +119,27 @@ class _ExploreScreenState extends State<ExploreScreen> {
               itemCount: _categories.length,
               itemBuilder: (context, idx) {
                 final cat = _categories[idx];
-                return Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    gradient: LinearGradient(
-                      colors: [Color(cat['color1']), Color(cat['color2'])],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => Scaffold(
+                          appBar: AppBar(title: Text(cat['name']), backgroundColor: const Color(0xff1e1e1e)),
+                          body: FeedScreen(initialCategory: cat['name']),
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      gradient: LinearGradient(
+                        colors: [Color(cat['color1']), Color(cat['color2'])],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                     ),
-                  ),
                   child: Stack(
                     children: [
                       Positioned(
@@ -150,7 +176,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       ),
                     ],
                   ),
-                );
+                ));
               },
             ),
             const SizedBox(height: 32),

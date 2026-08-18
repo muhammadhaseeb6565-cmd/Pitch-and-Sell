@@ -17,7 +17,15 @@ import '../providers/cart_provider.dart';
 
 class FeedScreen extends StatefulWidget {
   final bool isVisible;
-  const FeedScreen({super.key, this.isVisible = true});
+  final String? initialCategory;
+  final String? initialSearch;
+  
+  const FeedScreen({
+    super.key, 
+    this.isVisible = true,
+    this.initialCategory,
+    this.initialSearch,
+  });
 
   @override
   State<FeedScreen> createState() => _FeedScreenState();
@@ -28,18 +36,24 @@ class _FeedScreenState extends State<FeedScreen> {
   bool _isLoading = true;
   PageController? _pageController;
   String _selectedCategory = 'All';
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _fetchFeed();
     _pageController = PageController();
+    if (widget.initialCategory != null) _selectedCategory = widget.initialCategory!;
+    if (widget.initialSearch != null) _searchQuery = widget.initialSearch!;
+    _fetchFeed();
   }
 
   Future<void> _fetchFeed() async {
     setState(() => _isLoading = true);
     try {
-      final response = await ApiService.getFeed().timeout(const Duration(seconds: 3));
+      final response = await ApiService.getFeed(
+        category: _selectedCategory == 'All' ? null : _selectedCategory,
+        search: _searchQuery.isEmpty ? null : _searchQuery,
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
@@ -632,6 +646,102 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     });
   }
 
+  void _showCommentsSheet() async {
+    final videoId = widget.productData['video']?['id'];
+    if (videoId == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xff121212),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        final commentController = TextEditingController();
+        List comments = [];
+        bool loading = true;
+
+        return StatefulBuilder(
+          builder: (context, setStateSheet) {
+            if (loading) {
+              ApiService.getComments(videoId).then((res) {
+                if (res.statusCode == 200 && context.mounted) {
+                  setStateSheet(() {
+                    comments = jsonDecode(res.body)['comments'] ?? [];
+                    loading = false;
+                  });
+                }
+              });
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                left: 16, right: 16, top: 16,
+              ),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: Column(
+                  children: [
+                    const Text('Comments', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: loading
+                          ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
+                          : comments.isEmpty
+                              ? const Center(child: Text('No comments yet.', style: TextStyle(color: Colors.grey)))
+                              : ListView.builder(
+                                  itemCount: comments.length,
+                                  itemBuilder: (ctx, i) {
+                                    final c = comments[i];
+                                    return ListTile(
+                                      leading: const CircleAvatar(backgroundColor: Colors.grey),
+                                      title: Text(c['user']?['name'] ?? 'User', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                                      subtitle: Text(c['text'] ?? '', style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                                    );
+                                  },
+                                ),
+                    ),
+                    const Divider(color: Colors.white24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: commentController,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(
+                              hintText: 'Add a comment...',
+                              hintStyle: TextStyle(color: Colors.grey),
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.send, color: Color(0xffFF5722)),
+                          onPressed: () async {
+                            if (commentController.text.trim().isEmpty) return;
+                            final txt = commentController.text.trim();
+                            commentController.clear();
+                            final res = await ApiService.addComment(videoId, txt);
+                            if (res.statusCode == 201) {
+                              setStateSheet(() {
+                                loading = true; // refresh
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _handleShareProduct() {
     final link = 'http://localhost:8080/#/product/${widget.productData['id']}';
     ScaffoldMessenger.of(context).showSnackBar(
@@ -781,7 +891,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
 
               // Comment
               GestureDetector(
-                onTap: () {}, // Trigger comments sheet
+                onTap: _showCommentsSheet,
                 child: const Column(
                   children: [
                     Icon(Icons.comment_rounded, color: Colors.white, size: 26),
