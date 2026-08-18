@@ -61,45 +61,26 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   }
 
   void _handleMockLogin(AuthProvider auth) async {
-    final emailText = _signInEmailController.text.trim();
-    if (emailText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter an email address', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
-      return;
-    }
-    final name = emailText.split('@')[0];
-    
-    final success = await auth.loginMockGoogle(
-      emailText,
-      name,
-      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100',
-    );
+    final success = await auth.loginGoogle();
     if (success && mounted) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
       );
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Google Sign-In failed or was canceled', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
     }
   }
 
   void _handleMockSignUp(AuthProvider auth) async {
-    final emailText = _signUpEmailController.text.trim();
-    if (emailText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter an email address', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
-      return;
-    }
-    final name = '${_signUpFirstNameController.text.trim()} ${_signUpLastNameController.text.trim()}'.trim();
-    final displayName = name.isNotEmpty ? name : emailText.split('@')[0];
-
-    final success = await auth.loginMockGoogle(
-      emailText,
-      displayName,
-      _profileImagePath ?? 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=100',
-    );
+    final success = await auth.loginGoogle();
     if (success && mounted) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
       );
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Google Sign-In failed or was canceled', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
     }
   }
 
@@ -204,7 +185,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                             height: 48,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722)),
-                              onPressed: () => _handleMockLogin(authProvider),
+                              onPressed: () => authProvider.loginGoogle(),
                               child: const Text('Sign In', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                             ),
                           ),
@@ -324,7 +305,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                           foregroundColor: Colors.white,
                           side: const BorderSide(color: Colors.white24),
                         ),
-                        onPressed: () => authProvider.loginGoogle(),
+                        onPressed: () => _handleMockLogin(authProvider),
                         icon: const Icon(Icons.g_mobiledata, size: 28, color: Color(0xffFF5722)),
                         label: const Text('Google', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
@@ -339,10 +320,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                           foregroundColor: Colors.white,
                           side: const BorderSide(color: Colors.white24),
                         ),
-                        onPressed: () {
-                          // Facebook login not yet implemented in V1 MVP
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Facebook login coming soon')));
-                        },
+                        onPressed: () => _handleMockLogin(authProvider),
                         icon: const Icon(Icons.facebook, size: 20, color: Colors.blue),
                         label: const Text('Facebook', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
