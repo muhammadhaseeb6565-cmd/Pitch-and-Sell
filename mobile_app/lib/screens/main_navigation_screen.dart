@@ -285,8 +285,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               category: category,
                               stock: int.tryParse(stockController.text) ?? 10,
                               allowDownload: allowDownload,
-                              // We use a high quality mock streaming link so it displays correctly on feed
-                              videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-hands-typing-on-a-mechanical-keyboard-41724-large.mp4',
+                              videoPath: selectedVideoFile!.path,
                             );
                             if (response.statusCode == 201 && context.mounted) {
                               Navigator.pop(context); // close sheet

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import 'pitch_generator_screen.dart';
@@ -183,11 +184,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final priceController = TextEditingController();
     final descController = TextEditingController();
     final stockController = TextEditingController(text: '10');
-    final videoUrlController = TextEditingController(
-      text: 'https://assets.mixkit.co/videos/preview/mixkit-hands-typing-on-a-mechanical-keyboard-41724-large.mp4',
-    );
     String category = 'Electronics';
     bool allowDownload = true;
+    XFile? selectedVideoFile;
+    String? selectedFileName;
 
     showModalBottomSheet(
       context: context,
@@ -275,14 +275,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: videoUrlController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        labelText: 'Pitch Video MP4 URL',
-                        labelStyle: TextStyle(color: Colors.grey),
-                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                    // Video Selector Row
+                    const Text('Select Pitch Video:', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xff1e1e1e),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              selectedFileName ?? 'No video selected',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Colors.white70, fontSize: 13),
+                            ),
+                          ),
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xffFF5722).withOpacity(0.12),
+                              foregroundColor: const Color(0xffFF5722),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            ),
+                            onPressed: () async {
+                              final ImagePicker picker = ImagePicker();
+                              final XFile? file = await picker.pickVideo(source: ImageSource.gallery);
+                              if (file != null) {
+                                setModalState(() {
+                                  selectedVideoFile = file;
+                                  selectedFileName = file.name;
+                                });
+                              }
+                            },
+                            icon: const Icon(Icons.video_library, size: 16),
+                            label: const Text('Choose Video', style: TextStyle(fontSize: 12)),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -315,6 +348,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             );
                             return;
                           }
+                          if (selectedVideoFile == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Please select a video file')),
+                            );
+                            return;
+                          }
                           try {
                             final response = await ApiService.uploadProduct(
                               name: nameController.text,
@@ -323,7 +362,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               category: category,
                               stock: int.tryParse(stockController.text) ?? 10,
                               allowDownload: allowDownload,
-                              videoUrl: videoUrlController.text,
+                              videoPath: selectedVideoFile!.path,
                             );
                             if (response.statusCode == 201 && context.mounted) {
                               Navigator.pop(context);

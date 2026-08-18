@@ -197,21 +197,34 @@ class ApiService {
     required String category,
     required int stock,
     required bool allowDownload,
-    required String videoUrl,
+    String? videoPath,
+    String? videoUrl,
   }) async {
-    return http.post(
-      Uri.parse('$baseUrl/products'),
-      headers: _headers,
-      body: jsonEncode({
-        'name': name,
-        'description': description,
-        'price': price.toString(),
-        'category': category,
-        'stock': stock.toString(),
-        'allowDownload': allowDownload,
-        'videoUrl': videoUrl,
-      }),
-    );
+    var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/products'));
+    
+    // Add headers
+    if (_token != null) {
+      request.headers['Authorization'] = 'Bearer $_token';
+    }
+
+    // Add form fields
+    request.fields['name'] = name;
+    request.fields['description'] = description;
+    request.fields['price'] = price.toString();
+    request.fields['category'] = category;
+    request.fields['stock'] = stock.toString();
+    request.fields['allowDownload'] = allowDownload.toString();
+    if (videoUrl != null && videoUrl.isNotEmpty) {
+      request.fields['videoUrl'] = videoUrl;
+    }
+
+    // Add video file
+    if (videoPath != null && videoPath.isNotEmpty) {
+      request.files.add(await http.MultipartFile.fromPath('video', videoPath));
+    }
+
+    final streamedResponse = await request.send();
+    return await http.Response.fromStream(streamedResponse);
   }
 
   // Update Business Profile API
