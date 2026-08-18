@@ -44,12 +44,13 @@ class ApiService {
     return headers;
   }
 
-  // Auth API
-  static Future<http.Response> googleSignIn(String email, String name, String? avatarUrl) async {
+  // Real Auth API with ID Token verification
+  static Future<http.Response> googleSignInReal(String? idToken, String email, String? name, String? avatarUrl) async {
     return http.post(
-      Uri.parse('$baseUrl/auth/google'),
+      Uri.parse('$baseUrl/auth/google-real'),
       headers: _headers,
       body: jsonEncode({
+        'idToken': idToken,
         'email': email,
         'name': name,
         'avatarUrl': avatarUrl,

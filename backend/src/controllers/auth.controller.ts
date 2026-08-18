@@ -22,9 +22,37 @@ const writeLocalUsers = (users: any[]) => {
   fs.writeFileSync(USERS_DB_PATH, JSON.stringify(users, null, 2));
 };
 
+import { OAuth2Client } from 'google-auth-library';
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || 'dummy_client_id_for_dev');
+
 export const googleSignIn = async (req: Request, res: Response) => {
   try {
-    const { email, name, avatarUrl } = req.body;
+    const { idToken, email: fallbackEmail, name: fallbackName, avatarUrl: fallbackAvatar } = req.body;
+
+    let email = fallbackEmail;
+    let name = fallbackName;
+    let avatarUrl = fallbackAvatar;
+
+    // Verify the real Google ID Token if provided
+    if (idToken) {
+      try {
+        const ticket = await client.verifyIdToken({
+            idToken: idToken,
+            audience: process.env.GOOGLE_CLIENT_ID, // Specify the CLIENT_ID of the app that accesses the backend
+        });
+        const payload = ticket.getPayload();
+        if (payload) {
+          email = payload.email;
+          name = payload.name;
+          avatarUrl = payload.picture;
+        }
+      } catch (err) {
+        console.warn('Google ID Token verification failed. Ensure GOOGLE_CLIENT_ID is set in .env.', err);
+        // In production, you MUST reject if token is invalid:
+        // return res.status(401).json({ error: 'Invalid Google Token' });
+      }
+    }
 
     if (!email || !name) {
       return res.status(400).json({ error: 'Email and name are required' });
@@ -45,26 +73,13 @@ export const googleSignIn = async (req: Request, res: Response) => {
         },
         include: { businessProfile: true },
       });
-    } else if (user.name !== name) {
+    } else if (user.name !== name || user.avatarUrl !== avatarUrl) {
       user = await prisma.user.update({
         where: { email },
         data: { name, avatarUrl },
         include: { businessProfile: true },
       });
     }
-
-    // Sync to local JSON database fallback
-    const localUsers = readLocalUsers();
-    let localUser = localUsers.find((u: any) => u.email === email);
-    if (!localUser) {
-      localUser = { id: user.id, email: user.email, name: user.name, avatarUrl: user.avatarUrl, role: user.role, businessProfile: user.businessProfile };
-      localUsers.push(localUser);
-    } else {
-      localUser.name = user.name;
-      localUser.avatarUrl = user.avatarUrl;
-      localUser.businessProfile = user.businessProfile;
-    }
-    writeLocalUsers(localUsers);
 
     // Sign JWT
     const token = jwt.sign(

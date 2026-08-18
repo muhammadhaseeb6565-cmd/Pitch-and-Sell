@@ -324,7 +324,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                           foregroundColor: Colors.white,
                           side: const BorderSide(color: Colors.white24),
                         ),
-                        onPressed: () => _handleMockLogin(authProvider),
+                        onPressed: () => authProvider.loginGoogle(),
                         icon: const Icon(Icons.g_mobiledata, size: 28, color: Color(0xffFF5722)),
                         label: const Text('Google', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
@@ -339,7 +339,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                           foregroundColor: Colors.white,
                           side: const BorderSide(color: Colors.white24),
                         ),
-                        onPressed: () => _handleMockLogin(authProvider),
+                        onPressed: () {
+                          // Facebook login not yet implemented in V1 MVP
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Facebook login coming soon')));
+                        },
                         icon: const Icon(Icons.facebook, size: 20, color: Colors.blue),
                         label: const Text('Facebook', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),

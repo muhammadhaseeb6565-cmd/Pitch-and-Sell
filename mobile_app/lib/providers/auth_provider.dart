@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../services/api_service.dart';
 import '../services/socket_service.dart';
 
@@ -30,19 +31,36 @@ class AuthProvider with ChangeNotifier {
       ? _user!['businessProfile']['status'] 
       : null;
 
-  Future<bool> loginMockGoogle(String email, String name, String? avatarUrl) async {
+  Future<bool> loginGoogle() async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      final response = await ApiService.googleSignIn(email, name, avatarUrl).timeout(const Duration(seconds: 3));
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        // TODO: Replace with your actual Web Client ID from Google Cloud Console
+        // clientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
+      );
+      
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        // User canceled the sign-in flow
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+
+      // Send idToken to the real backend
+      final response = await ApiService.googleSignInReal(idToken, googleUser.email, googleUser.displayName, googleUser.photoUrl).timeout(const Duration(seconds: 5));
+      
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         await ApiService.setToken(data['token']);
         _user = data['user'];
         _isAuthenticated = true;
         
-        // Initialize Socket.io session
         try {
           SocketService.connect(_user!['id']);
         } catch (_) {}
@@ -51,25 +69,11 @@ class AuthProvider with ChangeNotifier {
         _isLoading = false;
         notifyListeners();
         return true;
+      } else {
+        print('Backend rejected Google Sign-In: \${response.body}');
       }
     } catch (e) {
-      print('Mock Google Auth API Failed (backend unreachable). Falling back to offline mock: $e');
-      
-      // Fallback for UI testing when backend is not running or unreachable
-      await Future.delayed(const Duration(milliseconds: 500));
-      await ApiService.setToken('mock_offline_token');
-      _user = {
-        'id': 'offline_user_1',
-        'email': email,
-        'name': name,
-        'avatarUrl': avatarUrl,
-        'businessProfile': null
-      };
-      _isAuthenticated = true;
-      await _saveSessionLocally();
-      _isLoading = false;
-      notifyListeners();
-      return true;
+      print('Real Google Auth API Failed: $e');
     }
 
     _isLoading = false;
