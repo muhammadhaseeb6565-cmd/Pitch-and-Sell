@@ -1399,4 +1399,543 @@ Build first:
 11. Comments/replies
 12. Share
 13. Save
-14. 
+14. Download permission
+15. Search
+16. Categories
+17. Product page
+18. Seller profile
+19. In-app chat
+20. Structured offers
+21. Order creation
+22. Pay Now/COD selection
+23. Customer order history
+24. Seller order dashboard
+25. Seller ledger
+26. Fee calculations
+27. Payout request
+28. PKR 500 minimum payout
+29. Admin panel
+30. Basic moderation
+31. Notifications
+32. Ratings/reviews
+
+---
+
+## 52. PHASE 2
+
+Add:
+
+- Payment gateway integration
+- Courier integration
+- Leopards integration
+- COD tracking/settlement
+- Promotional billboard
+- PKR 100/3-day promotion
+- Promotion analytics
+- Deals section
+- Bank-card offers
+- Better seller analytics
+- Inventory improvements
+
+---
+
+## 53. PHASE 3
+
+Add:
+
+- AI chat/order intent detection
+- AI product-description assistance
+- Personalized feed
+- Advanced recommendations
+- Advertising targeting
+- Campaign recommendations
+- Fraud detection
+- More payment providers
+- More courier providers
+- Automated payout integrations where commercially and legally appropriate
+
+---
+
+## 54. DO NOT FAKE PRODUCTION FEATURES
+
+Antigravity must not create fake implementations for:
+
+- Payment processing
+- Bank integrations
+- Courier settlement
+- Seller balances
+- Payouts
+- Completed sales
+- Authentication
+
+Mocks may be used during development, but must be clearly isolated from production code.
+
+Never show fake financial information as real.
+
+---
+
+## 55. CORE CUSTOMER FLOW
+
+**Welcome to Pitch and Sell**
+→ Google/Login/Signup
+→ Customer Mode
+→ Video Feed
+→ Search/Deals
+→ Product
+→ Like/Comment/Share/Save
+→ Chat
+→ Offer if needed
+→ Order
+→ Pay Now/COD
+→ Delivery
+→ Completed
+→ Review
+→ Order History
+
+---
+
+## 56. CORE SELLER FLOW
+
+**Welcome to Pitch and Sell**
+→ Google/Login/Signup
+→ Switch to Selling Mode
+→ Business Profile
+→ Seller Dashboard
+→ Upload Video
+→ Product Details
+→ Publish
+→ Receive Views/Chats
+→ Receive Order
+→ Fulfill
+→ Completed Sale
+→ Earnings
+→ Request Payout
+→ Admin Processes
+→ Seller Receives Money
+
+Seller can switch back to Customer Mode at any time.
+
+---
+
+## 57. PROMOTION FLOW
+
+**Seller → Select Product → Promote → Pay PKR 100 → 3-Day Campaign → Billboard Placement → Analytics**
+
+---
+
+## 58. DEAL FLOW
+
+**Business/Merchant → Create Deal → Add Bank/Card Rules → Publish → Customer Discovers → Qualifying Purchase/Redemption → Emulgic Fee Where Applicable**
+
+---
+
+## 59. SUCCESS CRITERIA FOR V1
+
+A working V1 should allow this complete scenario:
+
+1. New person opens Pitch and Sell.
+2. They see **Welcome to Pitch and Sell**.
+3. They sign in using Google.
+4. They enter Customer Mode.
+5. They watch a product video of 60 seconds or less.
+6. They like/comment/share/save it.
+7. They open the seller profile.
+8. They chat with the seller.
+9. They negotiate a bulk order.
+10. Seller sends a structured offer.
+11. Customer accepts.
+12. Official order is created.
+13. Customer chooses Pay Now or COD.
+14. Seller sees the order.
+15. Emulgic tracks the order.
+16. Once financially eligible, seller earnings enter the ledger.
+17. Emulgic fee is calculated automatically.
+18. Seller reaches at least PKR 500.
+19. Seller requests payout.
+20. Admin reviews and processes payout.
+21. Seller sees payout status/history.
+22. Seller switches back to Customer Mode.
+23. Seller uploads another product video.
+24. Seller can promote a product for PKR 100 for 3 days.
+25. Customers can discover deals and bank-card offers.
+26. Important financial events remain auditable.
+
+---
+
+## 60. PRODUCT PRINCIPLE
+
+Pitch and Sell should make commerce feel as easy as watching a short video.
+
+A customer should be able to go from:
+
+> **"That looks interesting."**
+
+to:
+
+> **"I want it."**
+
+to:
+
+> **"I've ordered it."**
+
+without leaving the platform.
+
+A seller should be able to go from:
+
+> **"I have a product."**
+
+to:
+
+> **"I've uploaded my video."**
+
+to:
+
+> **"Someone ordered it."**
+
+to:
+
+> **"My earnings are ready for payout."**
+
+inside one connected ecosystem.
+
+---
+
+## 61. HANDOFF TO HASEEB / ANTIGRAVITY
+
+Treat this document as the master product requirements blueprint.
+
+Do not build only a beautiful frontend prototype. Build the underlying data relationships, authentication, order state, financial ledger, seller mode, customer mode, and admin controls.
+
+Where external providers are required, use their real documented integrations.
+
+Do not claim an integration is production-ready until it has been configured and tested.
+
+Keep external providers modular so they can be replaced later.
+
+### Final identity
+
+**Visible product name:** PITCH AND SELL  
+**Parent startup:** EMULGIC  
+**Purpose:** Emulgic's first platform/project
+
+### Most important implementation rule
+
+> Build Pitch and Sell as a real commerce platform, not merely as a TikTok-style UI mockup.
+
+---
+
+# 62. FINAL PRODUCT CLARIFICATIONS AND NON-NEGOTIABLE UX REQUIREMENTS
+
+This section is an explicit clarification layer for Haseeb and Antigravity. If any earlier section is interpreted differently, these requirements take priority where they describe the intended product experience.
+
+## 62.1 Mobile-first app experience
+
+Pitch and Sell must be designed as a **real mobile application experience**, not as a desktop dashboard squeezed into a phone-sized viewport.
+
+The primary customer experience should feel native to a modern mobile social-commerce app:
+
+- Full-screen/near-full-screen vertical video feed
+- Thumb-friendly controls
+- Bottom navigation
+- Large touch targets
+- Mobile-first spacing and typography
+- Smooth vertical swiping between products
+- Fast video loading and playback
+- Compact top billboard that does not dominate the feed
+- Clear transitions between Customer Mode and Selling Mode
+
+Desktop/web layouts can be responsive, but mobile is the primary design target.
+
+## 62.2 Welcome screen is the first screen
+
+Before any feed is shown to a new user, show:
+
+**Welcome to Pitch and Sell**
+
+with:
+
+- Sign Up
+- Log In
+- Continue with Google/Gmail
+- Pitch and Sell branding
+- Emulgic visual identity
+- Short value proposition
+
+Do not replace the welcome experience with a generic dashboard.
+
+## 62.3 Automatic rotating billboard
+
+The billboard at the top of the home feed is a **rotating carousel**, not a static banner.
+
+It should automatically change between examples such as:
+
+- Top Seller of the Month
+- New Arrival
+- Trending Product
+- 50% OFF
+- 70% OFF
+- Limited-Time Sale
+- Featured Business
+- Paid Seller Showcase
+
+Rotation should happen automatically while still allowing the user to tap/open a card.
+
+The billboard must remain visually compact so the product video remains the main focus.
+
+## 62.4 Product-video relationship
+
+Every commercial video must remain connected to its product and seller throughout the system.
+
+Required attribution chain:
+
+**Video → Product → Seller/Business → Customer interaction → Chat/Offer → Order → Payment/Delivery → Ledger → Payout**
+
+This relationship must not be lost when a customer discovers the product through search, a share link, a billboard, a deal, or the main feed.
+
+## 62.5 Transaction source of truth
+
+A like, chat message, AI suggestion, seller message, or informal confirmation is **not by itself a completed financial transaction**.
+
+The official order record is the source of truth.
+
+For COD, the order must still be created inside Pitch and Sell and visible to:
+
+1. Customer
+2. Seller
+3. Emulgic/admin system
+
+The system must preserve enough information to calculate the applicable Emulgic fee and seller settlement.
+
+## 62.6 Pay Now and COD must be visibly different
+
+Checkout must clearly present:
+
+### Pay Now
+
+- Payment is processed through the configured production payment provider.
+- Payment status is recorded.
+- Seller earnings enter the financial ledger according to settlement rules.
+- Emulgic's platform fee is recorded separately.
+
+### Cash on Delivery
+
+- Customer submits delivery information.
+- Order is created immediately in Pitch and Sell.
+- Seller and Emulgic receive the order event.
+- Courier/shipment information is stored when a courier integration is active.
+- COD delivery and settlement determine when the seller's earnings become payout-eligible.
+
+## 62.7 Seller payout is request-based
+
+Seller must **not** have a simple "Withdraw" button that instantly transfers money.
+
+The seller sees:
+
+**Available for Payout → Request Payout**
+
+Minimum payout:
+
+**PKR 500**
+
+The payout goes through an Emulgic/admin-controlled workflow:
+
+**Requested → Reviewed → Approved → Processing → Completed**
+
+with failure/rejection states where required.
+
+## 62.8 Seller fees must be transparent
+
+Launch values:
+
+| Event | Emulgic fee |
+|---|---:|
+| Pay Now qualifying completed order | PKR 20 |
+| COD qualifying completed order | PKR 10 |
+| Bank-card/deal qualifying completed transaction | PKR 5 |
+| Product billboard promotion | PKR 100 / 3 days |
+| Minimum payout | PKR 500 |
+
+These are configuration values and must be editable by authorized admins rather than scattered as hard-coded constants.
+
+## 62.9 Seller promotion must be self-service
+
+Seller flow:
+
+**Select Product → Promote Product → See PKR 100 / 3 days → Confirm Payment → Campaign Active → Billboard Exposure → Campaign Analytics**
+
+Seller should be able to see campaign status and basic performance such as impressions, views, clicks and attributable orders.
+
+## 62.10 In-app communication is a core feature
+
+Do not make WhatsApp the primary transaction workflow.
+
+The platform should keep product conversations inside Pitch and Sell because the conversation may be useful for:
+
+- Product questions
+- Price discussion
+- Bulk orders
+- Quantity negotiation
+- Delivery discussion
+- Payment discussion
+- Structured offers
+- Order attribution
+- AI assistance
+
+External contact methods may exist where appropriate, but they should not replace the core in-app commerce workflow.
+
+## 62.11 Bulk-order workflow
+
+For larger orders, the seller should be able to turn the conversation into a structured offer containing:
+
+- Product
+- Quantity
+- Unit price
+- Delivery fee
+- Total
+- Payment method
+- Expiry
+
+Customer can **Accept Offer**, which creates the official order.
+
+This avoids relying entirely on free-form chat to establish the final commercial terms.
+
+## 62.12 AI is an assistant, not the financial authority
+
+AI may detect likely commercial intent from chat and suggest an order summary, but it must not independently create a legally/financially binding sale.
+
+Example:
+
+> Potential order detected: 100 units, PKR 1,500 each, COD.
+
+The customer/seller must confirm the structured information before the official order is created.
+
+## 62.13 Bank-card deals are a discovery and monetization area
+
+Create a dedicated **Deals** section for participating merchants such as:
+
+- Restaurants
+- Cafés
+- Pizza shops
+- Food corners
+- Malls
+- Clothing stores
+- Cosmetics shops
+- Beauty businesses
+- Other merchants
+
+Deals should clearly show:
+
+- Merchant
+- Discount
+- Bank
+- Card eligibility
+- Minimum spend where applicable
+- Maximum discount where applicable
+- Valid dates
+- Location
+- Terms and conditions
+- Redemption method
+
+Examples can include HBL, UBL, Allied and Meezan offers, subject to actual merchant/bank agreements.
+
+## 62.14 Download permission
+
+The seller chooses whether a video can be downloaded.
+
+If download is disabled, the customer must not see an active download action.
+
+Future versions may add downloaded-video watermarking.
+
+## 62.15 Moderation and trust are required
+
+The system must provide reporting and moderation for:
+
+- Products
+- Videos
+- Sellers
+- Comments
+- Users
+
+Support blocking, spam detection, abuse detection and admin review.
+
+Seller/business verification should be supported before a business is treated as verified.
+
+## 62.16 Financial data must be auditable
+
+Do not allow the frontend to decide:
+
+- Seller earnings
+- Platform fees
+- Payment status
+- Completed-sale status
+- Payout amount
+- Available balance
+
+All financial calculations must be performed and validated server-side and represented through an immutable/auditable ledger.
+
+Refunds, returns, reversals and failed transactions must create compensating ledger entries rather than silently rewriting history.
+
+## 62.17 Admin control is part of the product
+
+Emulgic must have a secure admin area capable of managing:
+
+- Users
+- Sellers/businesses
+- Verification
+- Products/videos
+- Reports
+- Orders
+- Payments
+- Fees
+- Seller balances/ledger
+- Payout requests
+- Promotions
+- Bank-card deals
+- Categories
+- Notifications
+- Analytics
+- Audit logs
+
+## 62.18 Production vs prototype rule
+
+Antigravity may use mock data while building the UI, but mock data must be clearly isolated.
+
+Do not present fake payments, fake courier settlement, fake payouts, fake completed sales or fake Google authentication as production functionality.
+
+Every production integration must be configured, secured and tested before being described as complete.
+
+## 62.19 V1 definition of done
+
+Pitch and Sell V1 is not considered complete merely because the screens look good.
+
+The critical connected path must work:
+
+**Welcome → Google/Login → Customer Mode → Video → Product → Chat → Offer → Order → Pay Now/COD → Seller Notification → Emulgic Tracking → Delivery/Completion → Fee Calculation → Seller Ledger → PKR 500 Eligibility → Payout Request → Admin Processing → Payout History**
+
+The seller must also be able to:
+
+**Switch to Selling Mode → Create Business Profile → Upload ≤60-second Video → Publish Product → Receive Engagement → Receive Orders → Track Earnings → Promote Product for PKR 100/3 days → Request Payout → Switch back to Customer Mode**
+
+Customers must also be able to discover and use the **Deals / Bank-Card Offers** area.
+
+---
+
+# 63. FINAL HANDOFF NOTE
+
+Haseeb should give this entire document to Antigravity as the master product specification.
+
+Antigravity should use the document to build the product architecture, not merely copy the visual appearance of a short-video application.
+
+The product identity remains:
+
+**PITCH AND SELL**
+
+**By EMULGIC**
+
+The name may change later, but it must remain Pitch and Sell throughout the current build.
+
+The central idea remains:
+
+> **Discover. Showcase. Sell.**
+
+The platform should make the journey from discovering a product to completing and tracking a transaction feel simple for customers while giving sellers a transparent, affordable way to showcase products and earn money.
