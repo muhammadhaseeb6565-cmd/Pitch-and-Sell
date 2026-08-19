@@ -5,8 +5,7 @@ class SocketService {
 
   static void connect(String userId) {
     if (_socket != null && _socket!.connected) return;
-
-    _socket = IO.io('http://127.0.0.1:5000', IO.OptionBuilder()
+    _socket = IO.io('https://pitch-and-sell-backend.onrender.com', IO.OptionBuilder()
       .setTransports(['websocket']) // for Flutter compatibility
       .disableAutoConnect()
       .build());

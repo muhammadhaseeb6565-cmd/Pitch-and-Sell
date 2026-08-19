@@ -7,13 +7,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ApiService {
   static String get baseUrl {
-    if (kIsWeb) {
-      return 'http://127.0.0.1:5000/api';
-    } else if (Platform.isAndroid) {
-      return 'http://10.0.2.2:5000/api';
-    } else {
-      return 'http://127.0.0.1:5000/api';
-    }
+    return 'https://pitch-and-sell-backend.onrender.com/api';
   }
   static String? _token;
 
