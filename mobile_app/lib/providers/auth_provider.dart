@@ -37,8 +37,7 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn(
-        // TODO: Replace with your actual Web Client ID from Google Cloud Console
-        // clientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
+        serverClientId: '771454392765-jb01guktvorvh6pcktr5s2ntcann92f6.apps.googleusercontent.com',
       );
       
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
