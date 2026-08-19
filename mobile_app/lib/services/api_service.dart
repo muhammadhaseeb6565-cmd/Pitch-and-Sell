@@ -41,7 +41,7 @@ class ApiService {
   // Real Auth API with ID Token verification
   static Future<http.Response> googleSignInReal(String? idToken, String email, String? name, String? avatarUrl) async {
     return http.post(
-      Uri.parse('$baseUrl/auth/google-real'),
+      Uri.parse('$baseUrl/auth/google'),
       headers: _headers,
       body: jsonEncode({
         'idToken': idToken,
