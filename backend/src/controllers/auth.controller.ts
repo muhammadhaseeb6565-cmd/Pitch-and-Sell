@@ -161,3 +161,96 @@ export const updateProfile = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to update profile', details: error.message });
   }
 };
+
+import bcrypt from 'bcryptjs';
+
+export const signUp = async (req: Request, res: Response) => {
+  try {
+    const { email, password, name, phone, role } = req.body;
+
+    if (!email || !password || !name) {
+      return res.status(400).json({ error: 'Email, password, and name are required' });
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        name,
+        password: hashedPassword,
+        phone,
+      },
+    });
+
+    const token = jwt.sign(
+      { userId: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    res.status(201).json({
+      message: 'Account created successfully',
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      }
+    });
+  } catch (error: any) {
+    console.error('Sign Up Error:', error);
+    res.status(500).json({ error: 'Sign up failed', details: error.message });
+  }
+};
+
+export const signIn = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { businessProfile: true },
+    });
+
+    if (!user || !user.password) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    const token = jwt.sign(
+      { userId: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    res.json({
+      message: 'Sign in successful',
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatarUrl,
+        role: user.role,
+        businessProfile: user.businessProfile,
+      }
+    });
+  } catch (error: any) {
+    console.error('Sign In Error:', error);
+    res.status(500).json({ error: 'Sign in failed', details: error.message });
+  }
+};
