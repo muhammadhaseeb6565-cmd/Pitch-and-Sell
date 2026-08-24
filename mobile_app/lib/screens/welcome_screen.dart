@@ -60,19 +60,40 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     super.dispose();
   }
 
-  void _handleMockLogin(AuthProvider auth) async {
-    final success = await auth.loginGoogle();
+  void _handleEmailLogin(AuthProvider auth) async {
+    if (_signInEmailController.text.isEmpty || _signInPasswordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter email and password')));
+      return;
+    }
+    final success = await auth.signInWithEmail(_signInEmailController.text, _signInPasswordController.text);
     if (success && mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-      );
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigationScreen()));
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Google Sign-In failed or was canceled', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sign-In failed. Check credentials.', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
     }
   }
 
-  void _handleMockSignUp(AuthProvider auth) async {
+  void _handleEmailSignUp(AuthProvider auth) async {
+    if (_signUpEmailController.text.isEmpty || _signUpPasswordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all required fields')));
+      return;
+    }
+    final success = await auth.signUpWithEmail(
+      _signUpEmailController.text,
+      _signUpPasswordController.text,
+      _signUpFirstNameController.text,
+      _signUpLastNameController.text,
+      _signUpPhoneController.text,
+      _selectedRole
+    );
+    if (success && mounted) {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigationScreen()));
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sign-Up failed. Email may already exist.', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+    }
+  }
+
+  void _handleGoogleLogin(AuthProvider auth) async {
     final success = await auth.loginGoogle();
     if (success && mounted) {
       Navigator.pushReplacement(
@@ -185,7 +206,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                             height: 48,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722)),
-                              onPressed: () => authProvider.loginGoogle(),
+                              onPressed: () => _handleEmailLogin(authProvider),
                               child: const Text('Sign In', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                             ),
                           ),
@@ -273,7 +294,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                             height: 48,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722)),
-                              onPressed: _acceptTerms ? () => _handleMockSignUp(authProvider) : null,
+                              onPressed: _acceptTerms ? () => _handleEmailSignUp(authProvider) : null,
                               child: const Text('Create Account', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                             ),
                           ),
@@ -305,7 +326,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                           foregroundColor: Colors.white,
                           side: const BorderSide(color: Colors.white24),
                         ),
-                        onPressed: () => _handleMockLogin(authProvider),
+                        onPressed: () => _handleGoogleLogin(authProvider),
                         icon: const Icon(Icons.g_mobiledata, size: 28, color: Color(0xffFF5722)),
                         label: const Text('Google', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
@@ -320,7 +341,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                           foregroundColor: Colors.white,
                           side: const BorderSide(color: Colors.white24),
                         ),
-                        onPressed: () => _handleMockLogin(authProvider),
+                        onPressed: () => _handleGoogleLogin(authProvider),
                         icon: const Icon(Icons.facebook, size: 20, color: Colors.blue),
                         label: const Text('Facebook', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),

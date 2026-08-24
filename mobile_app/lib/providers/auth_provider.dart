@@ -152,6 +152,71 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> signInWithEmail(String email, String password) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiService.baseUrl}/auth/signin'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        _token = data['token'];
+        _user = data['user'];
+        await ApiService.setToken(_token!);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      print('Email Sign-In Error: $e');
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
+  Future<bool> signUpWithEmail(String email, String password, String firstName, String lastName, String phone, String role) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final name = '$firstName $lastName'.trim();
+      final response = await http.post(
+        Uri.parse('${ApiService.baseUrl}/auth/signup'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+          'name': name,
+          'phone': phone,
+          'role': role.toUpperCase() == 'BOTH' ? 'USER' : 'USER'
+        }),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        _token = data['token'];
+        _user = data['user'];
+        await ApiService.setToken(_token!);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      print('Email Sign-Up Error: $e');
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
   Future<void> logout() async {
     await ApiService.clearToken();
     try {
