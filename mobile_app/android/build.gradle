@@ -17,15 +17,5 @@ tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
 
-subprojects {
-    afterEvaluate { project ->
-        if (project.hasProperty('android')) {
-            try {
-                if (project.android.compileSdkVersion == null) {
-                    project.android.compileSdkVersion = "android-35"
-                }
-            } catch (Exception e) {}
-        }
-    }
-}
+
 
