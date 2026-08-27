@@ -17,7 +17,7 @@ project(":app").afterEvaluate {
     if (!rootProject.ext.has("flutter")) {
         rootProject.ext.flutter = [:]
     }
-    rootProject.ext.flutter.compileSdkVersion = "android-35"
+    rootProject.ext.flutter.compileSdkVersion = 35
     rootProject.ext.flutter.minSdkVersion = 23
     rootProject.ext.flutter.targetSdkVersion = 35
 }
