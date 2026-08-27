@@ -18,10 +18,10 @@ dependencies:
   shared_preferences: ^2.2.2
   google_sign_in: ^6.2.2
   intl: ^0.19.0
-  image_picker: ^1.1.2
-  shimmer: ^3.0.0
-  flutter_secure_storage: ^11.0.0
-  flutter_cache_manager: ^3.4.2
+  image_picker: any
+  shimmer: any
+  flutter_secure_storage: any
+  flutter_cache_manager: any
   app_links: any
   firebase_core: any
   firebase_messaging: any
