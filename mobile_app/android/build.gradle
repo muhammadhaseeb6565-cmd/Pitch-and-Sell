@@ -9,19 +9,22 @@ rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
+
+// Register our polyfill FIRST so it runs before flutter.groovy's afterEvaluate
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty("android")) {
+            project.android {
+                compileSdkVersion "android-35"
+            }
+        }
+    }
+}
+
 subprojects {
     project.evaluationDependsOn(":app")
 }
 
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
-}
-
-subprojects {
-    project.plugins.withId("com.android.library") {
-        project.android {
-            compileSdk = 35
-        }
-        project.android.metaClass.getCompileSdkVersion = { -> "android-35" }
-    }
 }
