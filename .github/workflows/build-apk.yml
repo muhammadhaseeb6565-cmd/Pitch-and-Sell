@@ -23,9 +23,14 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: '3.24.5'
           channel: 'stable'
           cache: true
+
+      - name: Delete stale generated plugin files
+        run: |
+          rm -f mobile_app/.flutter-plugins
+          rm -f mobile_app/.flutter-plugins-dependencies
 
       - name: Get dependencies
         run: |
@@ -36,12 +41,15 @@ jobs:
       - name: Generate debug keystore
         run: |
           mkdir -p ~/.android
-          keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "C=US, O=Android, CN=Android Debug"
+          keytool -genkey -v -keystore ~/.android/debug.keystore \
+            -storepass android -alias androiddebugkey -keypass android \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "C=US, O=Android, CN=Android Debug"
 
       - name: Build APK
         run: |
           cd mobile_app
-          flutter build apk --release -v
+          flutter build apk --release --no-shrink -v
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
