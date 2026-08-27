@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -10,22 +10,20 @@ class ApiService {
     return 'https://pitch-and-sell-backend.onrender.com/api';
   }
   static String? _token;
+  static const _storage = FlutterSecureStorage();
 
   static Future<void> init() async {
-    final prefs = await SharedPreferences.getInstance();
-    _token = prefs.getString('auth_token');
+    _token = await _storage.read(key: 'auth_token');
   }
 
   static Future<void> setToken(String token) async {
     _token = token;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', token);
+    await _storage.write(key: 'auth_token', value: token);
   }
 
   static Future<void> clearToken() async {
     _token = null;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
+    await _storage.delete(key: 'auth_token');
   }
 
   static Map<String, String> get _headers {

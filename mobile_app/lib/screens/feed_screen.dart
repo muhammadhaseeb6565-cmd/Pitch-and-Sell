@@ -14,6 +14,8 @@ import 'explore_screen.dart';
 import 'cart_screen.dart';
 import 'notifications_screen.dart';
 import '../providers/cart_provider.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class FeedScreen extends StatefulWidget {
   final bool isVisible;
@@ -118,7 +120,11 @@ class _FeedScreenState extends State<FeedScreen> {
         children: [
           // Video Feed PageView
           _isLoading 
-              ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
+              ? Shimmer.fromColors(
+                  baseColor: const Color(0xff1e1e1e),
+                  highlightColor: const Color(0xff2a2a2a),
+                  child: Container(color: Colors.black),
+                )
               : _products.isEmpty
                   ? const Center(child: Text('No videos uploaded yet.', style: TextStyle(color: Colors.white)))
                   : PageView.builder(
@@ -362,13 +368,40 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     super.initState();
     final video = widget.productData['video'];
     if (video != null && video['url'] != null) {
-      _controller = VideoPlayerController.networkUrl(Uri.parse(video['url']))
-        ..initialize().then((_) {
-          setState(() {});
-          _controller?.play();
-          _controller?.setLooping(true);
-        });
+      _initVideoPlayer(video['url']);
       _likesCount = video['likesCount'] ?? 0;
+    }
+  }
+
+  Future<void> _initVideoPlayer(String url) async {
+    try {
+      final fileInfo = await DefaultCacheManager().getFileFromCache(url);
+      if (fileInfo != null) {
+        _controller = VideoPlayerController.file(fileInfo.file);
+      } else {
+        final file = await DefaultCacheManager().getSingleFile(url);
+        _controller = VideoPlayerController.file(file);
+      }
+      
+      await _controller!.initialize();
+      if (mounted) {
+        setState(() {});
+        if (widget.isVisible) {
+          _controller?.play();
+        }
+        _controller?.setLooping(true);
+      }
+    } catch (e) {
+      print('Video caching error: $e. Falling back to network stream.');
+      _controller = VideoPlayerController.networkUrl(Uri.parse(url));
+      await _controller!.initialize();
+      if (mounted) {
+        setState(() {});
+        if (widget.isVisible) {
+          _controller?.play();
+        }
+        _controller?.setLooping(true);
+      }
     }
   }
 

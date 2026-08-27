@@ -3,6 +3,11 @@ import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import morgan from 'morgan';
+import { logger } from './utils/logger';
+import { errorHandler } from './middleware/error.middleware';
 
 dotenv.config();
 
@@ -15,10 +20,23 @@ const io = new Server(server, {
   },
 });
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  message: 'Too many requests from this IP, please try again after 15 minutes',
+  standardHeaders: true, 
+  legacyHeaders: false, 
+});
+
 // Middleware
+app.use(helmet()); // Security headers
+app.use('/api', limiter); // Rate limiting on all API routes
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(morgan('dev', {
+  stream: { write: (message) => logger.info(message.trim()) }
+}));
 
 // Import API Routers
 import authRoutes from './routes/auth.routes';
@@ -68,17 +86,11 @@ io.on('connection', (socket) => {
 });
 
 // Error handling middleware
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({
-    error: 'Internal Server Error',
-    message: err.message,
-  });
-});
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`[Pitch and Sell Backend] Server is running on port ${PORT}`);
+  logger.info(`[Pitch and Sell Backend] Server is running on port ${PORT}`);
 });
 
 export { app, server, io };

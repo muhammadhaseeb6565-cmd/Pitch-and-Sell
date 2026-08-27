@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import 'pitch_generator_screen.dart';
 import '../main.dart';
+import 'package:shimmer/shimmer.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -582,7 +583,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
+          ? Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Shimmer.fromColors(
+                baseColor: const Color(0xff1e1e1e),
+                highlightColor: const Color(0xff2a2a2a),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(height: 180, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(16))),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(child: Container(height: 80, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(12)))),
+                        const SizedBox(width: 16),
+                        Expanded(child: Container(height: 80, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(12)))),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(child: Container(height: 80, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(12)))),
+                        const SizedBox(width: 16),
+                        Expanded(child: Container(height: 80, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(12)))),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+            )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
