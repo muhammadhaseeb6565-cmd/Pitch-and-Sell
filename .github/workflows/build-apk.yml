@@ -46,10 +46,18 @@ jobs:
             -keyalg RSA -keysize 2048 -validity 10000 \
             -dname "C=US, O=Android, CN=Android Debug"
 
+      - name: Clean Gradle cache
+        run: |
+          cd mobile_app/android
+          ./gradlew clean --no-daemon
+
       - name: Build APK
         run: |
           cd mobile_app
           flutter build apk --release --no-shrink -v
+        env:
+          ORG_GRADLE_PROJECT_org_gradle_java_installations_auto_detect: false
+          ORG_GRADLE_PROJECT_org_gradle_java_installations_fromEnv: JAVA_HOME
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
