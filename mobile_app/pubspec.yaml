@@ -22,7 +22,7 @@ dependencies:
   shimmer: ^3.0.0
   flutter_secure_storage: ^11.0.0
   flutter_cache_manager: ^3.4.2
-  app_links: ^7.2.1
+  app_links: any
   firebase_core: any
   firebase_messaging: any
   firebase_analytics: any
