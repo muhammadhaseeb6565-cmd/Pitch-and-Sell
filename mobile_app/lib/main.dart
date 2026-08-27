@@ -62,7 +62,7 @@ class _PitchAndSellAppState extends State<PitchAndSellApp> {
     
     // Check initial link if app was closed
     try {
-      final initialUri = await _appLinks.getInitialAppLink();
+      final initialUri = await _appLinks.getInitialLink();
       if (initialUri != null) {
         _handleDeepLink(initialUri);
       }

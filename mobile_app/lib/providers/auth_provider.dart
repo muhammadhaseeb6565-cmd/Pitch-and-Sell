@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../services/api_service.dart';
@@ -9,6 +10,7 @@ enum UserMode { customer, seller }
 
 class AuthProvider with ChangeNotifier {
   Map<String, dynamic>? _user;
+  String? _token;
   bool _isAuthenticated = false;
   UserMode _currentMode = UserMode.customer;
   bool _isLoading = false;
