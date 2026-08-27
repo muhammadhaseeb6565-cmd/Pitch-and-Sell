@@ -10,15 +10,16 @@ subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
 
-// Register our polyfill FIRST so it runs before flutter.groovy's afterEvaluate
-subprojects {
-    afterEvaluate { project ->
-        if (project.hasProperty("android")) {
-            project.android {
-                compileSdkVersion "android-35"
-            }
-        }
+// This hook runs exactly after :app finishes evaluating, but BEFORE :app_links evaluates.
+// It ensures the 'flutter' property exists globally and uses a String for compileSdkVersion
+// so that flutter.groovy's substring(8) doesn't crash on older plugins.
+project(":app").afterEvaluate {
+    if (!rootProject.ext.has("flutter")) {
+        rootProject.ext.flutter = [:]
     }
+    rootProject.ext.flutter.compileSdkVersion = "android-35"
+    rootProject.ext.flutter.minSdkVersion = 23
+    rootProject.ext.flutter.targetSdkVersion = 35
 }
 
 subprojects {
