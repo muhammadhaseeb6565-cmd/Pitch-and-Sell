@@ -34,13 +34,10 @@ jobs:
           flutter clean
           flutter pub get
 
-      - name: Generate debug keystore
+      - name: Setup permanent debug keystore
         run: |
           mkdir -p ~/.android
-          keytool -genkey -v -keystore ~/.android/debug.keystore \
-            -storepass android -alias androiddebugkey -keypass android \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -dname "C=US, O=Android, CN=Android Debug"
+          cp mobile_app/android/app/debug.keystore ~/.android/debug.keystore
 
       - name: Build APK
         run: |
