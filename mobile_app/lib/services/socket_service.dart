@@ -1,53 +1,62 @@
-﻿import 'package:socket_io_client/socket_io_client.dart' as IO;
+﻿import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SocketService {
-  static IO.Socket? _socket;
+  static final _supabase = Supabase.instance.client;
+  static RealtimeChannel? _channel;
+  static Function(dynamic)? _onMessageCallback;
 
   static void connect(String userId) {
-    // Wrapped in try-catch — socket server being offline must never crash auth
-    try {
-      if (_socket != null && _socket!.connected) return;
-      _socket = IO.io(
-        'https://pitch-and-sell-backend.onrender.com',
-        IO.OptionBuilder()
-          .setTransports(['websocket'])
-          .disableAutoConnect()
-          .setTimeout(3000)
-          .build(),
-      );
-      _socket!.connect();
-      _socket!.onConnect((_) => print('Socket connected'));
-      _socket!.onConnectError((e) => print('Socket connect error: $e'));
-      _socket!.onDisconnect((_) => print('Socket disconnected'));
-    } catch (e) {
-      print('SocketService.connect error: $e');
-    }
+    // Supabase handles persistent connection automatically
   }
 
   static void joinChat(String chatId) {
-    try { _socket?.emit('join_chat', chatId); } catch (_) {}
+    disconnect(); // leave previous channel if any
+    
+    _channel = _supabase.channel('public:messages:chat_id=eq.$chatId');
+    _channel!.onPostgresChanges(
+      event: PostgresChangeEvent.insert,
+      schema: 'public',
+      table: 'messages',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'chat_id',
+        value: chatId,
+      ),
+      callback: (payload) {
+        if (_onMessageCallback != null) {
+          // Send it in the format the UI expects: { 'senderId': '...', 'content': '...' }
+          final record = payload.newRecord;
+          _onMessageCallback!({
+            'senderId': record['sender_id'],
+            'content': record['content'],
+            'createdAt': record['created_at'],
+          });
+        }
+      },
+    ).subscribe();
   }
 
-  static void sendMessage(String chatId, String senderId, String content) {
+  static void sendMessage(String chatId, String senderId, String content) async {
     try {
-      _socket?.emit('send_message', {
-        'chatId': chatId,
-        'senderId': senderId,
+      // In Supabase, inserting into the table automatically broadcasts via Realtime
+      await _supabase.from('messages').insert({
+        'chat_id': chatId,
+        'sender_id': senderId,
         'content': content,
       });
-    } catch (_) {}
+    } catch (e) {
+      print('Supabase send message error: $e');
+    }
   }
 
   static void onReceiveMessage(Function(dynamic) callback) {
-    try {
-      _socket?.on('receive_message', (data) => callback(data));
-    } catch (_) {}
+    _onMessageCallback = callback;
   }
 
   static void disconnect() {
-    try {
-      _socket?.disconnect();
-      _socket = null;
-    } catch (_) {}
+    if (_channel != null) {
+      _supabase.removeChannel(_channel!);
+      _channel = null;
+    }
   }
 }
