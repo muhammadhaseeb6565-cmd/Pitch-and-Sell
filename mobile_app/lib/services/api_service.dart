@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -19,11 +19,11 @@ class ApiService {
   // Products & Feed API
   static Future<http.Response> getFeed({String? category, String? search}) async {
     try {
-      var query = _supabase.from('products').select('*, profiles:seller_id(*)').order('created_at', ascending: false);
+      var query = _supabase.from('products').select('*, profiles:seller_id(*)');
       if (category != null && category != 'All') query = query.eq('category', category);
       if (search != null && search.isNotEmpty) query = query.ilike('name', '%$search%');
       
-      final data = await query;
+      final data = await query.order('created_at', ascending: false);
       final productsList = data.map((item) {
         return {
           'id': item['id'],
