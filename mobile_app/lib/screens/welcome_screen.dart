@@ -333,42 +333,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
               const SizedBox(height: 24),
 
               // OAuth Social Connects
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 48,
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: const BorderSide(color: Colors.white24),
-                        ),
-                        onPressed: () => _handleGoogleLogin(authProvider),
-                        icon: const Icon(Icons.g_mobiledata, size: 28, color: Color(0xffFF5722)),
-                        label: const Text('Google', style: TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-                    ),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.white24),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: SizedBox(
-                      height: 48,
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: const BorderSide(color: Colors.white24),
-                        ),
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Facebook Sign-In coming soon!')),
-                          );
-                        },
-                        icon: const Icon(Icons.facebook, size: 20, color: Colors.blue),
-                        label: const Text('Facebook', style: TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                  ),
-                ],
+                  onPressed: () => _handleGoogleLogin(authProvider),
+                  icon: const Icon(Icons.g_mobiledata, size: 28, color: Color(0xffFF5722)),
+                  label: const Text('Continue with Google', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
               ),
             ],
           ),
