@@ -66,6 +66,7 @@ class AuthProvider with ChangeNotifier {
         email: email.trim(),
         password: password,
         data: {'full_name': fullName, 'phone': phone, 'role': role},
+        emailRedirectTo: 'io.supabase.pitchandsell://login-callback/',
       );
       if (res.user != null) {
         if (res.session == null) {
