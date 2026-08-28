@@ -5,6 +5,7 @@ import 'package:app_links/app_links.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
@@ -12,7 +13,15 @@ import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  // =========================================================================
+  // SUPABASE INITIALIZATION
+  // =========================================================================
+  await Supabase.initialize(
+    url: 'https://tqntacunedilwtofqycw.supabase.co',
+    anonKey: 'sb_publishable_9RpsACXX7JkIAQ_egsLJcA_5IWRfUcZ',
+  );
+
   // =========================================================================
   // FIREBASE INITIALIZATION 
   // =========================================================================
@@ -39,6 +48,7 @@ void main() async {
     ),
   );
 }
+
 
 class PitchAndSellApp extends StatefulWidget {
   const PitchAndSellApp({super.key});

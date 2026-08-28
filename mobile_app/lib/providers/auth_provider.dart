@@ -1,20 +1,20 @@
-import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import '../services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../services/socket_service.dart';
 
 enum UserMode { customer, seller }
 
 class AuthProvider with ChangeNotifier {
   Map<String, dynamic>? _user;
-  String? _token;
   bool _isAuthenticated = false;
   UserMode _currentMode = UserMode.customer;
   bool _isLoading = false;
   bool _isDarkMode = true;
+
+  SupabaseClient get _supabase => Supabase.instance.client;
 
   Map<String, dynamic>? get user => _user;
   bool get isAuthenticated => _isAuthenticated;
@@ -28,124 +28,178 @@ class AuthProvider with ChangeNotifier {
   }
 
   bool get hasBusinessProfile => _user != null && _user!['businessProfile'] != null;
+  String? get businessStatus => hasBusinessProfile ? _user!['businessProfile']['status'] : null;
 
-  String? get businessStatus => hasBusinessProfile 
-      ? _user!['businessProfile']['status'] 
-      : null;
-
-  Future<bool> loginGoogle() async {
+  // Sign In with Email
+  Future<bool> signInWithEmail(String email, String password) async {
     _isLoading = true;
     notifyListeners();
-
     try {
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        serverClientId: '771454392765-jb01guktvorvh6pcktr5s2ntcann92f6.apps.googleusercontent.com',
+      final AuthResponse res = await _supabase.auth.signInWithPassword(
+        email: email.trim(),
+        password: password,
       );
-      
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-      if (googleUser == null) {
-        // User canceled the sign-in flow
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
-
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final idToken = googleAuth.idToken;
-
-      // Send idToken to the real backend
-      final response = await ApiService.googleSignInReal(idToken, googleUser.email, googleUser.displayName, googleUser.photoUrl).timeout(const Duration(seconds: 5));
-      
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        await ApiService.setToken(data['token']);
-        _user = data['user'];
-        _isAuthenticated = true;
-        
-        try {
-          SocketService.connect(_user!['id']);
-        } catch (_) {}
-        
+      if (res.user != null) {
+        _setUserFromSupabase(res.user!);
         await _saveSessionLocally();
         _isLoading = false;
         notifyListeners();
         return true;
-      } else {
-        print('Backend rejected Google Sign-In: \${response.body}');
       }
+    } on AuthException catch (e) {
+      debugPrint('Supabase Sign-In Error: ${e.message}');
     } catch (e) {
-      print('Real Google Auth API Failed: $e');
+      debugPrint('Sign-In Error: $e');
     }
-
     _isLoading = false;
     notifyListeners();
     return false;
   }
 
+  // Sign Up with Email
+  Future<bool> signUpWithEmail(String email, String password, String firstName, String lastName, String phone, String role) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final fullName = '$firstName $lastName'.trim();
+      final AuthResponse res = await _supabase.auth.signUp(
+        email: email.trim(),
+        password: password,
+        data: {'full_name': fullName, 'phone': phone, 'role': role},
+      );
+      if (res.user != null) {
+        _setUserFromSupabase(res.user!);
+        await _saveSessionLocally();
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+    } on AuthException catch (e) {
+      debugPrint('Supabase Sign-Up Error: ${e.message}');
+    } catch (e) {
+      debugPrint('Sign-Up Error: $e');
+    }
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
+  // Google Sign In
+  Future<bool> loginGoogle() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        serverClientId: '771454392765-jb01guktvorvh6pcktr5s2ntcann92f6.apps.googleusercontent.com',
+      );
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      if (googleAuth.idToken == null) {
+        debugPrint('Google idToken is null');
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+      final AuthResponse res = await _supabase.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: googleAuth.idToken!,
+        accessToken: googleAuth.accessToken,
+      );
+      if (res.user != null) {
+        _setUserFromSupabase(res.user!);
+        await _saveSessionLocally();
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+    } on AuthException catch (e) {
+      debugPrint('Supabase Google Error: ${e.message}');
+    } catch (e) {
+      debugPrint('Google Sign-In Error: $e');
+    }
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
+  // Check session on app start
+  Future<void> checkSession() async {
+    try {
+      final Session? session = _supabase.auth.currentSession;
+      if (session != null && !session.isExpired) {
+        final User? su = _supabase.auth.currentUser;
+        if (su != null) {
+          _setUserFromSupabase(su);
+          await _saveSessionLocally();
+          notifyListeners();
+          return;
+        }
+      }
+      // Try refresh
+      try {
+        final AuthResponse res = await _supabase.auth.refreshSession();
+        if (res.user != null) {
+          _setUserFromSupabase(res.user!);
+          await _saveSessionLocally();
+          notifyListeners();
+          return;
+        }
+      } catch (_) {}
+      // Fallback to local cache
+      final prefs = await SharedPreferences.getInstance();
+      final userData = prefs.getString('user_data');
+      if (userData != null) {
+        _user = jsonDecode(userData);
+        _isAuthenticated = true;
+      }
+    } catch (e) {
+      debugPrint('Session check error: $e');
+    }
+    notifyListeners();
+  }
+
+  // Logout
+  Future<void> logout() async {
+    try { await _supabase.auth.signOut(); } catch (_) {}
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_data');
+    } catch (_) {}
+    try { SocketService.disconnect(); } catch (_) {}
+    _user = null;
+    _isAuthenticated = false;
+    _currentMode = UserMode.customer;
+    notifyListeners();
+  }
+
+  // Internal helpers
+  void _setUserFromSupabase(User supabaseUser) {
+    final meta = supabaseUser.userMetadata ?? {};
+    _user = {
+      'id': supabaseUser.id,
+      'email': supabaseUser.email,
+      'name': meta['full_name'] ?? meta['name'] ?? (supabaseUser.email?.split('@').first ?? 'User'),
+      'avatar': meta['avatar_url'] ?? meta['picture'],
+      'phone': supabaseUser.phone ?? meta['phone'],
+      'role': meta['role'] ?? 'user',
+      'businessProfile': meta['businessProfile'],
+    };
+    _isAuthenticated = true;
+    try { SocketService.connect(_user!['id']); } catch (_) {}
+  }
+
   Future<void> _saveSessionLocally() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      if (_user != null) {
-        await prefs.setString('user_data', jsonEncode(_user));
-      }
-    } catch (e) {
-      print('Error saving session locally: $e');
-    }
+      if (_user != null) await prefs.setString('user_data', jsonEncode(_user));
+    } catch (_) {}
   }
 
-  Future<void> checkSession() async {
-    await ApiService.init();
-    try {
-      final response = await ApiService.getMe().timeout(const Duration(seconds: 2));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        _user = data['user'];
-        _isAuthenticated = true;
-        await _saveSessionLocally();
-        SocketService.connect(_user!['id']);
-      }
-    } catch (e) {
-      print('Session check failed via API: $e. Checking local storage...');
-      // Fallback to local shared preferences
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        final userData = prefs.getString('user_data');
-        if (userData != null) {
-          _user = jsonDecode(userData);
-          _isAuthenticated = true;
-          // Optionally connect socket if it makes sense offline
-        }
-      } catch (err) {
-        print('Local session restore failed: $err');
-      }
-    }
-    notifyListeners();
-  }
-
-  void toggleUserMode() {
-    if (_currentMode == UserMode.customer) {
-      _currentMode = UserMode.seller;
-    } else {
-      _currentMode = UserMode.customer;
-    }
-    notifyListeners();
-  }
-
-  Future<void> reloadUserProfile() async {
-    try {
-      final response = await ApiService.getMe();
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        _user = data['user'];
-        await _saveSessionLocally();
-        notifyListeners();
-      }
-    } catch (e) {
-      print('Profile refresh failed: $e');
-    }
-  }
-
-  // Allow updating user fields like avatar locally without hitting the server
   Future<void> updateUserLocalField(String key, dynamic value) async {
     if (_user != null) {
       _user![key] = value;
@@ -154,81 +208,17 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> signInWithEmail(String email, String password) async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      final response = await http.post(
-        Uri.parse('${ApiService.baseUrl}/auth/signin'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password}),
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        _token = data['token'];
-        _user = data['user'];
-        await ApiService.setToken(_token!);
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      }
-    } catch (e) {
-      print('Email Sign-In Error: $e');
+  Future<void> reloadUserProfile() async {
+    final su = _supabase.auth.currentUser;
+    if (su != null) {
+      _setUserFromSupabase(su);
+      await _saveSessionLocally();
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
-    return false;
   }
 
-  Future<bool> signUpWithEmail(String email, String password, String firstName, String lastName, String phone, String role) async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      final name = '$firstName $lastName'.trim();
-      final response = await http.post(
-        Uri.parse('${ApiService.baseUrl}/auth/signup'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-          'name': name,
-          'phone': phone,
-          'role': role.toUpperCase() == 'BOTH' ? 'USER' : 'USER'
-        }),
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        _token = data['token'];
-        _user = data['user'];
-        await ApiService.setToken(_token!);
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      }
-    } catch (e) {
-      print('Email Sign-Up Error: $e');
-    }
-
-    _isLoading = false;
-    notifyListeners();
-    return false;
-  }
-
-  Future<void> logout() async {
-    await ApiService.clearToken();
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('user_data');
-    } catch (e) {}
-    SocketService.disconnect();
-    _user = null;
-    _isAuthenticated = false;
-    _currentMode = UserMode.customer;
+  void toggleUserMode() {
+    _currentMode = _currentMode == UserMode.customer ? UserMode.seller : UserMode.customer;
     notifyListeners();
   }
 }
