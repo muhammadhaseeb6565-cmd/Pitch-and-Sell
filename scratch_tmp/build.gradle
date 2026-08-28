@@ -1,0 +1,10 @@
+
+plugins { id 'java' }
+task testMeta {
+    doLast {
+        project.ext.foo = 'bar'
+        project.metaClass.getFoo = { -> 'meta-bar' }
+        println project.foo
+    }
+}
+

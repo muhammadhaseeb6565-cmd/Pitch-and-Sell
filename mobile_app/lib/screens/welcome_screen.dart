@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../providers/auth_provider.dart';
 import 'main_navigation_screen.dart';
 
@@ -192,10 +193,26 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Password reset link sent to your email address!')),
-                                );
+                              onPressed: () async {
+                                final email = _signInEmailController.text.trim();
+                                if (email.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Enter your email above first')),
+                                  );
+                                  return;
+                                }
+                                try {
+                                  await Supabase.instance.client.auth.resetPasswordForEmail(email);
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Password reset link sent to your email!')),
+                                    );
+                                  }
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Error: $e')),
+                                  );
+                                }
                               },
                               child: const Text('Forgot Password?', style: TextStyle(color: Color(0xffFF5722), fontSize: 12)),
                             ),
@@ -341,7 +358,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                           foregroundColor: Colors.white,
                           side: const BorderSide(color: Colors.white24),
                         ),
-                        onPressed: () => _handleGoogleLogin(authProvider),
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Facebook Sign-In coming soon!')),
+                          );
+                        },
                         icon: const Icon(Icons.facebook, size: 20, color: Colors.blue),
                         label: const Text('Facebook', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),

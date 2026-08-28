@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -27,10 +28,14 @@ class ApiService {
   }
 
   static Map<String, String> get _headers {
-    final headers = {
+    final headers = <String, String>{
       'Content-Type': 'application/json',
     };
-    if (_token != null) {
+    // Use Supabase session token (takes priority over legacy stored token)
+    final session = Supabase.instance.client.auth.currentSession;
+    if (session != null) {
+      headers['Authorization'] = 'Bearer ${session.accessToken}';
+    } else if (_token != null) {
       headers['Authorization'] = 'Bearer $_token';
     }
     return headers;
@@ -260,3 +265,4 @@ class ApiService {
     );
   }
 }
+
