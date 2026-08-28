@@ -281,14 +281,14 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                           // 1. Update personal details locally
                           await auth.updateUserLocalField('name', nameController.text);
                           if (localImagePath != null) {
-                            await auth.updateUserLocalField('avatarUrl', localImagePath);
+                            await auth.updateUserLocalField('avatar', localImagePath);
                           }
                           
                           // Mock backend call (fails gracefully if backend offline)
                           try {
                             await ApiService.updateProfile({
                               'name': nameController.text,
-                              'avatarUrl': localImagePath ?? auth.user?['avatarUrl'],
+                              'avatarUrl': localImagePath ?? auth.user?['avatar'],
                             }).timeout(const Duration(seconds: 2));
                           } catch (_) {}
 
@@ -428,12 +428,12 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   CircleAvatar(
                     radius: 46,
                     backgroundColor: const Color(0xffFF5722).withOpacity(0.1),
-                    backgroundImage: user['avatarUrl'] != null && user['avatarUrl'].toString().isNotEmpty
-                        ? (user['avatarUrl'].toString().startsWith('http') 
-                            ? NetworkImage(user['avatarUrl']) as ImageProvider
-                            : FileImage(File(user['avatarUrl'])))
+                    backgroundImage: user['avatar'] != null && user['avatar'].toString().isNotEmpty
+                        ? (user['avatar'].toString().startsWith('http')
+                            ? NetworkImage(user['avatar']) as ImageProvider
+                            : FileImage(File(user['avatar'])))
                         : null,
-                    child: user['avatarUrl'] != null && user['avatarUrl'].toString().isNotEmpty
+                    child: user['avatar'] != null && user['avatar'].toString().isNotEmpty
                         ? null
                         : const Icon(Icons.person, size: 46, color: Color(0xffFF5722)),
                   ),
