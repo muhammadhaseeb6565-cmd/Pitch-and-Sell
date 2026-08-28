@@ -66,11 +66,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter email and password')));
       return;
     }
-    final success = await auth.signInWithEmail(_signInEmailController.text, _signInPasswordController.text);
-    if (success && mounted) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigationScreen()));
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sign-In failed. Check credentials.', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+    try {
+      final success = await auth.signInWithEmail(_signInEmailController.text, _signInPasswordController.text);
+      if (success && mounted) {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigationScreen()));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(e.toString().replaceAll('Exception:', '').trim(), style: const TextStyle(color: Colors.white)), 
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ));
+      }
     }
   }
 
@@ -79,30 +87,46 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all required fields')));
       return;
     }
-    final success = await auth.signUpWithEmail(
-      _signUpEmailController.text,
-      _signUpPasswordController.text,
-      _signUpFirstNameController.text,
-      _signUpLastNameController.text,
-      _signUpPhoneController.text,
-      _selectedRole
-    );
-    if (success && mounted) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigationScreen()));
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sign-Up failed. Email may already exist.', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+    try {
+      final success = await auth.signUpWithEmail(
+        _signUpEmailController.text,
+        _signUpPasswordController.text,
+        _signUpFirstNameController.text,
+        _signUpLastNameController.text,
+        _signUpPhoneController.text,
+        _selectedRole
+      );
+      if (success && mounted) {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigationScreen()));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(e.toString().replaceAll('Exception:', '').trim(), style: const TextStyle(color: Colors.white)), 
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ));
+      }
     }
   }
 
   void _handleGoogleLogin(AuthProvider auth) async {
-    final success = await auth.loginGoogle();
-    if (success && mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-      );
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Google Sign-In failed or was canceled', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+    try {
+      final success = await auth.loginGoogle();
+      if (success && mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(e.toString().replaceAll('Exception:', '').trim(), style: const TextStyle(color: Colors.white)), 
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ));
+      }
     }
   }
 

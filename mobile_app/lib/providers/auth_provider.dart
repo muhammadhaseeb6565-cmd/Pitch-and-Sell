@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -46,10 +46,10 @@ class AuthProvider with ChangeNotifier {
         notifyListeners();
         return true;
       }
-    } on AuthException catch (e) {
-      debugPrint('Supabase Sign-In Error: ${e.message}');
     } catch (e) {
-      debugPrint('Sign-In Error: $e');
+      _isLoading = false;
+      notifyListeners();
+      rethrow;
     }
     _isLoading = false;
     notifyListeners();
@@ -68,16 +68,19 @@ class AuthProvider with ChangeNotifier {
         data: {'full_name': fullName, 'phone': phone, 'role': role},
       );
       if (res.user != null) {
+        if (res.session == null) {
+          throw Exception("Please check your email to confirm your account!");
+        }
         _setUserFromSupabase(res.user!);
         await _saveSessionLocally();
         _isLoading = false;
         notifyListeners();
         return true;
       }
-    } on AuthException catch (e) {
-      debugPrint('Supabase Sign-Up Error: ${e.message}');
     } catch (e) {
-      debugPrint('Sign-Up Error: $e');
+      _isLoading = false;
+      notifyListeners();
+      rethrow;
     }
     _isLoading = false;
     notifyListeners();
@@ -100,10 +103,7 @@ class AuthProvider with ChangeNotifier {
       }
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       if (googleAuth.idToken == null) {
-        debugPrint('Google idToken is null');
-        _isLoading = false;
-        notifyListeners();
-        return false;
+        throw Exception("Google Sign-In failed: Missing ID Token. Check SHA-1 configuration.");
       }
       final AuthResponse res = await _supabase.auth.signInWithIdToken(
         provider: OAuthProvider.google,
@@ -117,10 +117,10 @@ class AuthProvider with ChangeNotifier {
         notifyListeners();
         return true;
       }
-    } on AuthException catch (e) {
-      debugPrint('Supabase Google Error: ${e.message}');
     } catch (e) {
-      debugPrint('Google Sign-In Error: $e');
+      _isLoading = false;
+      notifyListeners();
+      rethrow;
     }
     _isLoading = false;
     notifyListeners();
