@@ -20,6 +20,7 @@ class SellerProfileScreen extends StatefulWidget {
 class _SellerProfileScreenState extends State<SellerProfileScreen> {
   bool _isLoading = true;
   List<dynamic> _products = [];
+  int _completedOrders = 0;
 
   @override
   void initState() {
@@ -34,10 +35,24 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           .select('*, profiles:seller_id(*)')
           .eq('seller_id', widget.sellerId)
           .order('created_at', ascending: false);
+          
+      // Fetch completed orders count for badges
+      int count = 0;
+      try {
+        final ordersRes = await Supabase.instance.client
+            .from('orders')
+            .select('id')
+            .eq('seller_id', widget.sellerId)
+            .eq('status', 'completed');
+        count = ordersRes.length;
+      } catch (e) {
+        debugPrint('Error counting orders: $e');
+      }
       
       if (mounted) {
         setState(() {
           _products = res;
+          _completedOrders = count;
           _isLoading = false;
         });
       }
@@ -92,6 +107,42 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     }
   }
 
+  Widget _buildTierBadge() {
+    if (_completedOrders >= 500) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.verified, color: Colors.blue, size: 18),
+          const SizedBox(width: 4),
+          const Text('Top Rated Seller', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 13)),
+        ],
+      );
+    } else if (_completedOrders >= 400) {
+      return _badgeUI('Diamond Seller 💎', Colors.cyanAccent);
+    } else if (_completedOrders >= 200) {
+      return _badgeUI('Platinum Seller', Colors.tealAccent);
+    } else if (_completedOrders >= 50) {
+      return _badgeUI('Gold Seller 🏆', Colors.amber);
+    } else if (_completedOrders >= 10) {
+      return _badgeUI('Silver Seller 🥈', Colors.grey[400]!);
+    } else if (_completedOrders >= 5) {
+      return _badgeUI('Bronze Seller 🥉', Colors.brown[300]!);
+    }
+    return const Text('New Seller 🌱', style: TextStyle(color: Colors.grey, fontSize: 13));
+  }
+
+  Widget _badgeUI(String text, Color color) {
+     return Container(
+       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+       decoration: BoxDecoration(
+         color: color.withOpacity(0.15),
+         borderRadius: BorderRadius.circular(8),
+         border: Border.all(color: color.withOpacity(0.5)),
+       ),
+       child: Text(text, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+     );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -125,11 +176,8 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   widget.businessName,
                   style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Verified Business Seller',
-                  style: TextStyle(color: Colors.green, fontSize: 14),
-                ),
+                const SizedBox(height: 12),
+                _buildTierBadge(),
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
