@@ -51,7 +51,7 @@ class _PitchGeneratorScreenState extends State<PitchGeneratorScreen> {
         setState(() => _isLoading = false);
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       setState(() => _isLoading = false);
     }
   }

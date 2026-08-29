@@ -1,4 +1,4 @@
-﻿import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SocketService {
   static final _supabase = Supabase.instance.client;
@@ -45,7 +45,7 @@ class SocketService {
         'content': content,
       });
     } catch (e) {
-      print('Supabase send message error: $e');
+      debugPrint('Supabase send message error: $e');
     }
   }
 

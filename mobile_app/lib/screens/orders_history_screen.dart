@@ -31,7 +31,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
         });
       }
     } catch (e) {
-      print('Orders fetch error: $e');
+      debugPrint('Orders fetch error: $e');
       setState(() => _isLoading = false);
     }
   }
@@ -292,7 +292,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                     _fetchOrders(); // reload
                   }
                 } catch (e) {
-                  print('Cancel order failed: $e');
+                  debugPrint('Cancel order failed: $e');
                 }
               },
               child: const Text('Yes, Cancel', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),

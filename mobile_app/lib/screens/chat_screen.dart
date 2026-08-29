@@ -210,7 +210,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         _scrollToBottom();
                       }
                     } catch (e) {
-                      print('Offer error: $e');
+                      debugPrint('Offer error: $e');
                     }
                   },
                   child: const Text('Send Offer Card', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -398,7 +398,7 @@ class OfferBubbleCard extends StatelessWidget {
                           );
                         }
                       } catch (e) {
-                        print(e);
+                        debugPrint(e.toString());
                       }
                     },
                     child: const Text('Accept', style: TextStyle(color: Colors.white)),

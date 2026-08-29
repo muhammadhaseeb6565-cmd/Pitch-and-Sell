@@ -66,7 +66,7 @@ class _FeedScreenState extends State<FeedScreen> {
         throw Exception('Failed to load');
       }
     } catch (e) {
-      print('Error fetching feed, falling back to mock: $e');
+      debugPrint('Error fetching feed, falling back to mock: $e');
       // Fallback for offline testing
       setState(() {
         _products = [
@@ -392,7 +392,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
         _controller?.setLooping(true);
       }
     } catch (e) {
-      print('Video caching error: $e. Falling back to network stream.');
+      debugPrint('Video caching error: $e. Falling back to network stream.');
       _controller = VideoPlayerController.networkUrl(Uri.parse(url));
       await _controller!.initialize();
       if (mounted) {
@@ -436,7 +436,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
         await ApiService.likeVideo(video['id']);
       }
     } catch (e) {
-      print('Like action error: $e');
+      debugPrint('Like action error: $e');
     }
   }
 
@@ -755,7 +755,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                             final txt = commentController.text.trim();
                             commentController.clear();
                             final res = await ApiService.addComment(videoId, txt);
-                            if (res.statusCode == 201) {
+                            if (res.statusCode == 200) {
                               setStateSheet(() {
                                 loading = true; // refresh
                               });
@@ -776,7 +776,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
   }
 
   void _handleShareProduct() {
-    final link = 'http://localhost:8080/#/product/${widget.productData['id']}';
+    final link = 'https://pitch-and-sell-backend.onrender.com/product/${widget.productData['id']}';
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Share Link Copied: $link', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),

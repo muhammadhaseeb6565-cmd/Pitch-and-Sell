@@ -46,7 +46,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
       }
     } catch (e) {
-      print('Ledger fetch error: $e');
+      debugPrint('Ledger fetch error: $e');
       setState(() => _isLoading = false);
     }
   }
@@ -166,7 +166,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         );
                       }
                     } catch (e) {
-                      print(e);
+                      debugPrint(e.toString());
                     }
                   },
                   child: const Text('Submit Payout Request', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -377,7 +377,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               );
                             }
                           } catch (e) {
-                            print('Upload error: $e');
+                            debugPrint('Upload error: $e');
                           }
                         },
                         child: const Text('Publish Pitch', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -414,7 +414,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         myProductsList = all.where((p) => p['businessId'] == businessId).toList();
       }
     } catch (e) {
-      print('Fetch products for boost error: $e');
+      debugPrint('Fetch products for boost error: $e');
     }
 
     if (mounted) Navigator.pop(context); // close loader dialog
@@ -536,7 +536,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               );
                             }
                           } catch (e) {
-                            print('Purchase boost error: $e');
+                            debugPrint('Purchase boost error: $e');
                           }
                         },
                         child: const Text('Confirm Purchase', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),

@@ -299,7 +299,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               );
                             }
                           } catch (e) {
-                            print('Upload error: $e');
+                            debugPrint('Upload error: $e');
                           }
                         },
                         child: const Text('Publish Pitch', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
