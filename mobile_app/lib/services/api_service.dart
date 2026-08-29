@@ -1,3 +1,4 @@
+import 'package:video_compress/video_compress.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
