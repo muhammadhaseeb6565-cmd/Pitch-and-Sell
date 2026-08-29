@@ -69,6 +69,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     try {
       final success = await auth.signInWithEmail(_signInEmailController.text, _signInPasswordController.text);
       if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Sign In successful! Welcome back!', style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ));
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigationScreen()));
       }
     } catch (e) {
@@ -97,6 +102,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
         _selectedRole
       );
       if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Sign Up complete! Welcome!', style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ));
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigationScreen()));
       }
     } catch (e) {
@@ -114,6 +124,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     try {
       final success = await auth.loginGoogle();
       if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Google Sign-In successful!', style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ));
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
