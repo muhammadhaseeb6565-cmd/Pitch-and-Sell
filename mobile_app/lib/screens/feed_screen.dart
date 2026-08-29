@@ -938,8 +938,11 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
               // Chat
               GestureDetector(
                 onTap: () {
+                  final myId = Supabase.instance.client.auth.currentUser?.id ?? 'guest';
+                  final sellerId = widget.productData['seller_id'] ?? widget.productData['businessId'] ?? 'unknown';
+                  
                   widget.onChatPressed(
-                    'mock-chat-room-${widget.productData['businessId']}',
+                    '${myId}_$sellerId',
                     widget.productData['business']['name'],
                   );
                 },

@@ -43,19 +43,31 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     });
 
-    // Mock initial message thread for local testing
-    _messages.addAll([
-      {
-        'senderId': 'seller-id',
-        'content': 'Hello! Welcome to our catalog. How can I help you today?',
-        'timestamp': DateTime.now().subtract(const Duration(minutes: 5)).toIso8601String(),
-      },
-      {
-        'senderId': 'buyer-id',
-        'content': 'Hi! I want to negotiate a bulk order for your product.',
-        'timestamp': DateTime.now().subtract(const Duration(minutes: 4)).toIso8601String(),
+    // Fetch existing messages from DB
+    _fetchInitialMessages();
+  }
+
+  Future<void> _fetchInitialMessages() async {
+    try {
+      final res = await Supabase.instance.client
+          .from('messages')
+          .select()
+          .eq('chat_id', widget.chatId)
+          .order('created_at', ascending: true);
+      
+      if (mounted) {
+        setState(() {
+          _messages.addAll(res.map((m) => {
+            'senderId': m['sender_id'],
+            'content': m['content'],
+            'timestamp': m['created_at'],
+          }));
+        });
+        _scrollToBottom();
       }
-    ]);
+    } catch (e) {
+      print('Error fetching messages: $e');
+    }
   }
 
   void _sendMessage() {

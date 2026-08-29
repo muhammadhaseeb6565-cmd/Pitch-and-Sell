@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'chat_screen.dart';
 import '../main.dart';
 
@@ -10,23 +11,49 @@ class MessagesListScreen extends StatefulWidget {
 }
 
 class _MessagesListScreenState extends State<MessagesListScreen> {
-  // Mock chats list matching V1 requirements
-  final List<Map<String, dynamic>> _chats = [
-    {
-      'id': 'mock-chat-room-1',
-      'title': 'Alpha Wholesale Electronics',
-      'lastMessage': 'Sure, I can send 50 units at PKR 1,500.',
-      'time': '10:45 AM',
-      'unread': true,
-    },
-    {
-      'id': 'mock-chat-room-2',
-      'title': 'Prime Hardware Suppliers',
-      'lastMessage': 'Offer Accepted. Shipping starting tomorrow.',
-      'time': 'Yesterday',
-      'unread': false,
-    },
-  ];
+  List<Map<String, dynamic>> _chats = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchInbox();
+  }
+
+  Future<void> _fetchInbox() async {
+    try {
+      final myId = Supabase.instance.client.auth.currentUser?.id;
+      if (myId == null) return;
+      
+      final res = await Supabase.instance.client
+          .from('messages')
+          .select('chat_id, content, created_at')
+          .or('chat_id.ilike.%$myId%')
+          .order('created_at', ascending: false);
+
+      final Map<String, dynamic> uniqueChats = {};
+      for (var msg in res) {
+        if (!uniqueChats.containsKey(msg['chat_id'])) {
+          uniqueChats[msg['chat_id']] = {
+            'id': msg['chat_id'],
+            'title': 'Chat: ' + msg['chat_id'].toString().split('_').last.substring(0, 8) + '...',
+            'lastMessage': msg['content'],
+            'time': 'Recent',
+            'unread': false,
+          };
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _chats = uniqueChats.values.toList().cast<Map<String, dynamic>>();
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +64,9 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
         elevation: 0,
         title: const Text('Inbox Messages', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
-      body: _chats.isEmpty
+      body: _isLoading 
+          ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
+          : _chats.isEmpty
           ? const Center(
               child: Text(
                 'No conversations started yet.',

@@ -29,6 +29,7 @@ class ApiService {
           'name': item['name'],
           'description': item['description'] ?? '',
           'price': item['price'],
+          'seller_id': item['seller_id'],
           'business': {'name': item['profiles']?['business_name'] ?? item['profiles']?['name'] ?? 'Seller'},
           'video': {
             'url': item['video_url'],
@@ -218,7 +219,21 @@ class ApiService {
 
   // Dashboard / Ledger Mocks (Need complex joins for real data, returning mock 200 for now to keep UI alive)
   static Future<http.Response> getLedger() async {
-    return http.Response(jsonEncode({'balance': 0, 'pendingPayouts': 0}), 200);
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return http.Response('Unauthorized', 401);
+      
+      final res = await _supabase.from('orders').select('total_price, status').eq('seller_id', user.id);
+      double balance = 0;
+      double pending = 0;
+      for (var o in res) {
+         if (o['status'] == 'completed' || o['status'] == 'paid') balance += (o['total_price'] as num).toDouble();
+         if (o['status'] == 'pending') pending += (o['total_price'] as num).toDouble();
+      }
+      return http.Response(jsonEncode({'balance': balance, 'pendingPayouts': pending}), 200);
+    } catch (e) {
+      return http.Response(jsonEncode({'balance': 0, 'pendingPayouts': 0}), 200);
+    }
   }
   static Future<http.Response> requestPayout(double amount, String method, String details) async {
     return http.Response('{}', 200);
