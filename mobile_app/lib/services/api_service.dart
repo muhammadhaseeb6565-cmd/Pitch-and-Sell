@@ -62,10 +62,22 @@ class ApiService {
       
       // Upload to Supabase Storage if file is provided
       if (videoPath != null && videoPath.isNotEmpty) {
-        final file = File(videoPath);
+        // Compress Video
+        final MediaInfo? mediaInfo = await VideoCompress.compressVideo(
+          videoPath,
+          quality: VideoQuality.MediumQuality,
+          deleteOrigin: false,
+          includeAudio: true,
+        );
+        
+        final file = File(mediaInfo?.file?.path ?? videoPath);
         final fileName = '${DateTime.now().millisecondsSinceEpoch}_${user.id}.mp4';
+        
         await _supabase.storage.from('videos').upload(fileName, file);
         finalUrl = _supabase.storage.from('videos').getPublicUrl(fileName);
+        
+        // Free up space by deleting the temporary compressed file
+        await VideoCompress.deleteAllCache();
       }
 
       final res = await _supabase.from('products').insert({
