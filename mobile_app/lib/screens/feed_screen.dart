@@ -137,6 +137,17 @@ class _FeedScreenState extends State<FeedScreen> {
                       scrollDirection: Axis.vertical,
                       controller: _pageController,
                       itemCount: _products.length,
+                      onPageChanged: (index) {
+                        // Pre-load the next 2 videos into cache for zero buffering
+                        for (int i = 1; i <= 2; i++) {
+                          if (index + i < _products.length) {
+                            final nextUrl = _products[index + i]['video']?['url'];
+                            if (nextUrl != null && nextUrl.startsWith('http')) {
+                              DefaultCacheManager().downloadFile(nextUrl);
+                            }
+                          }
+                        }
+                      },
                       itemBuilder: (context, index) {
                         return VideoPlayerItem(
                           productData: _products[index],
