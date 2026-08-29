@@ -273,10 +273,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                             },
                           );
 
-                          // Mock wait upload
-                          await Future.delayed(const Duration(seconds: 2));
-                          Navigator.pop(context); // pop progress dialog
-
                           try {
                             final response = await ApiService.uploadProduct(
                               name: nameController.text,
@@ -287,7 +283,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               allowDownload: allowDownload,
                               videoPath: selectedVideoFile!.path,
                             );
-                            if (response.statusCode == 201 && context.mounted) {
+                            Navigator.pop(context); // pop progress dialog
+                            if (response.statusCode == 200 && context.mounted) {
                               Navigator.pop(context); // close sheet
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(content: Text('Product and video uploaded successfully.')),

@@ -227,27 +227,49 @@ class ApiService {
       final user = _supabase.auth.currentUser;
       if (user == null) return http.Response('Unauthorized', 401);
       
-      // Get total earnings from completed orders as seller
-      final orders = await _supabase
-          .from('orders')
-          .select('total_price, status')
-          .eq('seller_id', user.id);
+      final orders = await _supabase.from('orders').select('id, total_price, status, created_at').eq('seller_id', user.id).order('created_at', ascending: false);
       
       double totalEarnings = 0;
       double pendingPayouts = 0;
+      List<Map<String, dynamic>> entries = [];
+
       for (final o in orders) {
         final amount = (o['total_price'] as num?)?.toDouble() ?? 0;
-        if (o['status'] == 'completed') totalEarnings += amount;
+        if (o['status'] == 'completed' || o['status'] == 'delivered') totalEarnings += amount;
         if (o['status'] == 'pending' || o['status'] == 'processing') pendingPayouts += amount;
+        
+        entries.add({
+          'title': 'Sale Earning (Order ${o['id'].toString().substring(0,6)})',
+          'amount': amount,
+          'isCredit': true,
+          'date': o['created_at'].toString().split('T')[0],
+        });
       }
       
+      final payouts = await _supabase.from('payouts').select('*').eq('user_id', user.id).order('created_at', ascending: false);
+      for (final p in payouts) {
+        entries.add({
+          'title': 'Payout (${p['method']})',
+          'amount': -((p['amount'] as num?)?.toDouble() ?? 0),
+          'isCredit': false,
+          'date': p['created_at'].toString().split('T')[0],
+        });
+      }
+
       return http.Response(jsonEncode({
-        'balance': totalEarnings,
-        'pendingPayouts': pendingPayouts,
-        'totalOrders': orders.length,
+        'summary': {
+          'grossSales': totalEarnings + pendingPayouts,
+          'netEarnings': totalEarnings,
+          'pendingPayouts': pendingPayouts,
+          'availableForPayout': totalEarnings,
+        },
+        'entries': entries,
       }), 200);
     } catch (e) {
-      return http.Response(jsonEncode({'balance': 0, 'pendingPayouts': 0, 'totalOrders': 0}), 200);
+      return http.Response(jsonEncode({
+        'summary': {'grossSales': 0, 'netEarnings': 0, 'pendingPayouts': 0, 'availableForPayout': 0},
+        'entries': []
+      }), 200);
     }
   }
 
@@ -271,10 +293,34 @@ class ApiService {
   }
 
   static Future<http.Response> createOffer(Map<String, dynamic> offerData) async {
-    return http.Response('{}', 200);
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return http.Response('Unauthorized', 401);
+      
+      final res = await _supabase.from('offers').insert({
+        'buyer_id': user.id,
+        'product_id': offerData['productId'],
+        'seller_id': offerData['sellerId'],
+        'offer_amount': offerData['offerAmount'],
+        'status': 'pending',
+      }).select();
+      
+      return http.Response(jsonEncode({'offer': res.first}), 200);
+    } catch (e) {
+      return http.Response(jsonEncode({'error': e.toString()}), 500);
+    }
   }
+  
   static Future<http.Response> acceptOffer(String offerId) async {
-    return http.Response('{}', 200);
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return http.Response('Unauthorized', 401);
+      
+      await _supabase.from('offers').update({'status': 'accepted'}).eq('id', offerId);
+      return http.Response('{}', 200);
+    } catch (e) {
+      return http.Response(jsonEncode({'error': e.toString()}), 500);
+    }
   }
 
   static Future<http.Response> generatePitchScript(Map<String, dynamic> body) async {
@@ -312,7 +358,21 @@ class ApiService {
   }
 
   static Future<http.Response> promoteProduct(String productId, String plan) async {
-    return http.Response('{}', 200);
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return http.Response('Unauthorized', 401);
+      
+      final res = await _supabase.from('promotions').insert({
+        'seller_id': user.id,
+        'product_id': productId,
+        'plan_name': plan,
+        'status': 'active',
+      }).select();
+      
+      return http.Response(jsonEncode({'promotion': res.first}), 200);
+    } catch (e) {
+      return http.Response(jsonEncode({'error': e.toString()}), 500);
+    }
   }
   
   // Dummy methods to satisfy imports if needed

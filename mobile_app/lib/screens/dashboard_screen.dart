@@ -153,7 +153,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         method,
                         detailsController.text,
                       );
-                      if (response.statusCode == 201 && context.mounted) {
+                      if (response.statusCode == 200 && context.mounted) {
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Payout requested successfully!')),

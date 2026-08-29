@@ -33,29 +33,57 @@ class _ChatScreenState extends State<ChatScreen> {
     SocketService.onReceiveMessage((data) {
       if (mounted) {
         setState(() {
-          _messages.add({
-            'senderId': data['senderId'],
-            'content': data['content'],
-            'timestamp': DateTime.now().toIso8601String(),
-          });
+          // Check if message already exists to avoid duplicates (since we optimistic update)
+          bool exists = _messages.any((m) => m['content'] == data['content'] && m['senderId'] == data['senderId']);
+          if (!exists) {
+            _messages.add({
+              'senderId': data['senderId'],
+              'content': data['content'],
+              'timestamp': data['createdAt'] ?? DateTime.now().toIso8601String(),
+            });
+            _scrollToBottom();
+          }
         });
-        _scrollToBottom();
       }
     });
 
-    // Mock initial message thread for local testing
-    _messages.addAll([
-      {
-        'senderId': 'seller-id',
-        'content': 'Hello! Welcome to our catalog. How can I help you today?',
-        'timestamp': DateTime.now().subtract(const Duration(minutes: 5)).toIso8601String(),
-      },
-      {
-        'senderId': 'buyer-id',
-        'content': 'Hi! I want to negotiate a bulk order for your product.',
-        'timestamp': DateTime.now().subtract(const Duration(minutes: 4)).toIso8601String(),
+    _fetchOldMessages();
+  }
+
+  Future<void> _fetchOldMessages() async {
+    try {
+      final res = await Supabase.instance.client
+          .from('messages')
+          .select('sender_id, content, created_at')
+          .eq('chat_id', widget.chatId)
+          .order('created_at', ascending: true);
+          
+      if (mounted) {
+        setState(() {
+          _messages.clear();
+          for (var row in res) {
+            _messages.add({
+              'senderId': row['sender_id'],
+              'content': row['content'],
+              'timestamp': row['created_at'],
+            });
+          }
+        });
+        _scrollToBottom();
+        
+        // Mark as read
+        final user = Supabase.instance.client.auth.currentUser;
+        if (user != null) {
+          Supabase.instance.client
+              .from('messages')
+              .update({'is_read': true})
+              .eq('chat_id', widget.chatId)
+              .neq('sender_id', user.id);
+        }
       }
-    ]);
+    } catch (e) {
+      debugPrint('Error fetching old messages: $e');
+    }
   }
 
   void _sendMessage() {
