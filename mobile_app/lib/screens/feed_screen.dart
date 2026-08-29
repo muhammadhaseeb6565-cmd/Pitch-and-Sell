@@ -715,13 +715,13 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 height: MediaQuery.of(context).size.height * 0.6,
                 child: Column(
                   children: [
-                    const Text('Comments', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text('Reviews', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 16),
                     Expanded(
                       child: loading
                           ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
                           : comments.isEmpty
-                              ? const Center(child: Text('No comments yet.', style: TextStyle(color: Colors.grey)))
+                              ? const Center(child: Text('No reviews yet.', style: TextStyle(color: Colors.grey)))
                               : ListView.builder(
                                   itemCount: comments.length,
                                   itemBuilder: (ctx, i) {
@@ -742,7 +742,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                             controller: commentController,
                             style: const TextStyle(color: Colors.white),
                             decoration: const InputDecoration(
-                              hintText: 'Add a comment...',
+                              hintText: 'Add a review...',
                               hintStyle: TextStyle(color: Colors.grey),
                               border: InputBorder.none,
                             ),
@@ -860,9 +860,25 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '@${widget.productData['business']['name']}',
-                      style: const TextStyle(color: Color(0xffFF5722), fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                    GestureDetector(
+                      onTap: () {
+                        final sellerId = widget.productData['businessId'] ?? widget.productData['profiles']?['id'] ?? widget.productData['business']?['id'] ?? '';
+                        if (sellerId.isNotEmpty) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => SellerProfileScreen(
+                                sellerId: sellerId,
+                                businessName: widget.productData['business']['name'],
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      child: Text(
+                        '@${widget.productData['business']['name']}',
+                        style: const TextStyle(color: Color(0xffFF5722), fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -922,51 +938,33 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
               ),
               const SizedBox(height: 18),
 
-              // Comment
+              // Review
               GestureDetector(
                 onTap: _showCommentsSheet,
                 child: const Column(
                   children: [
-                    Icon(Icons.comment_rounded, color: Colors.white, size: 26),
+                    Icon(Icons.star_rounded, color: Colors.white, size: 28),
                     SizedBox(height: 2),
-                    Text('142', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                    Text('Review', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
               const SizedBox(height: 18),
 
-              // Chat
+              // Save for Later
               GestureDetector(
                 onTap: () {
-                  widget.onChatPressed(
-                    'mock-chat-room-${widget.productData['businessId']}',
-                    widget.productData['business']['name'],
-                  );
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved for later!')));
                 },
                 child: const Column(
                   children: [
-                    Icon(Icons.chat_bubble_outline_rounded, color: Colors.white, size: 26),
+                    Icon(Icons.bookmark_border_rounded, color: Colors.white, size: 28),
                     SizedBox(height: 2),
-                    Text('Chat', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                    Text('Save', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
               const SizedBox(height: 18),
-
-              // Save (Download) Video - conditional on allowDownload
-              if (widget.productData['video']?['allowDownload'] != false) ...[
-                GestureDetector(
-                  onTap: _handleDownloadVideo,
-                  child: const Column(
-                    children: [
-                      Icon(Icons.download_rounded, color: Colors.white, size: 26),
-                      SizedBox(height: 2),
-                      Text('Save', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 18),
-              ],
 
               // Share Product Link
               GestureDetector(
