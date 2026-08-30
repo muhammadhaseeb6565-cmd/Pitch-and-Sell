@@ -39,10 +39,7 @@ jobs:
           flutter clean
           flutter pub get
 
-      - name: Invalidate Gradle cache
-        run: |
-          cd mobile_app/android
-          ./gradlew clean --no-daemon
+
 
       - name: Setup permanent debug keystore
         run: |
