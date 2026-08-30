@@ -4,7 +4,7 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS stripe_account_id text;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS stripe_onboarding_complete boolean DEFAULT false;
 
 -- Create a Database Webhook for Push Notifications
-CREATE OR REPLACE FUNCTION notify_push() RETURNS trigger AS 
+CREATE OR REPLACE FUNCTION notify_push() RETURNS trigger AS $$
 BEGIN
   -- Calls the Supabase Edge Function whenever a new order or message is inserted
   PERFORM net.http_post(
@@ -14,7 +14,7 @@ BEGIN
   );
   RETURN NEW;
 END;
- LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS push_order ON orders;
 CREATE TRIGGER push_order
