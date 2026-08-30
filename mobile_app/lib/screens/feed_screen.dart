@@ -14,6 +14,9 @@ import 'explore_screen.dart';
 import 'cart_screen.dart';
 import 'notifications_screen.dart';
 import '../providers/cart_provider.dart';
+import '../services/socket_service.dart';
+import 'seller_profile_screen.dart';
+import 'my_orders_screen.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'dart:io';
@@ -211,6 +214,19 @@ class _FeedScreenState extends State<FeedScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(builder: (_) => const ExploreScreen()),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        // My Orders button
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: const Icon(Icons.receipt_long, color: Colors.white, size: 22),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const MyOrdersScreen()),
                             );
                           },
                         ),

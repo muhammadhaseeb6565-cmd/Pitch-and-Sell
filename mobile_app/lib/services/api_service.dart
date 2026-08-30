@@ -181,6 +181,9 @@ class ApiService {
         'status': o['status'],
         'totalAmount': o['total_price'],
         'createdAt': o['created_at'],
+        'trackingNumber': o['tracking_number'],
+        'courierName': o['courier_name'],
+        'shippedAt': o['shipped_at'],
         'product': {
           'name': o['products']?['name'] ?? 'Product',
           'video': {'url': o['products']?['video_url']},
@@ -192,8 +195,14 @@ class ApiService {
     }
   }
 
-  static Future<http.Response> updateOrderStatus(String orderId, String status) async {
-    await _supabase.from('orders').update({'status': status}).eq('id', orderId);
+  static Future<http.Response> updateOrderStatus(String orderId, String status, {String? trackingNumber, String? courierName}) async {
+    final Map<String, dynamic> updates = {'status': status};
+    if (status == 'shipped' || trackingNumber != null) {
+      if (trackingNumber != null) updates['tracking_number'] = trackingNumber;
+      if (courierName != null) updates['courier_name'] = courierName;
+      updates['shipped_at'] = DateTime.now().toIso8601String();
+    }
+    await _supabase.from('orders').update(updates).eq('id', orderId);
     return http.Response('{}', 200);
   }
   static Future<http.Response> cancelOrder(String orderId) => updateOrderStatus(orderId, 'cancelled');
