@@ -23,34 +23,51 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  String? initError;
 
-  // =========================================================================
-  // SUPABASE INITIALIZATION
-  // =========================================================================
-  await Supabase.initialize(
-    url: 'https://tqntacunedilwtofqycw.supabase.co',
-    anonKey: 'sb_publishable_9RpsACXX7JkIAQ_egsLJcA_5IWRfUcZ',
-  );
-  
-  await NotificationService.init();
-
-  // =========================================================================
-  // FIREBASE INITIALIZATION 
-  // =========================================================================
   try {
+    // SUPABASE INITIALIZATION
+    await Supabase.initialize(
+      url: 'https://tqntacunedilwtofqycw.supabase.co',
+      anonKey: 'sb_publishable_9RpsACXX7JkIAQ_egsLJcA_5IWRfUcZ',
+    );
+    
+    await NotificationService.init();
+
+    // FIREBASE INITIALIZATION 
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    // Initialize Crashlytics
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-    // Push Notifications (FCM)
     FirebaseMessaging messaging = FirebaseMessaging.instance;
     await messaging.requestPermission();
   } catch (e) {
-    debugPrint("Firebase init failed: $e");
+    debugPrint("App Init failed: $e");
+    initError = e.toString();
   }
 
+if (initError != null) {
     runApp(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Text(
+                'Initialization Error:
+
+', 
+                style: const TextStyle(color: Colors.red, fontSize: 16),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    return;
+  }
+
+  runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()..checkSession()),
