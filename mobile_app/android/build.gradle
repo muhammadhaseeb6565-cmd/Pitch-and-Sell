@@ -2,6 +2,7 @@ buildscript {
     ext {
         kotlin_version = '2.1.0'
         compileSdkVersion = 35
+        ffmpegKitPackage = "min-gpl"
     }
     repositories {
         google()
@@ -29,6 +30,7 @@ project(":app").afterEvaluate {
         rootProject.ext.flutter = [:]
     }
     rootProject.ext.flutter.compileSdkVersion = 35
+        ffmpegKitPackage = "min-gpl"
     rootProject.ext.flutter.minSdkVersion = 23
     rootProject.ext.flutter.targetSdkVersion = 35
 }
@@ -41,4 +43,18 @@ tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
 
+
+
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            project.android {
+                compileSdkVersion 35
+                defaultConfig {
+                    minSdkVersion 24
+                }
+            }
+        }
+    }
+}
 
