@@ -20,6 +20,11 @@ class NotificationService {
     const InitializationSettings initSettings = InitializationSettings(android: androidSettings, iOS: iosSettings);
 
     await _notificationsPlugin.initialize(initSettings);
+
+    // Request permissions for Android 13+
+    _notificationsPlugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
+
     _initialized = true;
     _listenToRealtime();
   }
@@ -40,11 +45,12 @@ class NotificationService {
   }
 
   static void _subscribeToChannels() {
-    final client = Supabase.instance.client;
-    final userId = client.auth.currentUser?.id;
-    if (userId == null) return;
+    try {
+      final client = Supabase.instance.client;
+      final userId = client.auth.currentUser?.id;
+      if (userId == null) return;
 
-    _ordersChannel?.unsubscribe();
+      _ordersChannel?.unsubscribe();
     _ordersChannel = client.channel('public:orders').onPostgresChanges(
       event: PostgresChangeEvent.insert,
       schema: 'public',
@@ -71,6 +77,9 @@ class NotificationService {
         }
       },
     )..subscribe();
+    } catch (e) {
+      debugPrint('Realtime subscription error: $e');
+    }
   }
 
   static Future<void> _showNotification(String title, String body) async {

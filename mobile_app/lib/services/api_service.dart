@@ -215,6 +215,7 @@ class ApiService {
       
       final mapped = data.map((o) => {
         'id': o['id'],
+        'productId': o['product_id'],
         'status': o['status'],
         'totalAmount': o['total_price'],
         'createdAt': o['created_at'],

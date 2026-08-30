@@ -203,7 +203,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                                 icon: const Icon(Icons.star_border),
                                 label: const Text('Leave a Review'),
                                 onPressed: () {
-                                  _showReviewDialog(order['product_id']);
+                                  _showReviewDialog(order['productId']);
                                 },
                               ),
                             )

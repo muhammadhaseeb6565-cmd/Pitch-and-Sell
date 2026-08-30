@@ -22,8 +22,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await NotificationService.init();
-
   // =========================================================================
   // SUPABASE INITIALIZATION
   // =========================================================================
@@ -31,6 +29,8 @@ void main() async {
     url: 'https://tqntacunedilwtofqycw.supabase.co',
     anonKey: 'sb_publishable_9RpsACXX7JkIAQ_egsLJcA_5IWRfUcZ',
   );
+  
+  await NotificationService.init();
 
   // =========================================================================
   // FIREBASE INITIALIZATION 
