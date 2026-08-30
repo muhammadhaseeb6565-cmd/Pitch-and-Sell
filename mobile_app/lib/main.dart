@@ -54,9 +54,7 @@ if (initError != null) {
             child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: Text(
-                'Initialization Error:
-
-', 
+                'Initialization Error:\n\n$initError', 
                 style: const TextStyle(color: Colors.red, fontSize: 16),
               ),
             ),
@@ -156,4 +154,5 @@ class _PitchAndSellAppState extends State<PitchAndSellApp> {
     );
   }
 }
+
 
