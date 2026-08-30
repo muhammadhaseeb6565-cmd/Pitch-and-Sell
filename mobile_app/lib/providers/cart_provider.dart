@@ -5,6 +5,8 @@ class CartItem {
   final String name;
   final double price;
   final String image;
+  final String? size;
+  final String? color;
   int quantity;
 
   CartItem({
@@ -12,6 +14,8 @@ class CartItem {
     required this.name,
     required this.price,
     required this.image,
+    this.size,
+    this.color,
     this.quantity = 1,
   });
 }
@@ -28,9 +32,14 @@ class CartProvider with ChangeNotifier {
     required String name,
     required double price,
     required String image,
+    String? size,
+    String? color,
     int quantity = 1,
   }) {
-    final index = _items.indexWhere((item) => item.id == id);
+    // Treat different variations as different cart items by combining id with variations
+    final compositeId = '${id}_${size ?? 'na'}_${color ?? 'na'}';
+    final index = _items.indexWhere((item) => '${item.id}_${item.size ?? 'na'}_${item.color ?? 'na'}' == compositeId);
+    
     if (index >= 0) {
       _items[index].quantity += quantity;
     } else {
@@ -39,6 +48,8 @@ class CartProvider with ChangeNotifier {
         name: name,
         price: price,
         image: image,
+        size: size,
+        color: color,
         quantity: quantity,
       ));
     }

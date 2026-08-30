@@ -10,11 +10,19 @@ import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
 import 'screens/splash_screen.dart';
+import 'services/notification_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+// Firebase Background Messaging Handler
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await NotificationService.init();
 
   // =========================================================================
   // SUPABASE INITIALIZATION

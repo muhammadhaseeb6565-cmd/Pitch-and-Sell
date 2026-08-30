@@ -186,6 +186,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final priceController = TextEditingController();
     final descController = TextEditingController();
     final stockController = TextEditingController(text: '10');
+    final sizesController = TextEditingController();
+    final colorsController = TextEditingController();
     String category = 'Electronics';
     bool allowDownload = true;
     XFile? selectedVideoFile;
@@ -244,6 +246,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       style: const TextStyle(color: Colors.white),
                       decoration: const InputDecoration(
                         labelText: 'Description',
+                        labelStyle: TextStyle(color: Colors.grey),
+                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: sizesController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: 'Sizes (Comma separated: S,M,L)',
+                        labelStyle: TextStyle(color: Colors.grey),
+                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: colorsController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: 'Colors (Comma separated: Red,Black)',
                         labelStyle: TextStyle(color: Colors.grey),
                         enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
                       ),
@@ -357,6 +379,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             return;
                           }
                           try {
+                            List<String> parsedSizes = sizesController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+                            List<String> parsedColors = colorsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+
                             final response = await ApiService.uploadProduct(
                               name: nameController.text,
                               description: descController.text,
@@ -364,6 +389,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               category: category,
                               stock: int.tryParse(stockController.text) ?? 10,
                               allowDownload: allowDownload,
+                              sizes: parsedSizes,
+                              colors: parsedColors,
                               videoPath: selectedVideoFile!.path,
                             );
                             if (response.statusCode == 201 && context.mounted) {

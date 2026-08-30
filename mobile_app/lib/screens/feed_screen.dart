@@ -475,8 +475,14 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
 
   void _showOrderCheckoutSheet() {
     int qty = 1;
-    String selectedColor = 'Black';
-    final colors = ['Black', 'Silver', 'Orange'];
+    final List<dynamic> rawColors = widget.productData['colors'] ?? [];
+    final List<dynamic> rawSizes = widget.productData['sizes'] ?? [];
+    
+    final colors = rawColors.isNotEmpty ? rawColors.cast<String>() : ['Default'];
+    final sizes = rawSizes.isNotEmpty ? rawSizes.cast<String>() : ['Standard'];
+
+    String selectedColor = colors.first;
+    String selectedSize = sizes.first;
 
     showModalBottomSheet(
       context: context,
@@ -589,6 +595,32 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                       ),
                     ],
                   ),
+                                    const SizedBox(height: 12),
+                  // Size Swatches Selection
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Size Variant:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                      Row(
+                        children: sizes.map((s) {
+                          final isSelected = selectedSize == s;
+                          return GestureDetector(
+                            onTap: () => setModalState(() => selectedSize = s),
+                            child: Container(
+                              margin: const EdgeInsets.only(left: 8),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: isSelected ? const Color(0xffFF5722) : const Color(0xff121212),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.white12),
+                              ),
+                              child: Text(s, style: TextStyle(color: isSelected ? Colors.white : Colors.grey, fontSize: 12)),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
                   const Divider(color: Colors.white10, height: 32),
 
                   // Mini Seller Profile info
@@ -632,12 +664,15 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                                 price: price,
                                 image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=200',
                                 quantity: qty,
+                                size: selectedSize == 'Standard' ? null : selectedSize,
+                                color: selectedColor == 'Default' ? null : selectedColor,
                               );
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('Added $qty ${widget.productData['name']} to Cart!'),
                                   backgroundColor: const Color(0xffFF5722),
+                                  duration: const Duration(seconds: 2),
                                 ),
                               );
                             },
@@ -645,7 +680,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: SizedBox(
                           height: 48,
@@ -655,18 +690,18 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                             onPressed: () {
-                              Navigator.pop(context); // close bottom sheet
+                              Navigator.pop(context); // close sheet
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => CheckoutScreen(
-                                      product: {
-                                        'id': widget.productData['id'],
-                                        'name': widget.productData['name'],
-                                        'price': price * qty, // subtotal
-                                        'quantity': qty,
-                                      },
-                                  ),
+                                  builder: (_) => CheckoutScreen(product: {
+                                    'id': widget.productData['id'],
+                                    'name': widget.productData['name'],
+                                    'price': price,
+                                    'quantity': qty,
+                                    'size': selectedSize == 'Standard' ? null : selectedSize,
+                                    'color': selectedColor == 'Default' ? null : selectedColor,
+                                  }),
                                 ),
                               );
                             },
@@ -969,6 +1004,18 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
                     ),
+                    const SizedBox(height: 8),
+                    if (widget.productData['avgRating'] != null && widget.productData['avgRating'] > 0)
+                      Row(
+                        children: [
+                          const Icon(Icons.star, color: Colors.amber, size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${(widget.productData['avgRating'] as num).toStringAsFixed(1)} (${widget.productData['reviewCount']})',
+                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
                     const SizedBox(height: 8),
                     Row(
                       children: [

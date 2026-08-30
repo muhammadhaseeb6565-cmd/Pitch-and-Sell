@@ -18,17 +18,30 @@ class ApiService {
   // Products & Feed API
   static Future<http.Response> getFeed({String? category, String? search}) async {
     try {
-      var query = _supabase.from('products').select('*, profiles:seller_id(*)');
+      var query = _supabase.from('products').select('*, profiles:seller_id(*), reviews(rating)');
       if (category != null && category != 'All') query = query.eq('category', category);
       if (search != null && search.isNotEmpty) query = query.ilike('name', '%$search%');
       
       final data = await query.order('created_at', ascending: false);
       final productsList = data.map((item) {
+        
+        // Calculate average rating
+        final reviews = item['reviews'] as List<dynamic>? ?? [];
+        double avgRating = 0;
+        if (reviews.isNotEmpty) {
+          final total = reviews.fold(0.0, (sum, r) => sum + (r['rating'] as num));
+          avgRating = total / reviews.length;
+        }
+
         return {
           'id': item['id'],
           'name': item['name'],
           'description': item['description'] ?? '',
           'price': item['price'],
+          'sizes': item['sizes'] ?? [],
+          'colors': item['colors'] ?? [],
+          'avgRating': avgRating,
+          'reviewCount': reviews.length,
           'business': {'name': item['profiles']?['business_name'] ?? item['profiles']?['name'] ?? 'Seller'},
           'video': {
             'url': item['video_url'],
@@ -51,6 +64,8 @@ class ApiService {
     required String category,
     required int stock,
     required bool allowDownload,
+    List<String>? sizes,
+    List<String>? colors,
     String? videoPath,
     String? videoUrl,
   }) async {
@@ -77,6 +92,8 @@ class ApiService {
         'stock': stock,
         'allow_download': allowDownload,
         'video_url': finalUrl,
+        'sizes': sizes ?? [],
+        'colors': colors ?? [],
       }).select();
 
       return http.Response(jsonEncode({'product': res.first}), 200);
@@ -147,7 +164,7 @@ class ApiService {
   }
 
   // Orders API
-  static Future<http.Response> createOrder(String productId, int quantity, String paymentMethod) async {
+  static Future<http.Response> createOrder(String productId, int quantity, String paymentMethod, {String? size, String? color}) async {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) return http.Response('Unauthorized', 401);
@@ -161,9 +178,29 @@ class ApiService {
         'quantity': quantity,
         'total_price': (product['price'] as num) * quantity,
         'payment_method': paymentMethod,
-        'status': 'pending'
+        'status': 'pending',
+        'selected_size': size,
+        'selected_color': color,
       }).select();
       return http.Response(jsonEncode(res.first), 200);
+    } catch (e) {
+      return http.Response(jsonEncode({'error': e.toString()}), 500);
+    }
+  }
+
+  // Reviews API
+  static Future<http.Response> addReview(String productId, double rating, String comment) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return http.Response('Unauthorized', 401);
+      
+      await _supabase.from('reviews').insert({
+        'buyer_id': user.id,
+        'product_id': productId,
+        'rating': rating,
+        'comment': comment,
+      });
+      return http.Response('{}', 200);
     } catch (e) {
       return http.Response(jsonEncode({'error': e.toString()}), 500);
     }

@@ -36,6 +36,71 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
     }
   }
 
+  void _showReviewDialog(String productId) {
+    double rating = 5;
+    final commentController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xff1e1e1e),
+              title: const Text('Leave a Review', style: TextStyle(color: Colors.white)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      return IconButton(
+                        icon: Icon(
+                          index < rating ? Icons.star : Icons.star_border,
+                          color: Colors.amber,
+                        ),
+                        onPressed: () {
+                          setDialogState(() => rating = index + 1.0);
+                        },
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: commentController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      hintText: 'Share your experience...',
+                      hintStyle: TextStyle(color: Colors.grey),
+                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722)),
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    await ApiService.addReview(productId, rating, commentController.text.trim());
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Review submitted!'), backgroundColor: Colors.green),
+                    );
+                  },
+                  child: const Text('Submit', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -126,6 +191,23 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                                 ],
                               ),
                             ),
+                          if (!isPending && order['product'] != null) ...[
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.amber,
+                                  side: const BorderSide(color: Colors.amber),
+                                ),
+                                icon: const Icon(Icons.star_border),
+                                label: const Text('Leave a Review'),
+                                onPressed: () {
+                                  _showReviewDialog(order['product_id']);
+                                },
+                              ),
+                            )
+                          ],
                         ],
                       ),
                     );
