@@ -21,11 +21,6 @@ subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
 
-// Set global properties for flutter plugins
-rootProject.ext {
-    ffmpegKitPackage = "min-gpl"
-}
-
 project(":app").afterEvaluate {
     if (!rootProject.ext.has("flutter")) {
         rootProject.ext.flutter = [:]
@@ -42,3 +37,4 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
+
