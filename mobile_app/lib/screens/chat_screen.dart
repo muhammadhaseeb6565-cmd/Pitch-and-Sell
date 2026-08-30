@@ -53,11 +53,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _fetchOldMessages() async {
     try {
-      final res = await Supabase.instance.client
-          .from('messages')
-          .select('sender_id, content, created_at')
-          .eq('chat_id', widget.chatId)
-          .order('created_at', ascending: true);
+      final res = await SocketService.fetchOldMessages(widget.chatId);
           
       if (mounted) {
         setState(() {
@@ -73,14 +69,10 @@ class _ChatScreenState extends State<ChatScreen> {
         _scrollToBottom();
         
         // Mark as read
-        final user = Supabase.instance.client.auth.currentUser;
-        if (user != null) {
-          Supabase.instance.client
-              .from('messages')
-              .update({'is_read': true})
-              .eq('chat_id', widget.chatId)
-              .neq('sender_id', user.id);
-        }
+        final user = Provider.of<AuthProvider>(context, listen: false).user;
+      if (user != null) {
+        await SocketService.markAsRead(widget.chatId, user['id']);
+      }
       }
     } catch (e) {
       debugPrint('Error fetching old messages: $e');

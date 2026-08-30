@@ -54,6 +54,32 @@ class SocketService {
     _onMessageCallback = callback;
   }
 
+  static Future<List<dynamic>> fetchOldMessages(String chatId) async {
+    try {
+      final res = await _supabase
+          .from('messages')
+          .select('sender_id, content, created_at')
+          .eq('chat_id', chatId)
+          .order('created_at', ascending: true);
+      return res;
+    } catch (e) {
+      debugPrint('Error fetching old messages: $e');
+      return [];
+    }
+  }
+
+  static Future<void> markAsRead(String chatId, String currentUserId) async {
+    try {
+      await _supabase
+          .from('messages')
+          .update({'is_read': true})
+          .eq('chat_id', chatId)
+          .neq('sender_id', currentUserId);
+    } catch (e) {
+      debugPrint('Error marking as read: $e');
+    }
+  }
+
   static void disconnect() {
     if (_channel != null) {
       _supabase.removeChannel(_channel!);
@@ -61,3 +87,4 @@ class SocketService {
     }
   }
 }
+

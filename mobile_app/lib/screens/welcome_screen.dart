@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
@@ -97,7 +97,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     try {
       final success = await auth.signInWithEmail(_signInEmailCtrl.text.trim(), _signInPassCtrl.text);
       if (success && mounted) {
-        _showSuccess('Welcome back! Signed in successfully ✓');
+        _showSuccess('Welcome back! Signed in successfully ?');
         await Future.delayed(const Duration(milliseconds: 600));
         _goToMain();
       }
@@ -143,7 +143,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     try {
       final success = await auth.loginGoogle();
       if (success && mounted) {
-        _showSuccess('Signed in with Google successfully ✓');
+        _showSuccess('Signed in with Google successfully ?');
         await Future.delayed(const Duration(milliseconds: 500));
         _goToMain();
       }
@@ -156,7 +156,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     final email = _signInEmailCtrl.text.trim();
     if (email.isEmpty) { _showError('Enter your email address above first.'); return; }
     try {
-      await Supabase.instance.client.auth.resetPasswordForEmail(email);
+      await Provider.of<AuthProvider>(context, listen: false).resetPassword(email);
       _showSuccess('Password reset link sent to $email!');
     } catch (e) {
       _showError('Could not send reset email. Try again.');
@@ -414,3 +414,4 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
       ));
   }
 }
+

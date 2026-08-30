@@ -22,6 +22,9 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isDarkMode => _isDarkMode;
 
+    Future<void> resetPassword(String email) async {
+    await _supabase.auth.resetPasswordForEmail(email);
+  }
   void toggleTheme() {
     _isDarkMode = !_isDarkMode;
     notifyListeners();
