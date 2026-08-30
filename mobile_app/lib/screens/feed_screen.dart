@@ -1,3 +1,5 @@
+import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_new/return_code.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:convert';
 import 'dart:ui';
@@ -864,24 +866,41 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
           children: [
             SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
             SizedBox(width: 12),
-            Text('Preparing video...'),
+            Text('Adding watermark & preparing video...'),
           ],
         ),
-        duration: Duration(seconds: 5),
+        duration: Duration(seconds: 30),
       ),
     );
 
     try {
       final file = await DefaultCacheManager().getSingleFile(videoUrl);
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      final dir = await getTemporaryDirectory();
+      final outPath = '${dir.path}/pitchandsell_${DateTime.now().millisecondsSinceEpoch}.mp4';
+
+      final watermarkText = 'PitchAndSell - @${widget.productData['business']['name']}';
       
-      final link = 'https://pitch-and-sell-backend.onrender.com/product/${widget.productData['id']}';
-      await Share.shareXFiles(
-        [XFile(file.path)], 
-        text: 'Watch this awesome product by @${widget.productData['business']['name']} on PitchAndSell!\n\nBuy it here: $link',
-      );
+      // FFmpeg command to add text watermark at bottom center
+      final command = "-y -i '${file.path}' -vf \"drawtext=text='$watermarkText':fontcolor=white@0.9:fontsize=32:x=(w-tw)/2:y=h-th-60:shadowcolor=black@0.6:shadowx=2:shadowy=2\" -c:a copy '$outPath'";
+
+      final session = await FFmpegKit.execute(command);
+      final returnCode = await session.getReturnCode();
+
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      if (ReturnCode.isSuccess(returnCode)) {
+        final link = 'https://pitch-and-sell-backend.onrender.com/product/${widget.productData['id']}';
+        await Share.shareXFiles(
+          [XFile(outPath)], 
+          text: 'Watch this awesome product by @${widget.productData['business']['name']} on PitchAndSell!\n\nBuy it here: $link',
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to add watermark. Sharing link only...')));
+        final link = 'https://pitch-and-sell-backend.onrender.com/product/${widget.productData['id']}';
+        Share.share('Check out this product on PitchAndSell: $link');
+      }
     } catch (e) {
-      debugPrint('Share error: $e');
+      debugPrint('Watermark error: $e');
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       final link = 'https://pitch-and-sell-backend.onrender.com/product/${widget.productData['id']}';
       Share.share('Check out this product on PitchAndSell: $link');
@@ -1117,6 +1136,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     );
   }
 }
+
 
 
 
