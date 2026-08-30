@@ -12,9 +12,10 @@ import 'providers/cart_provider.dart';
 import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
 
+import 'features/feed/providers/feed_provider.dart';
+
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-import 'features/feed/providers/feed_provider.dart';
 // Firebase Background Messaging Handler
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -138,3 +139,4 @@ class _PitchAndSellAppState extends State<PitchAndSellApp> {
     );
   }
 }
+
