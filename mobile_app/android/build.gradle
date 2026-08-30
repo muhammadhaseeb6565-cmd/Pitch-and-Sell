@@ -2,7 +2,7 @@ buildscript {
     ext {
         kotlin_version = '2.1.0'
         compileSdkVersion = 35
-        ffmpegKitPackage = "min-gpl"
+        ffmpegKitPackage = 'min-gpl'
     }
     repositories {
         google()
@@ -22,16 +22,12 @@ subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
 
-// This hook runs exactly after :app finishes evaluating, but BEFORE :app_links evaluates.
-// It ensures the 'flutter' property exists globally and uses a String for compileSdkVersion
-// so that flutter.groovy's substring(8) doesn't crash on older plugins.
 project(":app").afterEvaluate {
     if (!rootProject.ext.has("flutter")) {
         rootProject.ext.flutter = [:]
     }
     rootProject.ext.flutter.compileSdkVersion = 35
-        ffmpegKitPackage = "min-gpl"
-    rootProject.ext.flutter.minSdkVersion = 23
+    rootProject.ext.flutter.minSdkVersion = 24
     rootProject.ext.flutter.targetSdkVersion = 35
 }
 
@@ -43,18 +39,11 @@ tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
 
-
-
 subprojects {
     afterEvaluate { project ->
-        if (project.hasProperty('android')) {
-            project.android {
-                compileSdkVersion 35
-                defaultConfig {
-                    minSdkVersion 24
-                }
-            }
+        if (project.plugins.hasPlugin('com.android.application') || project.plugins.hasPlugin('com.android.library')) {
+            project.android.compileSdkVersion = 35
+            project.android.defaultConfig.minSdkVersion = 24
         }
     }
 }
-
