@@ -14,6 +14,7 @@ import 'services/notification_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+import 'features/feed/providers/feed_provider.dart';
 // Firebase Background Messaging Handler
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -48,11 +49,12 @@ void main() async {
     debugPrint("Firebase init failed: $e");
   }
 
-  runApp(
+    runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()..checkSession()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
+        ChangeNotifierProvider(create: (_) => FeedProvider()),
       ],
       child: const PitchAndSellApp(),
     ),

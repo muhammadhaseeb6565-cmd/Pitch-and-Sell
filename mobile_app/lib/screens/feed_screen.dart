@@ -48,6 +48,7 @@ class _FeedScreenState extends State<FeedScreen> {
   bool _isLoading = true;
   PageController? _pageController;
   String _selectedCategory = 'All';
+  int _currentIndex = 0;
   String _searchQuery = '';
 
   @override
@@ -142,6 +143,7 @@ class _FeedScreenState extends State<FeedScreen> {
                       controller: _pageController,
                       itemCount: _products.length,
                       onPageChanged: (index) {
+                          setState(() => _currentIndex = index);
                         // Pre-load the next 2 videos into cache for zero buffering
                         for (int i = 1; i <= 2; i++) {
                           if (index + i < _products.length) {
@@ -154,8 +156,9 @@ class _FeedScreenState extends State<FeedScreen> {
                       },
                       itemBuilder: (context, index) {
                         return VideoPlayerItem(
-                          productData: _products[index],
-                          isVisible: widget.isVisible,
+                            productData: _products[index],
+                            isVisible: widget.isVisible,
+                            isFocused: index == _currentIndex,
                           onChatPressed: (chatId, title) {
                             Navigator.push(
                               context,
@@ -379,12 +382,14 @@ class VideoPlayerItem extends StatefulWidget {
   final Map<String, dynamic> productData;
   final Function(String chatId, String title) onChatPressed;
   final bool isVisible;
+  final bool isFocused;
 
   const VideoPlayerItem({
     super.key,
     required this.productData,
     required this.onChatPressed,
     this.isVisible = true,
+    this.isFocused = false,
   });
 
   @override
@@ -420,7 +425,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
       await _controller!.initialize();
       if (mounted) {
         setState(() {});
-        if (widget.isVisible) {
+        if (widget.isVisible && widget.isFocused) {
           _controller?.play();
         }
         _controller?.setLooping(true);
@@ -431,7 +436,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
       await _controller!.initialize();
       if (mounted) {
         setState(() {});
-        if (widget.isVisible) {
+        if (widget.isVisible && widget.isFocused) {
           _controller?.play();
         }
         _controller?.setLooping(true);
@@ -448,12 +453,20 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
   @override
   void didUpdateWidget(covariant VideoPlayerItem oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.isFocused && !widget.isFocused) {
+      _controller?.pause();
+      _controller?.seekTo(Duration.zero); // Reset video
+    } else if (!oldWidget.isFocused && widget.isFocused && widget.isVisible) {
+      _controller?.play();
+    }
+    
     if (oldWidget.isVisible && !widget.isVisible) {
       _controller?.pause();
-    } else if (!oldWidget.isVisible && widget.isVisible) {
+    } else if (!oldWidget.isVisible && widget.isVisible && widget.isFocused) {
       _controller?.play();
     }
   }
+
 
   void _handleLike() async {
     setState(() {
