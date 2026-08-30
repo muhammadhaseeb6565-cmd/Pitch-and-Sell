@@ -150,13 +150,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   if (widget.product.containsKey('items') && widget.product['items'] != null) {
                     final items = widget.product['items'] as List;
                     for (var item in items) {
-                      final response = await ApiService.createOrder(item['id'], item['quantity'], method);
-                      if (response.statusCode != 201) success = false;
+                      final response = await ApiService.createOrder(
+                        item['id'], 
+                        item['quantity'], 
+                        method,
+                        size: item['size'],
+                        color: item['color']
+                      );
+                      if (response.statusCode != 200) success = false;
                     }
                   } else if (widget.product.containsKey('id')) {
                     final qty = widget.product['quantity'] ?? 1;
-                    final response = await ApiService.createOrder(widget.product['id'], qty, method);
-                    if (response.statusCode != 201) success = false;
+                    final response = await ApiService.createOrder(
+                      widget.product['id'], 
+                      qty, 
+                      method,
+                      size: widget.product['size'],
+                      color: widget.product['color']
+                    );
+                    if (response.statusCode != 200) success = false;
                   } else {
                     success = false;
                   }

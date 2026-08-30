@@ -15,8 +15,17 @@ import 'explore_screen.dart';
 import 'cart_screen.dart';
 import 'notifications_screen.dart';
 import '../providers/cart_provider.dart';
+import '../services/socket_service.dart';
+import 'seller_profile_screen.dart';
+import 'my_orders_screen.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:ffmpeg_kit_flutter_min_gpl/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_min_gpl/return_code.dart';
+import 'seller_profile_screen.dart';
 
 class FeedScreen extends StatefulWidget {
   final bool isVisible;
@@ -67,7 +76,7 @@ class _FeedScreenState extends State<FeedScreen> {
         throw Exception('Failed to load');
       }
     } catch (e) {
-      print('Error fetching feed, falling back to mock: $e');
+      debugPrint('Error fetching feed, falling back to mock: $e');
       // Fallback for offline testing
       setState(() {
         _products = [
@@ -132,6 +141,17 @@ class _FeedScreenState extends State<FeedScreen> {
                       scrollDirection: Axis.vertical,
                       controller: _pageController,
                       itemCount: _products.length,
+                      onPageChanged: (index) {
+                        // Pre-load the next 2 videos into cache for zero buffering
+                        for (int i = 1; i <= 2; i++) {
+                          if (index + i < _products.length) {
+                            final nextUrl = _products[index + i]['video']?['url'];
+                            if (nextUrl != null && nextUrl.startsWith('http')) {
+                              DefaultCacheManager().downloadFile(nextUrl);
+                            }
+                          }
+                        }
+                      },
                       itemBuilder: (context, index) {
                         return VideoPlayerItem(
                           productData: _products[index],
@@ -195,6 +215,19 @@ class _FeedScreenState extends State<FeedScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(builder: (_) => const ExploreScreen()),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        // My Orders button
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: const Icon(Icons.receipt_long, color: Colors.white, size: 22),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const MyOrdersScreen()),
                             );
                           },
                         ),
@@ -393,7 +426,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
         _controller?.setLooping(true);
       }
     } catch (e) {
-      print('Video caching error: $e. Falling back to network stream.');
+      debugPrint('Video caching error: $e. Falling back to network stream.');
       _controller = VideoPlayerController.networkUrl(Uri.parse(url));
       await _controller!.initialize();
       if (mounted) {
@@ -437,14 +470,20 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
         await ApiService.likeVideo(video['id']);
       }
     } catch (e) {
-      print('Like action error: $e');
+      debugPrint('Like action error: $e');
     }
   }
 
   void _showOrderCheckoutSheet() {
     int qty = 1;
-    String selectedColor = 'Black';
-    final colors = ['Black', 'Silver', 'Orange'];
+    final List<dynamic> rawColors = widget.productData['colors'] ?? [];
+    final List<dynamic> rawSizes = widget.productData['sizes'] ?? [];
+    
+    final colors = rawColors.isNotEmpty ? rawColors.cast<String>() : ['Default'];
+    final sizes = rawSizes.isNotEmpty ? rawSizes.cast<String>() : ['Standard'];
+
+    String selectedColor = colors.first;
+    String selectedSize = sizes.first;
 
     showModalBottomSheet(
       context: context,
@@ -462,24 +501,32 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 : null;
 
             return Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        widget.productData['name'],
-                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      )
-                    ],
-                  ),
+              padding: EdgeInsets.only(
+                left: 24, right: 24, top: 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            widget.productData['name'],
+                            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: () => Navigator.pop(context),
+                        )
+                      ],
+                    ),
                   const SizedBox(height: 12),
 
                   // Price info
@@ -557,6 +604,32 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                       ),
                     ],
                   ),
+                                    const SizedBox(height: 12),
+                  // Size Swatches Selection
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Size Variant:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                      Row(
+                        children: sizes.map((s) {
+                          final isSelected = selectedSize == s;
+                          return GestureDetector(
+                            onTap: () => setModalState(() => selectedSize = s),
+                            child: Container(
+                              margin: const EdgeInsets.only(left: 8),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: isSelected ? const Color(0xffFF5722) : const Color(0xff121212),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.white12),
+                              ),
+                              child: Text(s, style: TextStyle(color: isSelected ? Colors.white : Colors.grey, fontSize: 12)),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
                   const Divider(color: Colors.white10, height: 32),
 
                   // Mini Seller Profile info
@@ -600,12 +673,15 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                                 price: price,
                                 image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=200',
                                 quantity: qty,
+                                size: selectedSize == 'Standard' ? null : selectedSize,
+                                color: selectedColor == 'Default' ? null : selectedColor,
                               );
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('Added $qty ${widget.productData['name']} to Cart!'),
                                   backgroundColor: const Color(0xffFF5722),
+                                  duration: const Duration(seconds: 2),
                                 ),
                               );
                             },
@@ -613,7 +689,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: SizedBox(
                           height: 48,
@@ -623,18 +699,18 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                             onPressed: () {
-                              Navigator.pop(context); // close bottom sheet
+                              Navigator.pop(context); // close sheet
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => CheckoutScreen(
-                                      product: {
-                                        'id': widget.productData['id'],
-                                        'name': widget.productData['name'],
-                                        'price': price * qty, // subtotal
-                                        'quantity': qty,
-                                      },
-                                  ),
+                                  builder: (_) => CheckoutScreen(product: {
+                                    'id': widget.productData['id'],
+                                    'name': widget.productData['name'],
+                                    'price': price,
+                                    'quantity': qty,
+                                    'size': selectedSize == 'Standard' ? null : selectedSize,
+                                    'color': selectedColor == 'Default' ? null : selectedColor,
+                                  }),
                                 ),
                               );
                             },
@@ -646,6 +722,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                   ),
                   const SizedBox(height: 24),
                 ],
+              ),
               ),
             );
           },
@@ -716,13 +793,13 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 height: MediaQuery.of(context).size.height * 0.6,
                 child: Column(
                   children: [
-                    const Text('Comments', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text('Reviews', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 16),
                     Expanded(
                       child: loading
                           ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
                           : comments.isEmpty
-                              ? const Center(child: Text('No comments yet.', style: TextStyle(color: Colors.grey)))
+                              ? const Center(child: Text('No reviews yet.', style: TextStyle(color: Colors.grey)))
                               : ListView.builder(
                                   itemCount: comments.length,
                                   itemBuilder: (ctx, i) {
@@ -743,7 +820,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                             controller: commentController,
                             style: const TextStyle(color: Colors.white),
                             decoration: const InputDecoration(
-                              hintText: 'Add a comment...',
+                              hintText: 'Add a review...',
                               hintStyle: TextStyle(color: Colors.grey),
                               border: InputBorder.none,
                             ),
@@ -756,7 +833,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                             final txt = commentController.text.trim();
                             commentController.clear();
                             final res = await ApiService.addComment(videoId, txt);
-                            if (res.statusCode == 201) {
+                            if (res.statusCode == 200) {
                               setStateSheet(() {
                                 loading = true; // refresh
                               });
@@ -776,14 +853,58 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     );
   }
 
-  void _handleShareProduct() {
-    final link = 'http://localhost:8080/#/product/${widget.productData['id']}';
+  void _handleShareProduct() async {
+    final videoUrl = widget.productData['video']?['url'];
+    if (videoUrl == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Video not available.')));
+      return;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Share Link Copied: $link', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xffFF5722),
+      const SnackBar(
+        content: Row(
+          children: [
+            SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+            SizedBox(width: 12),
+            Text('Adding watermark & preparing video...'),
+          ],
+        ),
+        duration: Duration(seconds: 30),
       ),
     );
+
+    try {
+      final file = await DefaultCacheManager().getSingleFile(videoUrl);
+      final dir = await getTemporaryDirectory();
+      final outPath = '${dir.path}/pitchandsell_${DateTime.now().millisecondsSinceEpoch}.mp4';
+
+      final watermarkText = 'PitchAndSell - @${widget.productData['business']['name']}';
+      
+      // FFmpeg command to add text watermark at bottom center
+      final command = "-y -i '${file.path}' -vf \"drawtext=text='$watermarkText':fontcolor=white@0.9:fontsize=32:x=(w-tw)/2:y=h-th-60:shadowcolor=black@0.6:shadowx=2:shadowy=2\" -c:a copy '$outPath'";
+
+      final session = await FFmpegKit.execute(command);
+      final returnCode = await session.getReturnCode();
+
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      if (ReturnCode.isSuccess(returnCode)) {
+        final link = 'https://pitch-and-sell-backend.onrender.com/product/${widget.productData['id']}';
+        await Share.shareXFiles(
+          [XFile(outPath)], 
+          text: 'Watch this awesome product by @${widget.productData['business']['name']} on PitchAndSell!\n\nBuy it here: $link',
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to add watermark. Sharing link only...')));
+        final link = 'https://pitch-and-sell-backend.onrender.com/product/${widget.productData['id']}';
+        Share.share('Check out this product on PitchAndSell: $link');
+      }
+    } catch (e) {
+      debugPrint('Watermark error: $e');
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      final link = 'https://pitch-and-sell-backend.onrender.com/product/${widget.productData['id']}';
+      Share.share('Check out this product on PitchAndSell: $link');
+    }
   }
 
   @override
@@ -861,9 +982,25 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '@${widget.productData['business']['name']}',
-                      style: const TextStyle(color: Color(0xffFF5722), fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                    GestureDetector(
+                      onTap: () {
+                        final sellerId = widget.productData['businessId'] ?? widget.productData['profiles']?['id'] ?? widget.productData['business']?['id'] ?? '';
+                        if (sellerId.isNotEmpty) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => SellerProfileScreen(
+                                sellerId: sellerId,
+                                businessName: widget.productData['business']['name'],
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      child: Text(
+                        '@${widget.productData['business']['name']}',
+                        style: const TextStyle(color: Color(0xffFF5722), fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -877,6 +1014,18 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
                     ),
+                    const SizedBox(height: 8),
+                    if (widget.productData['avgRating'] != null && widget.productData['avgRating'] > 0)
+                      Row(
+                        children: [
+                          const Icon(Icons.star, color: Colors.amber, size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${(widget.productData['avgRating'] as num).toStringAsFixed(1)} (${widget.productData['reviewCount']})',
+                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
@@ -923,54 +1072,34 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
               ),
               const SizedBox(height: 18),
 
-              // Comment
+              // Review
               GestureDetector(
                 onTap: _showCommentsSheet,
                 child: const Column(
                   children: [
-                    Icon(Icons.comment_rounded, color: Colors.white, size: 26),
+                    Icon(Icons.star_rounded, color: Colors.white, size: 28),
                     SizedBox(height: 2),
-                    Text('142', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                    Text('Review', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
               const SizedBox(height: 18),
 
-              // Chat
+              // Save for Later
               GestureDetector(
                 onTap: () {
-                  final myId = Supabase.instance.client.auth.currentUser?.id ?? 'guest';
-                  final sellerId = widget.productData['seller_id'] ?? widget.productData['businessId'] ?? 'unknown';
-                  
-                  widget.onChatPressed(
-                    '${myId}_$sellerId',
-                    widget.productData['business']['name'],
-                  );
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved for later!')));
+
                 },
                 child: const Column(
                   children: [
-                    Icon(Icons.chat_bubble_outline_rounded, color: Colors.white, size: 26),
+                    Icon(Icons.bookmark_border_rounded, color: Colors.white, size: 28),
                     SizedBox(height: 2),
-                    Text('Chat', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                    Text('Save', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
               const SizedBox(height: 18),
-
-              // Save (Download) Video - conditional on allowDownload
-              if (widget.productData['video']?['allowDownload'] != false) ...[
-                GestureDetector(
-                  onTap: _handleDownloadVideo,
-                  child: const Column(
-                    children: [
-                      Icon(Icons.download_rounded, color: Colors.white, size: 26),
-                      SizedBox(height: 2),
-                      Text('Save', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 18),
-              ],
 
               // Share Product Link
               GestureDetector(
@@ -1007,4 +1136,5 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     );
   }
 }
+
 

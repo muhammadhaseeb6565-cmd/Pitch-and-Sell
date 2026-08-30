@@ -10,6 +10,14 @@ import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
 import 'screens/splash_screen.dart';
+import 'services/notification_service.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+// Firebase Background Messaging Handler
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +29,8 @@ void main() async {
     url: 'https://tqntacunedilwtofqycw.supabase.co',
     anonKey: 'sb_publishable_9RpsACXX7JkIAQ_egsLJcA_5IWRfUcZ',
   );
+  
+  await NotificationService.init();
 
   // =========================================================================
   // FIREBASE INITIALIZATION 
@@ -35,7 +45,7 @@ void main() async {
     FirebaseMessaging messaging = FirebaseMessaging.instance;
     await messaging.requestPermission();
   } catch (e) {
-    print("Firebase init failed: $e");
+    debugPrint("Firebase init failed: $e");
   }
 
   runApp(
@@ -77,22 +87,29 @@ class _PitchAndSellAppState extends State<PitchAndSellApp> {
         _handleDeepLink(initialUri);
       }
     } catch (e) {
-      print("Error reading initial deep link: $e");
+      debugPrint("Error reading initial deep link: $e");
     }
 
     // Listen to deep links while app is open
     _linkSubscription = _appLinks.uriLinkStream.listen((uri) {
       _handleDeepLink(uri);
     }, onError: (err) {
-      print("Deep link stream error: $err");
+      debugPrint("Deep link stream error: $err");
     });
   }
 
   void _handleDeepLink(Uri uri) {
-    // Example: https://pitch-and-sell-backend.onrender.com/product/123
-    print("Received Deep Link: $uri");
-    // Routing logic can be passed down to Navigator via a GlobalKey
-    // But for now, we just print and verify it works!
+    debugPrint('Received Deep Link: $uri');
+    // Handle product deep links: /product/{id}
+    if (uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'product') {
+      // Navigate to feed/product detail
+      // Could push to a product detail screen in future
+      debugPrint('Product deep link: ${uri.pathSegments.last}');
+    }
+    // Handle auth callback from Supabase
+    if (uri.scheme == 'io.supabase.pitchandsell') {
+      debugPrint('Auth callback received');
+    }
   }
 
   @override
@@ -106,6 +123,7 @@ class _PitchAndSellAppState extends State<PitchAndSellApp> {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Pitch and Sell',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(

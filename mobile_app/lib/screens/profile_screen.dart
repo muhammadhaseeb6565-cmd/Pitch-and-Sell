@@ -60,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         setState(() => _loadingVideos = false);
       }
     } catch (e) {
-      print('Error fetching user profile videos: $e');
+      debugPrint('Error fetching user profile videos: $e');
       setState(() => _loadingVideos = false);
     }
   }
@@ -137,7 +137,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                           _fetchMyVideos();
                         }
                       } catch (e) {
-                        print(e);
+                        debugPrint(e.toString());
                       }
                     },
                     child: const Text('Submit Application', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -325,7 +325,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                             _fetchMyVideos();
                           }
                         } catch (e) {
-                          print(e);
+                          debugPrint(e.toString());
                         }
                       },
                       child: const Text('Save Setup', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),

@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import 'pitch_generator_screen.dart';
+import 'manage_orders_screen.dart';
 import '../main.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -46,7 +47,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
       }
     } catch (e) {
-      print('Ledger fetch error: $e');
+      debugPrint('Ledger fetch error: $e');
       setState(() => _isLoading = false);
     }
   }
@@ -153,7 +154,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         method,
                         detailsController.text,
                       );
-                      if (response.statusCode == 201 && context.mounted) {
+                      if (response.statusCode == 200 && context.mounted) {
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Payout requested successfully!')),
@@ -166,7 +167,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         );
                       }
                     } catch (e) {
-                      print(e);
+                      debugPrint(e.toString());
                     }
                   },
                   child: const Text('Submit Payout Request', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -185,6 +186,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final priceController = TextEditingController();
     final descController = TextEditingController();
     final stockController = TextEditingController(text: '10');
+    final sizesController = TextEditingController();
+    final colorsController = TextEditingController();
     String category = 'Electronics';
     bool allowDownload = true;
     XFile? selectedVideoFile;
@@ -243,6 +246,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       style: const TextStyle(color: Colors.white),
                       decoration: const InputDecoration(
                         labelText: 'Description',
+                        labelStyle: TextStyle(color: Colors.grey),
+                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: sizesController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: 'Sizes (Comma separated: S,M,L)',
+                        labelStyle: TextStyle(color: Colors.grey),
+                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: colorsController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: 'Colors (Comma separated: Red,Black)',
                         labelStyle: TextStyle(color: Colors.grey),
                         enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
                       ),
@@ -356,6 +379,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             return;
                           }
                           try {
+                            List<String> parsedSizes = sizesController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+                            List<String> parsedColors = colorsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+
                             final response = await ApiService.uploadProduct(
                               name: nameController.text,
                               description: descController.text,
@@ -363,6 +389,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               category: category,
                               stock: int.tryParse(stockController.text) ?? 10,
                               allowDownload: allowDownload,
+                              sizes: parsedSizes,
+                              colors: parsedColors,
                               videoPath: selectedVideoFile!.path,
                             );
                             if (response.statusCode == 201 && context.mounted) {
@@ -377,7 +405,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               );
                             }
                           } catch (e) {
-                            print('Upload error: $e');
+                            debugPrint('Upload error: $e');
                           }
                         },
                         child: const Text('Publish Pitch', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -414,7 +442,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         myProductsList = all.where((p) => p['businessId'] == businessId).toList();
       }
     } catch (e) {
-      print('Fetch products for boost error: $e');
+      debugPrint('Fetch products for boost error: $e');
     }
 
     if (mounted) Navigator.pop(context); // close loader dialog
@@ -536,7 +564,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               );
                             }
                           } catch (e) {
-                            print('Purchase boost error: $e');
+                            debugPrint('Purchase boost error: $e');
                           }
                         },
                         child: const Text('Confirm Purchase', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -638,14 +666,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 16),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xffFF5722),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          ),
-                          onPressed: _showPayoutRequestSheet,
-                          child: const Text('Request Payout', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xffFF5722),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                                onPressed: _showPayoutRequestSheet,
+                                child: const Text('Request Payout', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  side: const BorderSide(color: Colors.white24),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const ManageOrdersScreen()),
+                                  );
+                                },
+                                child: const Text('Manage Orders', style: TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -666,6 +718,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildMetricCard('Net Earnings', 'PKR ${_summary['netEarnings']}', Colors.blue),
                       _buildMetricCard('Paid Out', 'PKR ${_summary['paidOut']}', Colors.grey),
                     ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Seller Superpowers (Audience Insights)
+                  const Text(
+                    'Video & Audience Insights 🚀',
+                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xff1e1e1e),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white10),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildPromoMetric('14.2k', 'Total Views'),
+                            _buildPromoMetric('1.8k', 'Saves/Bookmarks'),
+                            _buildPromoMetric('45', 'Cart Abandons'),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.insights, color: Colors.blue, size: 24),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Pro Tip: Your videos get 20% more views when you use the "Tech" category!',
+                                  style: TextStyle(color: Colors.blue[200], fontSize: 13, height: 1.3),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 24),
 

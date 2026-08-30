@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'dart:convert';
+import '../services/api_service.dart';
+
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
 
@@ -8,14 +11,33 @@ class WalletScreen extends StatefulWidget {
 }
 
 class _WalletScreenState extends State<WalletScreen> {
-  double _balance = 12500.0;
+  double _balance = 0.0;
+  List<dynamic> _transactions = [];
+  bool _isLoading = true;
 
-  final List<Map<String, dynamic>> _transactions = [
-    {'title': 'Sale Earning (Order EMU-ORD-001)', 'amount': 4500.0, 'isCredit': true, 'date': 'Today'},
-    {'title': 'Boost Premium Promotion Plan', 'amount': -1500.0, 'isCredit': false, 'date': 'Yesterday'},
-    {'title': 'Payout Withdrawal (to JazzCash)', 'amount': -5000.0, 'isCredit': false, 'date': '12 Aug'},
-    {'title': 'Sale Earning (Order EMU-ORD-002)', 'amount': 3200.0, 'isCredit': true, 'date': '10 Aug'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    try {
+      final response = await ApiService.getLedger();
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _balance = (data['summary']['availableForPayout'] as num).toDouble();
+          _transactions = data['entries'];
+          _isLoading = false;
+        });
+      } else {
+        setState(() => _isLoading = false);
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +48,9 @@ class _WalletScreenState extends State<WalletScreen> {
         title: const Text('My Wallet', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         elevation: 0,
       ),
-      body: SingleChildScrollView(
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
+        : SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,7 +150,7 @@ class _WalletScreenState extends State<WalletScreen> {
             // Transaction History
             const Text('Transaction History', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            ListView.builder(
+            _transactions.isEmpty ? const Text('No transactions found.', style: TextStyle(color: Colors.grey)) : ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: _transactions.length,
@@ -151,7 +175,7 @@ class _WalletScreenState extends State<WalletScreen> {
                         ],
                       ),
                       Text(
-                        '${tx['isCredit'] ? '+' : ''}₨ ${tx['amount'].abs()}',
+                        '${tx['isCredit'] ? '+' : ''}₨ ${(tx['amount'] as num).abs()}',
                         style: TextStyle(
                           color: tx['isCredit'] ? Colors.green : Colors.redAccent,
                           fontWeight: FontWeight.bold,
@@ -211,3 +235,4 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 }
+

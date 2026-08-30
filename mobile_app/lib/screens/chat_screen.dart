@@ -34,40 +34,57 @@ class _ChatScreenState extends State<ChatScreen> {
     SocketService.onReceiveMessage((data) {
       if (mounted) {
         setState(() {
-          _messages.add({
-            'senderId': data['senderId'],
-            'content': data['content'],
-            'timestamp': DateTime.now().toIso8601String(),
-          });
+          // Check if message already exists to avoid duplicates (since we optimistic update)
+          bool exists = _messages.any((m) => m['content'] == data['content'] && m['senderId'] == data['senderId']);
+          if (!exists) {
+            _messages.add({
+              'senderId': data['senderId'],
+              'content': data['content'],
+              'timestamp': data['createdAt'] ?? DateTime.now().toIso8601String(),
+            });
+            _scrollToBottom();
+          }
         });
-        _scrollToBottom();
       }
     });
 
-    // Fetch existing messages from DB
-    _fetchInitialMessages();
+    _fetchOldMessages();
   }
 
-  Future<void> _fetchInitialMessages() async {
+  Future<void> _fetchOldMessages() async {
     try {
       final res = await Supabase.instance.client
           .from('messages')
-          .select()
+          .select('sender_id, content, created_at')
           .eq('chat_id', widget.chatId)
           .order('created_at', ascending: true);
-      
+          
       if (mounted) {
         setState(() {
-          _messages.addAll(res.map((m) => {
-            'senderId': m['sender_id'],
-            'content': m['content'],
-            'timestamp': m['created_at'],
-          }));
+          _messages.clear();
+          for (var row in res) {
+            _messages.add({
+              'senderId': row['sender_id'],
+              'content': row['content'],
+              'timestamp': row['created_at'],
+            });
+          }
         });
         _scrollToBottom();
+        
+        // Mark as read
+        final user = Supabase.instance.client.auth.currentUser;
+        if (user != null) {
+          Supabase.instance.client
+              .from('messages')
+              .update({'is_read': true})
+              .eq('chat_id', widget.chatId)
+              .neq('sender_id', user.id);
+        }
       }
     } catch (e) {
-      print('Error fetching messages: $e');
+      debugPrint('Error fetching old messages: $e');
+
     }
   }
 
@@ -223,7 +240,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         _scrollToBottom();
                       }
                     } catch (e) {
-                      print('Offer error: $e');
+                      debugPrint('Offer error: $e');
                     }
                   },
                   child: const Text('Send Offer Card', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -411,7 +428,7 @@ class OfferBubbleCard extends StatelessWidget {
                           );
                         }
                       } catch (e) {
-                        print(e);
+                        debugPrint(e.toString());
                       }
                     },
                     child: const Text('Accept', style: TextStyle(color: Colors.white)),
@@ -433,4 +450,5 @@ class OfferBubbleCard extends StatelessWidget {
     );
   }
 }
+
 
