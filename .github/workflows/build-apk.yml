@@ -30,12 +30,19 @@ jobs:
           rm -rf mobile_app/android/.gradle
           rm -rf mobile_app/build
           rm -rf ~/.gradle/caches
+          rm -rf ~/.gradle/wrapper
+          rm -rf ~/.pub-cache
 
       - name: Get dependencies
         run: |
           cd mobile_app
           flutter clean
           flutter pub get
+
+      - name: Invalidate Gradle cache
+        run: |
+          cd mobile_app/android
+          ./gradlew clean --no-daemon
 
       - name: Setup permanent debug keystore
         run: |
