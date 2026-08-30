@@ -23,10 +23,13 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Delete stale generated plugin files
+      - name: Clear corrupted Gradle and Plugin cache
         run: |
           rm -f mobile_app/.flutter-plugins
           rm -f mobile_app/.flutter-plugins-dependencies
+          rm -rf mobile_app/android/.gradle
+          rm -rf mobile_app/build
+          rm -rf ~/.gradle/caches
 
       - name: Get dependencies
         run: |
