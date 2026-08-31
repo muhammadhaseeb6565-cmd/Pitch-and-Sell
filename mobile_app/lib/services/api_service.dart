@@ -177,6 +177,24 @@ class ApiService {
     }
   }
 
+  static Future<http.Response> toggleSaveVideo(String videoId) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return http.Response('Unauthorized', 401);
+      
+      final existing = await _supabase.from('saved_videos').select('id').eq('user_id', user.id).eq('product_id', videoId).maybeSingle();
+      if (existing != null) {
+        await _supabase.from('saved_videos').delete().eq('user_id', user.id).eq('product_id', videoId);
+        return http.Response(jsonEncode({'saved': false}), 200);
+      } else {
+        await _supabase.from('saved_videos').insert({'user_id': user.id, 'product_id': videoId});
+        return http.Response(jsonEncode({'saved': true}), 200);
+      }
+    } catch (e) {
+      return http.Response(jsonEncode({'error': e.toString()}), 500);
+    }
+  }
+
   // Orders API
   static Future<http.Response> createOrder(String productId, int quantity, String paymentMethod, {String? size, String? color}) async {
     try {
@@ -288,31 +306,57 @@ class ApiService {
       final user = _supabase.auth.currentUser;
       if (user == null) return http.Response('Unauthorized', 401);
       
-      final orders = await _supabase.from('orders').select('id, total_price, status, created_at').eq('seller_id', user.id).order('created_at', ascending: false);
+      final orders = await _supabase.from('orders').select('id, total_price, platform_fee, status, created_at').eq('seller_id', user.id).order('created_at', ascending: false);
       
       double totalEarnings = 0;
       double pendingPayouts = 0;
+      double totalFees = 0;
       List<Map<String, dynamic>> entries = [];
 
       for (final o in orders) {
         final amount = (o['total_price'] as num?)?.toDouble() ?? 0;
-        if (o['status'] == 'completed' || o['status'] == 'delivered' || o['status'] == 'paid') totalEarnings += amount;
-        if (o['status'] == 'pending' || o['status'] == 'processing') pendingPayouts += amount;
+        final fee = (o['platform_fee'] as num?)?.toDouble() ?? 0;
+        final netAmount = amount - fee;
+
+        if (o['status'] == 'completed' || o['status'] == 'delivered' || o['status'] == 'paid') {
+          totalEarnings += netAmount;
+          totalFees += fee;
+        }
+        if (o['status'] == 'pending' || o['status'] == 'processing') {
+          pendingPayouts += netAmount;
+        }
         
         entries.add({
           'title': 'Sale Earning (Order ${o['id'].toString().substring(0,6)})',
-          'amount': amount,
+          'amount': netAmount,
           'status': o['status'],
           'date': o['created_at'],
         });
       }
 
+      try {
+        final promotions = await _supabase.from('promotions').select('*').eq('seller_id', user.id).order('created_at', ascending: false);
+        for (final p in promotions) {
+          totalFees += 100;
+          entries.add({
+            'title': 'Promotion Fee (${p['plan_name']})',
+            'amount': -100.0,
+            'isCredit': false,
+            'date': p['created_at'].toString().split('T')[0],
+          });
+          totalEarnings -= 100;
+        }
+      } catch (e) {
+        // ignore missing promotions table if it happens
+      }
+
       return http.Response(jsonEncode({
         'summary': {
-          'grossSales': totalEarnings + pendingPayouts,
+          'grossSales': totalEarnings + pendingPayouts + totalFees,
           'netEarnings': totalEarnings,
           'pendingPayouts': pendingPayouts,
           'availableForPayout': totalEarnings,
+          'totalFees': totalFees,
         },
         'entries': entries,
       }), 200);
@@ -421,6 +465,15 @@ class ApiService {
       }).select();
       
       return http.Response(jsonEncode({'promotion': res.first}), 200);
+    } catch (e) {
+      return http.Response(jsonEncode({'error': e.toString()}), 500);
+    }
+  }
+
+  static Future<http.Response> getPromotions() async {
+    try {
+      final res = await _supabase.from('promotions').select('*, products(*)').eq('status', 'active');
+      return http.Response(jsonEncode({'promotions': res}), 200);
     } catch (e) {
       return http.Response(jsonEncode({'error': e.toString()}), 500);
     }

@@ -7,6 +7,7 @@ import 'feed_screen.dart';
 import 'messages_list_screen.dart';
 import 'orders_history_screen.dart';
 import 'profile_screen.dart';
+import 'deals_screen.dart';
 import 'package:image_picker/image_picker.dart';
 
 class MainNavigationScreen extends StatefulWidget {
@@ -323,6 +324,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         index: _selectedIndex,
         children: [
           FeedScreen(isVisible: _selectedIndex == 0),
+          const DealsScreen(),
           const MessagesListScreen(),
           const OrdersHistoryScreen(),
           const ProfileScreen(),
@@ -333,6 +335,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         type: BottomNavigationBarType.fixed,
         selectedItemColor: const Color(0xffFF5722), // Emulgic Orange
         unselectedItemColor: Colors.grey,
+        selectedFontSize: 10,
+        unselectedFontSize: 10,
         currentIndex: navIndex,
         onTap: _onItemTapped,
         items: [
@@ -341,8 +345,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             label: 'Home',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble),
-            label: 'Messages',
+            icon: Icon(Icons.local_offer),
+            label: 'Deals',
           ),
           BottomNavigationBarItem(
             icon: Container(
@@ -355,6 +359,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               child: const Icon(Icons.add, color: Colors.white, size: 20),
             ),
             label: '',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.chat_bubble),
+            label: 'Chat',
           ),
           const BottomNavigationBarItem(
             icon: Icon(Icons.shopping_bag),

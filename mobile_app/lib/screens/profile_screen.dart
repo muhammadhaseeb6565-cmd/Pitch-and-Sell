@@ -7,6 +7,9 @@ import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import 'welcome_screen.dart';
 import 'dashboard_screen.dart';
+import 'seller_profile_screen.dart';
+import 'admin_portal_screen.dart';
+import 'package:flutter/services.dart';
 import 'checkout_screen.dart';
 import 'wallet_screen.dart';
 import '../main.dart';
@@ -761,6 +764,16 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 title: const Text('Terms of Agreement', style: TextStyle(color: Colors.grey, fontSize: 13)),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey),
                 onTap: () {},
+              ),
+              ListTile(
+                title: const Text('Admin Portal (Restricted)', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                trailing: const Icon(Icons.security, size: 16, color: Color(0xffFF5722)),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AdminPortalScreen()),
+                  );
+                },
               ),
               const SizedBox(height: 24),
               ListTile(

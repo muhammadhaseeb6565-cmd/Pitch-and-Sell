@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:video_player/video_player.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import 'pitch_generator_screen.dart';
@@ -328,8 +330,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             onPressed: () async {
                               final ImagePicker picker = ImagePicker();
-                              final XFile? file = await picker.pickVideo(source: ImageSource.gallery);
+                              final XFile? file = await picker.pickVideo(source: ImageSource.gallery, maxDuration: const Duration(seconds: 60));
                               if (file != null) {
+                                // Validate duration
+                                final controller = VideoPlayerController.file(File(file.path));
+                                await controller.initialize();
+                                if (controller.value.duration.inSeconds > 60) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Video must be 60 seconds or less.'), backgroundColor: Colors.red),
+                                    );
+                                  }
+                                  controller.dispose();
+                                  return;
+                                }
+                                controller.dispose();
+                                
                                 setModalState(() {
                                   selectedVideoFile = file;
                                   selectedFileName = file.name;
@@ -457,7 +473,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     String selectedProductId = myProductsList.first['id'];
-    String selectedPlan = 'STANDARD';
+    String selectedPlan = 'BILLBOARD';
 
     showModalBottomSheet(
       context: context,
@@ -508,36 +524,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     
                     // Plan Tiers Selector
                     RadioListTile<String>(
-                      title: const Text('Boost Standard (2x for 24h) — ₨500', style: TextStyle(color: Colors.white)),
-                      subtitle: const Text('Basic boost level visibility multiplier', style: TextStyle(color: Colors.grey, fontSize: 11)),
-                      value: 'STANDARD',
+                      title: const Text('Billboard Showcase (3 Days) — ₨100', style: TextStyle(color: Colors.white)),
+                      subtitle: const Text('Showcase your product on the billboard above the video feed.', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                      value: 'BILLBOARD',
                       groupValue: selectedPlan,
                       activeColor: const Color(0xffFF5722),
                       onChanged: (val) {
                         if (val != null) setModalState(() => selectedPlan = val);
                       },
                     ),
-                    RadioListTile<String>(
-                      title: const Text('Boost Premium (5x for 72h) — ₨1,500', style: TextStyle(color: Colors.white)),
-                      subtitle: const Text('Recommended boost level visibility multiplier', style: TextStyle(color: Colors.grey, fontSize: 11)),
-                      value: 'PREMIUM',
-                      groupValue: selectedPlan,
-                      activeColor: const Color(0xffFF5722),
-                      onChanged: (val) {
-                        if (val != null) setModalState(() => selectedPlan = val);
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('Boost Elite (10x for 7 days) — ₨5,000', style: TextStyle(color: Colors.white)),
-                      subtitle: const Text('Maximum visibility & target search priority', style: TextStyle(color: Colors.grey, fontSize: 11)),
-                      value: 'ELITE',
-                      groupValue: selectedPlan,
-                      activeColor: const Color(0xffFF5722),
-                      onChanged: (val) {
-                        if (val != null) setModalState(() => selectedPlan = val);
-                      },
-                    ),
-                    
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
