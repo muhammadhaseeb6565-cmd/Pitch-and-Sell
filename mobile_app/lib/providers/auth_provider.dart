@@ -44,6 +44,7 @@ class AuthProvider with ChangeNotifier {
       );
       if (res.user != null) {
         _setUserFromSupabase(res.user!);
+        await _fetchDbProfile();
         await _saveSessionLocally();
         _isLoading = false;
         notifyListeners();
@@ -76,6 +77,7 @@ class AuthProvider with ChangeNotifier {
           throw Exception("Please check your email to confirm your account!");
         }
         _setUserFromSupabase(res.user!);
+        await _fetchDbProfile();
         await _saveSessionLocally();
         _isLoading = false;
         notifyListeners();
@@ -116,6 +118,7 @@ class AuthProvider with ChangeNotifier {
       );
       if (res.user != null) {
         _setUserFromSupabase(res.user!);
+        await _fetchDbProfile();
         await _saveSessionLocally();
         _isLoading = false;
         notifyListeners();
@@ -139,7 +142,8 @@ class AuthProvider with ChangeNotifier {
         final User? su = _supabase.auth.currentUser;
         if (su != null) {
           _setUserFromSupabase(su);
-          await _saveSessionLocally();
+        await _fetchDbProfile();
+        await _saveSessionLocally();
           notifyListeners();
           return;
         }
@@ -149,7 +153,8 @@ class AuthProvider with ChangeNotifier {
         final AuthResponse res = await _supabase.auth.refreshSession();
         if (res.user != null) {
           _setUserFromSupabase(res.user!);
-          await _saveSessionLocally();
+        await _fetchDbProfile();
+        await _saveSessionLocally();
           notifyListeners();
           return;
         }
@@ -182,6 +187,25 @@ class AuthProvider with ChangeNotifier {
   }
 
   // Internal helpers
+    Future<void> _fetchDbProfile() async {
+    if (_user == null) return;
+    try {
+      final res = await _supabase.from('profiles').select().eq('id', _user!['id']).maybeSingle();
+      if (res != null) {
+        if (res['is_business'] == true) {
+          _user!['businessProfile'] = {
+            'business_name': res['business_name'],
+            'status': 'active'
+          };
+        } else {
+          _user!['businessProfile'] = null;
+        }
+        if (res['name'] != null) _user!['name'] = res['name'];
+        if (res['avatar_url'] != null) _user!['avatar'] = res['avatar_url'];
+      }
+    } catch (_) {}
+  }
+
   void _setUserFromSupabase(User supabaseUser) {
     final meta = supabaseUser.userMetadata ?? {};
     _user = {
@@ -216,7 +240,8 @@ class AuthProvider with ChangeNotifier {
     final su = _supabase.auth.currentUser;
     if (su != null) {
       _setUserFromSupabase(su);
-      await _saveSessionLocally();
+        await _fetchDbProfile();
+        await _saveSessionLocally();
       notifyListeners();
     }
   }
@@ -226,3 +251,5 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 }
+
+
