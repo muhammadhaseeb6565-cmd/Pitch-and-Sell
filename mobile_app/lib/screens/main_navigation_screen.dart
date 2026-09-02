@@ -9,6 +9,8 @@ import 'orders_history_screen.dart';
 import 'profile_screen.dart';
 import 'deals_screen.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:video_player/video_player.dart';
+import 'dart:io';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -182,15 +184,29 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             ),
                             onPressed: () async {
-                              final ImagePicker picker = ImagePicker();
-                              final XFile? file = await picker.pickVideo(source: ImageSource.gallery);
-                              if (file != null) {
-                                setModalState(() {
-                                  selectedVideoFile = file;
-                                  selectedFileName = file.name;
-                                });
-                              }
-                            },
+                                final ImagePicker picker = ImagePicker();
+                                final XFile? file = await picker.pickVideo(source: ImageSource.gallery);
+                                if (file != null) {
+                                  final controller = VideoPlayerController.file(File(file.path));
+                                  await controller.initialize();
+                                  final duration = controller.value.duration;
+                                  controller.dispose();
+                                  
+                                  if (duration.inSeconds > 60) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Videos must be 60 seconds or shorter.')),
+                                      );
+                                    }
+                                    return;
+                                  }
+
+                                  setModalState(() {
+                                    selectedVideoFile = file;
+                                    selectedFileName = file.name;
+                                  });
+                                }
+                              },
                             icon: const Icon(Icons.video_library, size: 16),
                             label: const Text('Choose Video', style: TextStyle(fontSize: 12)),
                           ),
@@ -372,4 +388,5 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 }
+
 
