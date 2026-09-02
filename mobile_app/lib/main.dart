@@ -40,7 +40,7 @@ void main() async {
     );
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
     FirebaseMessaging messaging = FirebaseMessaging.instance;
-    messaging.requestPermission();
+    // Note: Request permissions later in the UI, not in main(), to avoid deadlocks
   } catch (e) {
     debugPrint("App Init failed: $e");
     initError = e.toString();
@@ -154,6 +154,7 @@ class _PitchAndSellAppState extends State<PitchAndSellApp> {
     );
   }
 }
+
 
 
 
