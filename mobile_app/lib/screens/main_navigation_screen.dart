@@ -326,7 +326,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           FeedScreen(isVisible: _selectedIndex == 0),
           const DealsScreen(),
           const MessagesListScreen(),
-          const OrdersHistoryScreen(),
           const ProfileScreen(),
         ],
       ),
@@ -365,10 +364,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             label: 'Chat',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_bag),
-            label: 'Orders',
-          ),
-          const BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Profile',
           ),
@@ -377,3 +372,4 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 }
+

@@ -223,19 +223,7 @@ class _FeedScreenState extends State<FeedScreen> {
                           },
                         ),
                         const SizedBox(width: 8),
-                        // My Orders button
-                        IconButton(
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          icon: const Icon(Icons.receipt_long, color: Colors.white, size: 22),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const MyOrdersScreen()),
-                            );
-                          },
-                        ),
-                        const SizedBox(width: 8),
+                        
                         // Cart button
                         IconButton(
                           padding: EdgeInsets.zero,
@@ -249,30 +237,7 @@ class _FeedScreenState extends State<FeedScreen> {
                           },
                         ),
                         const SizedBox(width: 8),
-                        // Notification Bell with Badge
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-                            );
-                          },
-                          child: Stack(
-                            children: [
-                              const Icon(Icons.notifications_none, color: Colors.white, size: 22),
-                              Positioned(
-                                right: 0,
-                                top: 0,
-                                child: Container(
-                                  padding: const EdgeInsets.all(2),
-                                  decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                                  child: const Text('2', style: TextStyle(color: Colors.white, fontSize: 7, fontWeight: FontWeight.bold)),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 10),
+                        
                         // Mode switch button
                         GestureDetector(
                           onTap: () {
@@ -379,3 +344,4 @@ class _FeedScreenState extends State<FeedScreen> {
 }
 
 // Single Video Feed Item
+
