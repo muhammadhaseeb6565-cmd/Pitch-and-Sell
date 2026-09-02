@@ -195,6 +195,19 @@ class ApiService {
     }
   }
 
+  static Future<http.Response> getSavedVideos() async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return http.Response('Unauthorized', 401);
+      
+      final res = await _supabase.from('saved_videos').select('products(*)').eq('user_id', user.id);
+      final products = res.map((r) => r['products']).toList();
+      return http.Response(jsonEncode({'saved': products}), 200);
+    } catch (e) {
+      return http.Response(jsonEncode({'error': e.toString()}), 500);
+    }
+  }
+
   // Orders API
   static Future<http.Response> createOrder(String productId, int quantity, String paymentMethod, {String? size, String? color}) async {
     try {

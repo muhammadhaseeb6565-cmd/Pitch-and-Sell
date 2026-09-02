@@ -29,16 +29,33 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   bool _darkMode = true;
   bool _pushNotifications = true;
 
-  final List<Map<String, dynamic>> _wishlist = [
-    {'id': 'w1', 'name': 'Premium Wireless Buds', 'price': 3500, 'img': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=200'},
-    {'id': 'w2', 'name': 'Ergonomic Desk Stand', 'price': 1800, 'img': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=200'},
-  ];
+  List<dynamic> _wishlist = [];
+  bool _loadingWishlist = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
     _fetchMyVideos();
+    _fetchWishlist();
+  }
+
+  Future<void> _fetchWishlist() async {
+    try {
+      final res = await ApiService.getSavedVideos();
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        setState(() {
+          _wishlist = data['saved'] ?? [];
+          _loadingWishlist = false;
+        });
+      } else {
+        setState(() => _loadingWishlist = false);
+      }
+    } catch (e) {
+      debugPrint('Error fetching wishlist: $e');
+      setState(() => _loadingWishlist = false);
+    }
   }
 
   @override
@@ -647,7 +664,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           ),
 
           // Tab 3: Wishlist View
-          _wishlist.isEmpty
+          _loadingWishlist 
+            ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
+            : _wishlist.isEmpty
               ? const Center(child: Text('Your wishlist is empty.', style: TextStyle(color: Colors.grey)))
               : GridView.builder(
                   padding: const EdgeInsets.all(20),
@@ -675,20 +694,25 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                                 Container(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(8),
-                                    image: DecorationImage(
-                                      image: NetworkImage(item['img']),
-                                      fit: BoxFit.cover,
+                                    gradient: const LinearGradient(
+                                      colors: [Colors.black54, Colors.black87],
                                     ),
+                                  ),
+                                  child: const Center(
+                                    child: Icon(Icons.video_library, color: Colors.grey, size: 32),
                                   ),
                                 ),
                                 Positioned(
                                   right: 4,
                                   top: 4,
                                   child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _wishlist.removeAt(idx);
-                                      });
+                                    onTap: () async {
+                                      final res = await ApiService.toggleSaveVideo(item['id']);
+                                      if (res.statusCode == 200) {
+                                        setState(() {
+                                          _wishlist.removeAt(idx);
+                                        });
+                                      }
                                     },
                                     child: const CircleAvatar(
                                       radius: 12,

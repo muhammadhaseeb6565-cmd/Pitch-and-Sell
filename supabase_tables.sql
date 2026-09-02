@@ -61,12 +61,71 @@ CREATE TABLE IF NOT EXISTS public.reviews (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 8. Missing Tables added for MVP
+CREATE TABLE IF NOT EXISTS public.comments (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    product_id UUID REFERENCES public.products(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    text TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.likes (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    product_id UUID REFERENCES public.products(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(product_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.saved_videos (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    product_id UUID REFERENCES public.products(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(product_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.deals (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    bank_name TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.deal_transactions (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    deal_id UUID REFERENCES public.deals(id) ON DELETE CASCADE,
+    platform_fee NUMERIC DEFAULT 5.0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.payouts (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    amount NUMERIC NOT NULL,
+    method TEXT NOT NULL,
+    details TEXT,
+    status TEXT DEFAULT 'pending',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS platform_fee NUMERIC DEFAULT 0;
+
 -- Set up Row Level Security (RLS) if needed
 ALTER TABLE public.offers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.promotions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.likes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.saved_videos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.deals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.deal_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.payouts ENABLE ROW LEVEL SECURITY;
 
 -- Basic Policies (allowing authenticated users full access for now)
 CREATE POLICY "Enable all for authenticated users" ON public.offers FOR ALL TO authenticated USING (true) WITH CHECK (true);
@@ -74,3 +133,9 @@ CREATE POLICY "Enable all for authenticated users" ON public.promotions FOR ALL 
 CREATE POLICY "Enable all for authenticated users" ON public.chats FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Enable all for authenticated users" ON public.messages FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Enable all for authenticated users" ON public.reviews FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Enable all for authenticated users" ON public.comments FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Enable all for authenticated users" ON public.likes FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Enable all for authenticated users" ON public.saved_videos FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Enable all for authenticated users" ON public.deals FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Enable all for authenticated users" ON public.deal_transactions FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Enable all for authenticated users" ON public.payouts FOR ALL TO authenticated USING (true) WITH CHECK (true);
