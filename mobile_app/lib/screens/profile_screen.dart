@@ -409,16 +409,13 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-          backgroundColor: isDark ? const Color(0xff1e1e1e) : Colors.white,
-          elevation: 0,
-          title: Text('My Profile', style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
-          iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
-          actions: [
-          IconButton(icon: Icon(Icons.receipt_long), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyOrdersScreen()))),
-          IconButton(icon: Icon(Icons.notifications_none), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()))),
-        ],
-        ),
+        backgroundColor: isDark ? const Color(0xff1e1e1e) : Colors.white,
+        elevation: 0,
+        title: Text('My Profile', style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
         actions: [
+          IconButton(icon: const Icon(Icons.receipt_long), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyOrdersScreen()))),
+          IconButton(icon: const Icon(Icons.notifications_none), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()))),
           IconButton(
             icon: const Icon(Icons.edit, color: Color(0xffFF5722)),
             tooltip: 'Setup Profile',
