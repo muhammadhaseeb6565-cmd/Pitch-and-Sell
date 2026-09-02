@@ -35,6 +35,7 @@ class VideoPlayerItem extends StatefulWidget {
 
 class _VideoPlayerItemState extends State<VideoPlayerItem> {
   VideoPlayerController? _controller;
+  double _horizontalDrag = 0.0;
   bool _isLiked = false;
   int _likesCount = 0;
   bool _showHeart = false;
@@ -190,6 +191,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
       children: [
         // Video Player Background
         GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: () {
             if (_controller != null) {
               setState(() {
@@ -202,9 +204,12 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
             }
           },
           onDoubleTap: _handleLike,
+          onHorizontalDragStart: (details) => _horizontalDrag = 0.0,
+          onHorizontalDragUpdate: (details) {
+            _horizontalDrag += details.delta.dx;
+          },
           onHorizontalDragEnd: (details) {
-            // Negative velocity = swipe left (from right to left)
-            if (details.primaryVelocity != null && details.primaryVelocity! < -300) {
+            if (_horizontalDrag < -40 || (details.primaryVelocity != null && details.primaryVelocity! < -300)) {
               final sellerId = widget.productData['seller_id'] ?? '';
               if (sellerId.isNotEmpty) {
                 Navigator.push(
