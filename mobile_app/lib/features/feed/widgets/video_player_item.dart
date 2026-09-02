@@ -191,13 +191,34 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
         // Video Player Background
         GestureDetector(
           onTap: () {
-            if (_controller != null && _controller!.value.isPlaying) {
-              _controller?.pause();
-            } else {
-              _controller?.play();
+            if (_controller != null) {
+              setState(() {
+                if (_controller!.value.isPlaying) {
+                  _controller!.pause();
+                } else {
+                  _controller!.play();
+                }
+              });
             }
           },
           onDoubleTap: _handleLike,
+          onHorizontalDragEnd: (details) {
+            // Negative velocity = swipe left (from right to left)
+            if (details.primaryVelocity != null && details.primaryVelocity! < -300) {
+              final sellerId = widget.productData['businessId'] ?? widget.productData['profiles']?['id'] ?? widget.productData['business']?['id'] ?? '';
+              if (sellerId.isNotEmpty) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => SellerProfileScreen(
+                      sellerId: sellerId,
+                      businessName: widget.productData['business']?['name'] ?? 'Seller',
+                    ),
+                  ),
+                );
+              }
+            }
+          },
           child: Container(
             color: Colors.black,
             child: _controller != null && _controller!.value.isInitialized
@@ -214,6 +235,25 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 : const Center(child: CircularProgressIndicator(color: Color(0xffFF5722))),
           ),
         ),
+
+        // Pause Indicator
+        if (_controller != null && _controller!.value.isInitialized && !_controller!.value.isPlaying)
+          IgnorePointer(
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: const BoxDecoration(
+                  color: Colors.black45,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.play_arrow_rounded,
+                  color: Colors.white,
+                  size: 64,
+                ),
+              ),
+            ),
+          ),
 
         // Floating Double Tap Heart Animation
         if (_showHeart)
