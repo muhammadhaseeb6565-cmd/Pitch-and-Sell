@@ -32,7 +32,7 @@ void main() async {
       anonKey: 'sb_publishable_9RpsACXX7JkIAQ_egsLJcA_5IWRfUcZ',
     );
     
-    await NotificationService.init();
+    NotificationService.init();
 
     // FIREBASE INITIALIZATION 
     await Firebase.initializeApp(
@@ -40,7 +40,7 @@ void main() async {
     );
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
     FirebaseMessaging messaging = FirebaseMessaging.instance;
-    await messaging.requestPermission();
+    messaging.requestPermission();
   } catch (e) {
     debugPrint("App Init failed: $e");
     initError = e.toString();
@@ -154,5 +154,6 @@ class _PitchAndSellAppState extends State<PitchAndSellApp> {
     );
   }
 }
+
 
 
