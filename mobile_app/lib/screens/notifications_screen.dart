@@ -108,7 +108,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             CircleAvatar(
-                              backgroundColor: (notif['color'] as Color).withValues(alpha: 0.12),
+                              backgroundColor: (notif['color'] as Color).withOpacity(0.12),
                               child: Icon(notif['icon'], color: notif['color'], size: 20),
                             ),
                             const SizedBox(width: 14),
@@ -146,4 +146,5 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 }
+
 
