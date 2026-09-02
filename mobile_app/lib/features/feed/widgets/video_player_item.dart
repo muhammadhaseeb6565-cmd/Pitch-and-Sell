@@ -205,7 +205,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
           onHorizontalDragEnd: (details) {
             // Negative velocity = swipe left (from right to left)
             if (details.primaryVelocity != null && details.primaryVelocity! < -300) {
-              final sellerId = widget.productData['businessId'] ?? widget.productData['profiles']?['id'] ?? widget.productData['business']?['id'] ?? '';
+              final sellerId = widget.productData['seller_id'] ?? '';
               if (sellerId.isNotEmpty) {
                 Navigator.push(
                   context,
@@ -301,7 +301,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        final sellerId = widget.productData['businessId'] ?? widget.productData['profiles']?['id'] ?? widget.productData['business']?['id'] ?? '';
+                        final sellerId = widget.productData['seller_id'] ?? '';
                         if (sellerId.isNotEmpty) {
                           Navigator.push(
                             context,
@@ -453,6 +453,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     );
   }
 }
+
 
 
 
