@@ -26,16 +26,7 @@ class _DealsScreenState extends State<DealsScreen> {
     try {
       final res = await _supabase.from('deals').select('*').eq('status', 'active');
       
-      // If empty, let's mock some data just for MVP demo purposes if table is empty
-      if (res.isEmpty) {
-        _deals = [
-          {'id': 'mock1', 'business_name': 'KFC Pakistan', 'offer_title': 'Flat 30% OFF on Zinger', 'bank_or_card': 'HBL Credit Cards', 'validity': 'Valid till 30th Sept'},
-          {'id': 'mock2', 'business_name': 'Sapphire', 'offer_title': '20% Flat Discount', 'bank_or_card': 'Meezan Bank Debit', 'validity': 'Valid till 15th Oct'},
-          {'id': 'mock3', 'business_name': 'Gloria Jeans', 'offer_title': 'Buy 1 Get 1 Free', 'bank_or_card': 'UBL Cards', 'validity': 'Valid till 10th Oct'},
-        ];
-      } else {
-        _deals = res;
-      }
+      _deals = res;
       setState(() => _isLoading = false);
     } catch (e) {
       setState(() => _isLoading = false);
@@ -47,13 +38,11 @@ class _DealsScreenState extends State<DealsScreen> {
     if (user == null) return;
     try {
       // Record transaction, Emulgic gets PKR 5 fee
-      if (!dealId.startsWith('mock')) {
-        await _supabase.from('deal_transactions').insert({
-          'user_id': user.id,
-          'deal_id': dealId,
-          'platform_fee': 5
-        });
-      }
+      await _supabase.from('deal_transactions').insert({
+        'user_id': user.id,
+        'deal_id': dealId,
+        'platform_fee': 5
+      });
       
       if (mounted) {
         showDialog(
@@ -88,7 +77,9 @@ class _DealsScreenState extends State<DealsScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
-          : ListView.builder(
+          : _deals.isEmpty
+              ? const Center(child: Text('No deals available right now. Check back later!', style: TextStyle(color: Colors.grey)))
+              : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: _deals.length,
               itemBuilder: (context, index) {

@@ -180,9 +180,11 @@ class CartScreen extends StatelessWidget {
                                   },
                                 ),
                               ),
-                            ).then((_) {
+                            ).then((result) {
                               // Clear the cart on successful order
-                              cart.clear();
+                              if (result == true) {
+                                cart.clear();
+                              }
                             });
                           },
                           child: const Text('Proceed to Checkout', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),

@@ -155,7 +155,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
       final dir = await getTemporaryDirectory();
       final outPath = '${dir.path}/pitchandsell_${DateTime.now().millisecondsSinceEpoch}.mp4';
 
-      final watermarkText = 'PitchAndSell - @${widget.productData['business']['name']}';
+      final watermarkText = 'PitchAndSell - @${widget.productData['business']?['name'] ?? 'Seller'}';
       
       // FFmpeg command to add text watermark at bottom center
       final command = "-y -i '${file.path}' -vf \"drawtext=text='$watermarkText':fontcolor=white@0.9:fontsize=32:x=(w-tw)/2:y=h-th-60:shadowcolor=black@0.6:shadowx=2:shadowy=2\" -c:a copy '$outPath'";
@@ -169,7 +169,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
         final link = 'https://pitch-and-sell-backend.onrender.com/product/${widget.productData['id']}';
         await Share.shareXFiles(
           [XFile(outPath)], 
-          text: 'Watch this awesome product by @${widget.productData['business']['name']} on PitchAndSell!\n\nBuy it here: $link',
+          text: 'Watch this awesome product by @${widget.productData['business']?['name'] ?? 'Seller'} on PitchAndSell!\n\nBuy it here: $link',
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to add watermark. Sharing link only...')));
@@ -308,14 +308,14 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                             MaterialPageRoute(
                               builder: (_) => SellerProfileScreen(
                                 sellerId: sellerId,
-                                businessName: widget.productData['business']['name'],
+                                businessName: widget.productData['business']?['name'] ?? 'Seller',
                               ),
                             ),
                           );
                         }
                       },
                       child: Text(
-                        '@${widget.productData['business']['name']}',
+                        '@${widget.productData['business']?['name'] ?? 'Seller'}',
                         style: const TextStyle(color: Color(0xffFF5722), fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                       ),
                     ),
@@ -404,9 +404,15 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
 
               // Save for Later
               GestureDetector(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved for later!')));
-
+                onTap: () async {
+                  try {
+                    await ApiService.toggleSaveVideo(widget.productData['id']);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved for later!')));
+                    }
+                  } catch (e) {
+                    debugPrint('Save error: $e');
+                  }
                 },
                 child: const Column(
                   children: [

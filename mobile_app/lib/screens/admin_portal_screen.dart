@@ -25,7 +25,7 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> {
   bool _isLoading = false;
 
   void _verifyPin() {
-    // Hardcoded MVP Admin PIN
+    // MVP-only PIN check
     if (_pinController.text == '8899') {
       setState(() {
         _isAuthenticated = true;
@@ -39,21 +39,25 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> {
   Future<void> _fetchStats() async {
     setState(() => _isLoading = true);
     try {
-      final profiles = await _supabase.from('profiles').select('id');
-      final orders = await _supabase.from('orders').select('id');
-      final payouts = await _supabase.from('payouts').select('id').eq('status', 'pending');
-      final deals = await _supabase.from('deal_transactions').select('id');
+      final profiles = await _supabase.from('profiles').select('id').count(CountOption.exact);
+      final orders = await _supabase.from('orders').select('id').count(CountOption.exact);
+      final payouts = await _supabase.from('payouts').select('id').eq('status', 'pending').count(CountOption.exact);
+      final deals = await _supabase.from('deal_transactions').select('id').count(CountOption.exact);
 
       setState(() {
         _stats = {
-          'totalUsers': profiles.length,
-          'totalOrders': orders.length,
-          'pendingPayouts': payouts.length,
-          'totalDeals': deals.length,
+          'totalUsers': profiles.count ?? 0,
+          'totalOrders': orders.count ?? 0,
+          'pendingPayouts': payouts.count ?? 0,
+          'totalDeals': deals.count ?? 0,
         };
         _isLoading = false;
       });
     } catch (e) {
+      debugPrint('Error fetching stats: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading stats: $e')));
+      }
       setState(() => _isLoading = false);
     }
   }

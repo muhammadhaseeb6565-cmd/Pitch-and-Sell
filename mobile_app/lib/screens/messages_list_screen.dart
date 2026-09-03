@@ -25,7 +25,10 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
     setState(() => _isLoading = true);
     try {
       final user = _supabase.auth.currentUser;
-      if (user == null) return;
+      if (user == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
 
       // Fetch chats where the user is either user1 or user2
       final response = await _supabase

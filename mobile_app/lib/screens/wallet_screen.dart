@@ -14,6 +14,7 @@ class _WalletScreenState extends State<WalletScreen> {
   double _balance = 0.0;
   List<dynamic> _transactions = [];
   bool _isLoading = true;
+  bool _hasError = false;
 
   @override
   void initState() {
@@ -32,11 +33,46 @@ class _WalletScreenState extends State<WalletScreen> {
           _isLoading = false;
         });
       } else {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+          _hasError = true;
+        });
       }
     } catch (e) {
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+        _hasError = true;
+      });
     }
+  }
+
+  void _showWithdrawDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xff1e1e1e),
+          title: const Text('Request Payout', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          content: Text('Are you sure you want to withdraw PKR ${_balance.toStringAsFixed(0)} to your linked account?', style: const TextStyle(color: Colors.grey)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722)),
+              onPressed: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Payout requested successfully!')),
+                );
+              },
+              child: const Text('Confirm', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -50,7 +86,24 @@ class _WalletScreenState extends State<WalletScreen> {
       ),
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
-        : SingleChildScrollView(
+        : _hasError 
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+                  const SizedBox(height: 16),
+                  const Text('Failed to load wallet data.', style: TextStyle(color: Colors.white, fontSize: 16)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _fetchData,
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722)),
+                    child: const Text('Retry', style: TextStyle(color: Colors.white)),
+                  )
+                ],
+              ),
+            )
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,16 +163,12 @@ class _WalletScreenState extends State<WalletScreen> {
                   const SizedBox(width: 12),
                   const Expanded(
                     child: Text(
-                      'Next automated payout due: 20 Aug.\nEarly manual withdrawal is available now.',
+                      'Request a manual withdrawal of your available funds.',
                       style: TextStyle(color: Colors.orange, fontSize: 11, fontWeight: FontWeight.w500),
                     ),
                   ),
                   TextButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Manual payout initiated!')),
-                      );
-                    },
+                    onPressed: _showWithdrawDialog,
                     child: const Text('Withdraw', style: TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold, fontSize: 12)),
                   ),
                 ],
@@ -130,9 +179,7 @@ class _WalletScreenState extends State<WalletScreen> {
             // Linked Accounts
             const Text('Linked Accounts', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            _buildLinkedAccountTile('JazzCash', '0300****512', Colors.orange),
-            _buildLinkedAccountTile('Easypaisa', '0345****889', Colors.green),
-            _buildLinkedAccountTile('HBL Bank', 'HBL-0042****110', Colors.teal),
+            const Text('Manage your linked payment accounts in Settings', style: TextStyle(color: Colors.grey, fontSize: 13)),
             const SizedBox(height: 24),
 
             // Quick actions
@@ -169,15 +216,15 @@ class _WalletScreenState extends State<WalletScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(tx['title'], style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
+                          Text(tx['title'] ?? 'Transaction', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
                           const SizedBox(height: 4),
-                          Text(tx['date'], style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                          Text(tx['date'] ?? '', style: const TextStyle(color: Colors.grey, fontSize: 11)),
                         ],
                       ),
                       Text(
-                        '${tx['isCredit'] ? '+' : ''}₨ ${(tx['amount'] as num).abs()}',
+                        '${(tx['isCredit'] == true) ? '+' : ''}₨ ${(tx['amount'] as num?)?.abs() ?? 0}',
                         style: TextStyle(
-                          color: tx['isCredit'] ? Colors.green : Colors.redAccent,
+                          color: (tx['isCredit'] == true) ? Colors.green : Colors.redAccent,
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),

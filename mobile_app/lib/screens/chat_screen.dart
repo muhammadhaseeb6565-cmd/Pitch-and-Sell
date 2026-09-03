@@ -9,11 +9,15 @@ import '../services/socket_service.dart';
 class ChatScreen extends StatefulWidget {
   final String chatId;
   final String chatTitle;
+  final String? productId;
+  final String? sellerId;
 
   const ChatScreen({
     super.key,
     required this.chatId,
     required this.chatTitle,
+    this.productId,
+    this.sellerId,
   });
 
   @override
@@ -209,25 +213,28 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   onPressed: () async {
                     // Call backend api
-                    try {
-                      final response = await ApiService.createOffer({
-                        'chatId': widget.chatId,
-                        'productId': 'mock-product-id', // fetch actual in real
-                        'quantity': int.parse(qtyController.text),
-                        'unitPrice': double.parse(priceController.text),
-                        'deliveryFee': double.parse(deliveryController.text),
-                        'paymentMethod': paymentMethod,
-                      });
-                      if (response.statusCode == 201 && context.mounted) {
-                        Navigator.pop(context);
-                        final data = jsonDecode(response.body);
-                        // Inject offer bubble directly
-                        setState(() {
-                          _messages.add({
-                            'senderId': 'seller-id',
-                            'type': 'offer',
-                            'offer': data['offer'],
-                          });
+                      try {
+                        final authProv = Provider.of<AuthProvider>(context, listen: false);
+                        final myId = authProv.user?['id'];
+                        final response = await ApiService.createOffer({
+                          'chatId': widget.chatId,
+                          'productId': widget.productId!, 
+                          'sellerId': widget.sellerId ?? '',
+                          'quantity': int.parse(qtyController.text),
+                          'unitPrice': double.parse(priceController.text),
+                          'deliveryFee': double.parse(deliveryController.text),
+                          'paymentMethod': paymentMethod,
+                        });
+                        if (response.statusCode == 201 && context.mounted) {
+                          Navigator.pop(context);
+                          final data = jsonDecode(response.body);
+                          // Inject offer bubble directly
+                          setState(() {
+                            _messages.add({
+                              'senderId': myId,
+                              'type': 'offer',
+                              'offer': data['offer'],
+                            });
                         });
                         _scrollToBottom();
                       }
@@ -257,11 +264,12 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: const Color(0xff1e1e1e),
         title: Text(widget.chatTitle, style: const TextStyle(color: Colors.white)),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.description_outlined, color: Color(0xffFF5722)),
-            onPressed: _showCreateOfferSheet,
-            tooltip: 'Send Structured Offer',
-          ),
+          if (widget.productId != null)
+            IconButton(
+              icon: const Icon(Icons.description_outlined, color: Color(0xffFF5722)),
+              onPressed: _showCreateOfferSheet,
+              tooltip: 'Send Structured Offer',
+            ),
         ],
       ),
       body: Column(
@@ -430,7 +438,16 @@ class OfferBubbleCard extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.red)),
-                    onPressed: () {},
+                    onPressed: () async {
+                      try {
+                        await Supabase.instance.client.from('offers').update({'status': 'declined'}).eq('id', offer['id']);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Offer declined.')));
+                        }
+                      } catch (e) {
+                        debugPrint(e.toString());
+                      }
+                    },
                     child: const Text('Decline', style: TextStyle(color: Colors.red)),
                   ),
                 ),

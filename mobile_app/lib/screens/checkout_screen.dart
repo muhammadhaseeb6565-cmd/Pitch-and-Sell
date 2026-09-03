@@ -11,7 +11,13 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   String _selectedPayment = 'Cash on Delivery (COD)';
-  final String _deliveryAddress = 'House 14-A, Block C, Gulberg III, Lahore';
+  final TextEditingController _addressController = TextEditingController(text: 'Enter your delivery address');
+
+  @override
+  void dispose() {
+    _addressController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +114,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(_deliveryAddress, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                  TextField(
+                    controller: _addressController,
+                    style: const TextStyle(color: Colors.white70, fontSize: 13),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      border: InputBorder.none,
+                    ),
+                  ),
                   const Divider(color: Colors.white10, height: 24),
                   const Text('Standard Delivery (2-3 Days) — ₨ 200', style: TextStyle(color: Colors.grey, fontSize: 12)),
                 ],
@@ -187,7 +200,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           TextButton(
                             onPressed: () {
                               Navigator.pop(context); // close alert dialog
-                              Navigator.pop(context); // close checkout screen
+                              Navigator.pop(context, true); // close checkout screen with success
                             },
                             child: const Text('Back to Feed', style: TextStyle(color: Color(0xffFF5722))),
                           ),

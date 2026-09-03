@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'welcome_screen.dart';
@@ -41,8 +42,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   String _selectedRole = 'Both';
 
-  void _finishOnboarding() {
+  void _finishOnboarding() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
+    if (auth.isAuthenticated && auth.user != null) {
+      try {
+        await Supabase.instance.client
+            .from('profiles')
+            .update({'role': _selectedRole.toLowerCase()})
+            .eq('id', auth.user!['id']);
+      } catch (e) {
+        debugPrint('Failed to save role: $e');
+      }
+    }
+
+    if (!mounted) return;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(

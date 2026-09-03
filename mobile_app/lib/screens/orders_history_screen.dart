@@ -100,19 +100,19 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                order['id'],
+                                order['id'].toString().length >= 8 ? order['id'].toString().substring(0, 8) : order['id'].toString(),
                                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                               ),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: _getStatusColor(order['orderStatus']).withOpacity(0.15),
+                                  color: _getStatusColor(order['status'] ?? 'UNKNOWN').withOpacity(0.15),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  order['orderStatus'],
+                                  order['status'] ?? 'UNKNOWN',
                                   style: TextStyle(
-                                    color: _getStatusColor(order['orderStatus']),
+                                    color: _getStatusColor(order['status'] ?? 'UNKNOWN'),
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
                                   ),
@@ -122,7 +122,7 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                           ),
                           const Divider(color: Colors.white10, height: 20),
                           Text(
-                            product['name'],
+                            product['name'] ?? 'Unknown Product',
                             style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
                           ),
                           const SizedBox(height: 4),
@@ -130,11 +130,11 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Qty: ${order['quantity']} x PKR ${order['unitPrice']}',
+                                'Qty: ${order['quantity'] ?? 1} x PKR ${order['unitPrice'] ?? 0}',
                                 style: const TextStyle(color: Colors.grey, fontSize: 13),
                               ),
                               Text(
-                                'PKR ${order['totalAmount']}',
+                                'PKR ${order['totalAmount'] ?? 0}',
                                 style: const TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold, fontSize: 16),
                               ),
                             ],
@@ -144,17 +144,17 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Mode: ${order['paymentMethod']}',
+                                'Mode: ${order['paymentMethod'] ?? 'N/A'}',
                                 style: const TextStyle(color: Colors.grey, fontSize: 13),
                               ),
                               Text(
-                                'Date: ${order['createdAt'].substring(0, 10)}',
+                                'Date: ${order['createdAt'] != null ? order['createdAt'].toString().substring(0, 10) : 'N/A'}',
                                 style: const TextStyle(color: Colors.grey, fontSize: 13),
                               ),
                             ],
                           ),
-                          _buildTimeline(order['orderStatus']),
-                          if (order['orderStatus'] == 'PENDING' || order['orderStatus'] == 'ACCEPTED' || order['orderStatus'] == 'PROCESSING') ...[
+                          _buildTimeline(order['status'] ?? 'UNKNOWN'),
+                          if ((order['status'] ?? 'UNKNOWN') == 'PENDING' || (order['status'] ?? 'UNKNOWN') == 'ACCEPTED' || (order['status'] ?? 'UNKNOWN') == 'PROCESSING') ...[
                             const SizedBox(height: 8),
                             Align(
                               alignment: Alignment.centerRight,

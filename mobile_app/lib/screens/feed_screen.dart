@@ -78,39 +78,9 @@ class _FeedScreenState extends State<FeedScreen> {
         throw Exception('Failed to load');
       }
     } catch (e) {
-      debugPrint('Error fetching feed, falling back to mock: $e');
-      // Fallback for offline testing
+      debugPrint('Error fetching feed: $e');
       setState(() {
-        _products = [
-          {
-            'id': 'mock1',
-            'name': 'Premium Smartwatch 2026',
-            'description': 'Latest smartwatch with health tracking and seamless connectivity.',
-            'price': 15000,
-            'oldPrice': 18000,
-            'businessId': 'biz1',
-            'business': {'name': 'TechStore PK'},
-            'video': {
-              'url': 'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
-              'likesCount': 1240,
-              'allowDownload': true
-            }
-          },
-          {
-            'id': 'mock2',
-            'name': 'Wireless Noise-Cancelling Headphones',
-            'description': 'Immersive sound experience with active noise cancellation.',
-            'price': 8500,
-            'oldPrice': null,
-            'businessId': 'biz2',
-            'business': {'name': 'Audio Hub'},
-            'video': {
-              'url': 'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
-              'likesCount': 892,
-              'allowDownload': false
-            }
-          }
-        ];
+        _products = [];
         _isLoading = false;
       });
     }
@@ -260,15 +230,6 @@ class _FeedScreenState extends State<FeedScreen> {
                           child: Stack(
                             children: [
                               const Icon(Icons.notifications_none, color: Colors.white, size: 22),
-                              Positioned(
-                                right: 0,
-                                top: 0,
-                                child: Container(
-                                  padding: const EdgeInsets.all(2),
-                                  decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                                  child: const Text('2', style: TextStyle(color: Colors.white, fontSize: 7, fontWeight: FontWeight.bold)),
-                                ),
-                              ),
                             ],
                           ),
                         ),
@@ -344,7 +305,10 @@ class _FeedScreenState extends State<FeedScreen> {
                       ...['All', 'Fashion', 'Tech', 'Food', 'Handmade'].map((cat) {
                         final isSelected = _selectedCategory == cat;
                         return GestureDetector(
-                          onTap: () => setState(() => _selectedCategory = cat),
+                          onTap: () {
+                            setState(() => _selectedCategory = cat);
+                            _fetchFeed();
+                          },
                           child: Container(
                             margin: const EdgeInsets.only(right: 8),
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),

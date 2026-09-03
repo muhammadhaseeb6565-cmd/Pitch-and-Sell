@@ -235,41 +235,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                             return;
                           }
 
-                          // Show fake upload progress dialog
+                          // Show loading dialog
                           showDialog(
                             context: context,
                             barrierDismissible: false,
                             builder: (context) {
-                              return StatefulBuilder(
-                                builder: (context, setProgressState) {
-                                  double progress = 0.0;
-                                  Future.delayed(const Duration(milliseconds: 100), () {
-                                    if (progress < 1.0) {
-                                      setProgressState(() {
-                                        progress += 0.1;
-                                      });
-                                    }
-                                  });
-                                  return AlertDialog(
-                                    backgroundColor: const Color(0xff1e1e1e),
-                                    title: const Text('Uploading Video...', style: TextStyle(color: Colors.white)),
-                                    content: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        LinearProgressIndicator(
-                                          value: progress,
-                                          backgroundColor: Colors.white12,
-                                          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xffFF5722)),
-                                        ),
-                                        const SizedBox(height: 12),
-                                        Text(
-                                          'Sending ${selectedFileName} (${(progress * 100).toInt()}%)...',
-                                          style: const TextStyle(color: Colors.grey, fontSize: 13),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
+                              return const Center(
+                                child: CircularProgressIndicator(color: Color(0xffFF5722)),
                               );
                             },
                           );
