@@ -30,8 +30,14 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  bool get hasBusinessProfile => _user != null && _user!['businessProfile'] != null;
-  String? get businessStatus => hasBusinessProfile ? _user!['businessProfile']['status'] : null;
+  bool get hasBusinessProfile =>
+      _user != null &&
+      (_user!['is_business'] == true ||
+          _user!['role'] == 'seller' ||
+          _user!['role'] == 'shop' ||
+          _user!['businessProfile'] != null);
+
+  String? get businessStatus => hasBusinessProfile ? (_user!['businessProfile']?['status'] ?? 'verified') : null;
 
   // Sign In with Email
   Future<bool> signInWithEmail(String email, String password) async {
@@ -43,7 +49,7 @@ class AuthProvider with ChangeNotifier {
         password: password,
       );
       if (res.user != null) {
-        _setUserFromSupabase(res.user!);
+        await _setUserFromSupabase(res.user!);
         await _saveSessionLocally();
         _isLoading = false;
         notifyListeners();
@@ -59,23 +65,59 @@ class AuthProvider with ChangeNotifier {
     return false;
   }
 
-  // Sign Up with Email
-  Future<bool> signUpWithEmail(String email, String password, String firstName, String lastName, String phone, String role) async {
+  // Sign Up with Email & explicit Account Type (Customer vs Shop)
+  Future<bool> signUpWithEmail({
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+    required String phone,
+    required String role, // 'seller' or 'customer'
+    String? shopName,
+    String? shopDescription,
+  }) async {
     _isLoading = true;
     notifyListeners();
     try {
       final fullName = '$firstName $lastName'.trim();
+      final isSeller = role == 'seller' || role == 'shop';
+      final effectiveRole = isSeller ? 'seller' : 'customer';
+
       final AuthResponse res = await _supabase.auth.signUp(
         email: email.trim(),
         password: password,
-        data: {'full_name': fullName, 'phone': phone, 'role': role},
+        data: {
+          'full_name': fullName,
+          'phone': phone,
+          'role': effectiveRole,
+          'is_business': isSeller,
+          'business_name': isSeller ? (shopName ?? fullName) : null,
+          'business_description': isSeller ? shopDescription : null,
+        },
         emailRedirectTo: 'io.supabase.pitchandsell://login-callback/',
       );
+
       if (res.user != null) {
+        // Guarantee user row in public.profiles table
+        try {
+          await _supabase.from('profiles').upsert({
+            'id': res.user!.id,
+            'name': fullName,
+            'email': email.trim(),
+            'phone': phone,
+            'role': effectiveRole,
+            'is_business': isSeller,
+            'business_name': isSeller ? (shopName ?? fullName) : null,
+            'business_description': isSeller ? shopDescription : null,
+          });
+        } catch (e) {
+          debugPrint('Error inserting into profiles: $e');
+        }
+
         if (res.session == null) {
           throw Exception("Please check your email to confirm your account!");
         }
-        _setUserFromSupabase(res.user!);
+        await _setUserFromSupabase(res.user!);
         await _saveSessionLocally();
         _isLoading = false;
         notifyListeners();
@@ -89,6 +131,42 @@ class AuthProvider with ChangeNotifier {
     _isLoading = false;
     notifyListeners();
     return false;
+  }
+
+  // Update Account Role post-signup or Google OAuth
+  Future<void> setAccountRole(String role, {String? shopName, String? shopDescription}) async {
+    if (_user == null) return;
+    final isSeller = role == 'seller' || role == 'shop';
+    final effectiveRole = isSeller ? 'seller' : 'customer';
+    try {
+      await _supabase.from('profiles').update({
+        'role': effectiveRole,
+        'is_business': isSeller,
+        'business_name': isSeller ? (shopName ?? _user!['name']) : null,
+        'business_description': isSeller ? shopDescription : null,
+      }).eq('id', _user!['id']);
+
+      _user!['role'] = effectiveRole;
+      _user!['is_business'] = isSeller;
+      if (isSeller) {
+        _user!['businessProfile'] = {
+          'id': _user!['id'],
+          'name': shopName ?? _user!['name'] ?? 'Shop',
+          'description': shopDescription ?? '',
+          'status': 'verified',
+          'is_business': true,
+        };
+        _currentMode = UserMode.seller;
+      } else {
+        _user!['businessProfile'] = null;
+        _currentMode = UserMode.customer;
+      }
+      await _saveSessionLocally();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error updating role: $e');
+      rethrow;
+    }
   }
 
   // Google Sign In
@@ -115,7 +193,7 @@ class AuthProvider with ChangeNotifier {
         accessToken: googleAuth.accessToken,
       );
       if (res.user != null) {
-        _setUserFromSupabase(res.user!);
+        await _setUserFromSupabase(res.user!);
         await _saveSessionLocally();
         _isLoading = false;
         notifyListeners();
@@ -131,14 +209,14 @@ class AuthProvider with ChangeNotifier {
     return false;
   }
 
-  // Check session on app start
+  // Check session on app start - strictly verify session with Supabase
   Future<void> checkSession() async {
     try {
       final Session? session = _supabase.auth.currentSession;
       if (session != null && !session.isExpired) {
         final User? su = _supabase.auth.currentUser;
         if (su != null) {
-          _setUserFromSupabase(su);
+          await _setUserFromSupabase(su);
           await _saveSessionLocally();
           notifyListeners();
           return;
@@ -148,21 +226,22 @@ class AuthProvider with ChangeNotifier {
       try {
         final AuthResponse res = await _supabase.auth.refreshSession();
         if (res.user != null) {
-          _setUserFromSupabase(res.user!);
+          await _setUserFromSupabase(res.user!);
           await _saveSessionLocally();
           notifyListeners();
           return;
         }
       } catch (_) {}
-      // Fallback to local cache
+
+      // If no valid active session in Supabase, user is NOT authenticated!
+      _user = null;
+      _isAuthenticated = false;
       final prefs = await SharedPreferences.getInstance();
-      final userData = prefs.getString('user_data');
-      if (userData != null) {
-        _user = jsonDecode(userData);
-        _isAuthenticated = true;
-      }
+      await prefs.remove('user_data');
     } catch (e) {
       debugPrint('Session check error: $e');
+      _user = null;
+      _isAuthenticated = false;
     }
     notifyListeners();
   }
@@ -182,18 +261,49 @@ class AuthProvider with ChangeNotifier {
   }
 
   // Internal helpers
-  void _setUserFromSupabase(User supabaseUser) {
+  Future<void> _setUserFromSupabase(User supabaseUser) async {
     final meta = supabaseUser.userMetadata ?? {};
+
+    // Fetch profile from public.profiles table
+    Map<String, dynamic>? profileData;
+    try {
+      profileData = await _supabase.from('profiles').select('*').eq('id', supabaseUser.id).maybeSingle();
+    } catch (e) {
+      debugPrint('Error fetching profile from Supabase: $e');
+    }
+
+    final String rawRole = (profileData?['role'] ?? meta['role'] ?? 'customer').toString().toLowerCase();
+    final bool isBusiness = profileData?['is_business'] == true ||
+        rawRole == 'seller' ||
+        rawRole == 'shop' ||
+        meta['is_business'] == true;
+
+    final String? businessName = profileData?['business_name'] ?? meta['business_name'];
+    final String? businessDesc = profileData?['business_description'] ?? meta['business_description'];
+
+    Map<String, dynamic>? bProfile;
+    if (isBusiness) {
+      bProfile = {
+        'id': supabaseUser.id,
+        'name': businessName ?? profileData?['name'] ?? meta['full_name'] ?? 'Shop',
+        'description': businessDesc ?? '',
+        'status': 'verified',
+        'is_business': true,
+      };
+    }
+
     _user = {
       'id': supabaseUser.id,
       'email': supabaseUser.email,
-      'name': meta['full_name'] ?? meta['name'] ?? (supabaseUser.email?.split('@').first ?? 'User'),
-      'avatar': meta['avatar_url'] ?? meta['picture'],
-      'phone': supabaseUser.phone ?? meta['phone'],
-      'role': meta['role'] ?? 'user',
-      'businessProfile': meta['businessProfile'],
+      'name': profileData?['name'] ?? meta['full_name'] ?? meta['name'] ?? (supabaseUser.email?.split('@').first ?? 'User'),
+      'avatar': profileData?['avatar'] ?? meta['avatar_url'] ?? meta['picture'],
+      'phone': supabaseUser.phone ?? meta['phone'] ?? profileData?['phone'],
+      'role': isBusiness ? 'seller' : 'customer',
+      'is_business': isBusiness,
+      'businessProfile': bProfile,
     };
     _isAuthenticated = true;
+    _currentMode = isBusiness ? UserMode.seller : UserMode.customer;
     try { SocketService.connect(_user!['id']); } catch (_) {}
   }
 

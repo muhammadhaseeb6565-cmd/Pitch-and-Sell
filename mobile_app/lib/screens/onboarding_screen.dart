@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/auth_provider.dart';
 import 'welcome_screen.dart';
 import 'main_navigation_screen.dart';
-import '../main.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -40,16 +40,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     },
   ];
 
-  String _selectedRole = 'Both';
+  String _selectedRole = 'Customer (Buyer)';
 
   void _finishOnboarding() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('has_seen_onboarding', true);
+    } catch (_) {}
+
+    if (!mounted) return;
     final auth = Provider.of<AuthProvider>(context, listen: false);
+    final role = _selectedRole.contains('Shop') ? 'seller' : 'customer';
+
     if (auth.isAuthenticated && auth.user != null) {
       try {
-        await Supabase.instance.client
-            .from('profiles')
-            .update({'role': _selectedRole.toLowerCase()})
-            .eq('id', auth.user!['id']);
+        await auth.setAccountRole(role);
       } catch (e) {
         debugPrint('Failed to save role: $e');
       }
@@ -59,7 +64,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) => auth.isAuthenticated ? const MainNavigationScreen() : const WelcomeScreen(),
+        builder: (_) => auth.isAuthenticated
+            ? const MainNavigationScreen()
+            : WelcomeScreen(initialMode: role),
       ),
     );
   }
@@ -130,7 +137,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               value: _selectedRole,
                               underline: const SizedBox(),
                               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                              items: ['Buyer', 'Seller', 'Both'].map((r) {
+                              items: ['Customer (Buyer)', 'Shop (Seller)'].map((r) {
                                 return DropdownMenuItem(value: r, child: Text(r));
                               }).toList(),
                               onChanged: (val) {
