@@ -603,11 +603,13 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                                     decoration: BoxDecoration(
                                       color: const Color(0xff1e1e1e),
                                       borderRadius: BorderRadius.circular(8),
-                                      image: product['thumbnailUrl'] != null 
-                                          ? NetworkImage(product['thumbnailUrl']) as ImageProvider
-                                          : const AssetImage('assets/images/placeholder.png'),
-                                      fit: BoxFit.cover,
-                                      opacity: 0.35,
+                                      image: DecorationImage(
+                                        image: product['thumbnailUrl'] != null 
+                                            ? NetworkImage(product['thumbnailUrl']) as ImageProvider
+                                            : const AssetImage('assets/images/placeholder.png'),
+                                        fit: BoxFit.cover,
+                                        colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.65), BlendMode.darken),
+                                      ),
                                     ),
                                     child: Stack(
                                       children: [
