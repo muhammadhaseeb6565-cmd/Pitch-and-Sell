@@ -33,6 +33,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   bool _acceptTerms = false;
   String? _profileImagePath;
   String _selectedMode = 'customer';
+  String _signInSelectedMode = 'customer';
 
   @override
   void initState() {
@@ -102,7 +103,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     try {
       final success = await auth.signInWithEmail(_signInEmailCtrl.text.trim(), _signInPassCtrl.text);
       if (success && mounted) {
-        _showSuccess('Welcome back! Signed in successfully ?');
+        // Apply the selected role from the sign-in form
+        final currentRole = auth.user?['role']?.toString().toLowerCase();
+        if (currentRole != _signInSelectedMode) {
+          await auth.setAccountRole(_signInSelectedMode);
+        }
+        _showSuccess('Welcome back! Signed in successfully 🎉');
         await Future.delayed(const Duration(milliseconds: 600));
         _goToMain();
       }
@@ -400,7 +406,52 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
         const Text('Welcome back', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
         const Text('Sign in to your account', style: TextStyle(color: Colors.grey, fontSize: 13)),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
+
+        // Account Type Selection for Sign In
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xff161616),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xffFF5722).withOpacity(0.35), width: 1.2),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.how_to_reg_rounded, color: Color(0xffFF5722), size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    'SIGN IN AS',
+                    style: TextStyle(color: Color(0xffFF5722), fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  _signInModeCard(
+                    icon: Icons.shopping_bag_outlined,
+                    label: 'Customer',
+                    subtitle: 'Browse & Buy',
+                    value: 'customer',
+                  ),
+                  const SizedBox(width: 12),
+                  _signInModeCard(
+                    icon: Icons.storefront_outlined,
+                    label: 'Shop / Seller',
+                    subtitle: 'Pitch & Sell',
+                    value: 'seller',
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+
         _field(controller: _signInEmailCtrl, label: 'Email Address', icon: Icons.email_outlined,
           keyboardType: TextInputType.emailAddress,
           validator: (v) { if (v == null || v.isEmpty) return 'Email is required';
@@ -414,7 +465,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
           child: TextButton(onPressed: isLoading ? null : _handleForgotPassword,
             child: const Text('Forgot Password?', style: TextStyle(color: Color(0xffFF5722), fontSize: 12)))),
         const SizedBox(height: 8),
-        _btn(label: 'Sign In', icon: Icons.login_rounded, isLoading: isLoading, onPressed: () => _handleSignIn(auth)),
+        _btn(
+          label: _signInSelectedMode == 'seller' ? 'Sign In as Seller' : 'Sign In as Customer',
+          icon: _signInSelectedMode == 'seller' ? Icons.storefront_rounded : Icons.login_rounded,
+          isLoading: isLoading,
+          onPressed: () => _handleSignIn(auth),
+        ),
       ]),
     );
   }
@@ -669,6 +725,29 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     final sel = _selectedMode == value;
     return Expanded(child: GestureDetector(
       onTap: () => setState(() => _selectedMode = value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        decoration: BoxDecoration(
+          color: sel ? const Color(0xffFF5722).withOpacity(0.12) : const Color(0xff1a1a1a),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: sel ? const Color(0xffFF5722) : Colors.white10, width: sel ? 1.5 : 1),
+        ),
+        child: Column(children: [
+          Icon(icon, color: sel ? const Color(0xffFF5722) : Colors.grey, size: 28),
+          const SizedBox(height: 8),
+          Text(label, style: TextStyle(color: sel ? const Color(0xffFF5722) : Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+          const SizedBox(height: 2),
+          Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 11), textAlign: TextAlign.center),
+        ]),
+      ),
+    ));
+  }
+
+  Widget _signInModeCard({required IconData icon, required String label, required String subtitle, required String value}) {
+    final sel = _signInSelectedMode == value;
+    return Expanded(child: GestureDetector(
+      onTap: () => setState(() => _signInSelectedMode = value),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
