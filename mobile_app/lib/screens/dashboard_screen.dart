@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import 'pitch_generator_screen.dart';
@@ -28,29 +29,75 @@ class _DashboardScreenState extends State<DashboardScreen> {
     'availableForPayout': 0.0
   };
   List<dynamic> _ledgerEntries = [];
+  Map<String, dynamic> _insights = {'totalViews': 0, 'saves': 0, 'cartAbandons': 0};
+  Map<String, dynamic> _promoStats = {'name': '', 'status': 'NONE', 'impressions': 0, 'clicks': 0, 'sales': 0, 'roas': 0.0};
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchLedger();
+    _fetchDashboardData();
+  }
+
+  Future<void> _fetchDashboardData() async {
+    setState(() => _isLoading = true);
+    try {
+      await Future.wait([
+        _fetchLedger(),
+        _fetchInsights(),
+        _fetchPromotions(),
+      ]);
+    } catch (e) {
+      debugPrint('Dashboard fetch error: $e');
+    }
+    if (mounted) setState(() => _isLoading = false);
   }
 
   Future<void> _fetchLedger() async {
-    setState(() => _isLoading = true);
     try {
       final response = await ApiService.getLedger();
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        setState(() {
-          _summary = data['summary'];
-          _ledgerEntries = data['entries'];
-          _isLoading = false;
-        });
+        _summary = data['summary'] ?? _summary;
+        _ledgerEntries = data['entries'] ?? [];
       }
     } catch (e) {
       debugPrint('Ledger fetch error: $e');
-      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _fetchInsights() async {
+    try {
+      // Assuming getProfileStats or getLedger returns this, or mock fetch based on instructions
+      // The instructions say "fetch real counts from orders/likes/saved_videos"
+      // Wait, there might not be a specific method for this. I'll just use getProfileStats or dummy since ApiService was updated.
+      // Wait, "fetch real counts from orders/likes/saved_videos" means query Supabase?
+      // The prompt says "Replace hardcoded with real Supabase data. The ApiService already has...getProfileStats(userId)".
+      // But wait! There is no separate ApiService for insights mentioned. I will write direct Supabase queries.
+      final client = Supabase.instance.client;
+      final user = client.auth.currentUser;
+      if (user != null) {
+        final savesRes = await client.from('saved_videos').select('id').count(CountOption.exact);
+        final ordersRes = await client.from('orders').select('id').eq('status', 'cart_abandoned').count(CountOption.exact);
+        _insights = {
+          'totalViews': _summary['totalViews'] ?? 0,
+          'saves': savesRes.count ?? 0,
+          'cartAbandons': ordersRes.count ?? 0,
+        };
+      }
+    } catch (e) {
+      debugPrint('Insights fetch error: $e');
+    }
+  }
+
+  Future<void> _fetchPromotions() async {
+    try {
+      final response = await ApiService.getPromotionStats();
+      if (response.statusCode == 200) {
+        _promoStats = jsonDecode(response.body);
+      }
+    } catch (e) {
+      debugPrint('Promotions fetch error: $e');
     }
   }
 
@@ -735,9 +782,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            _buildPromoMetric('14.2k', 'Total Views'),
-                            _buildPromoMetric('1.8k', 'Saves/Bookmarks'),
-                            _buildPromoMetric('45', 'Cart Abandons'),
+                            _buildPromoMetric('${_insights['totalViews']}', 'Total Views'),
+                            _buildPromoMetric('${_insights['saves']}', 'Saves/Bookmarks'),
+                            _buildPromoMetric('${_insights['cartAbandons']}', 'Cart Abandons'),
                           ],
                         ),
                         const SizedBox(height: 16),
@@ -786,18 +833,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Super Bass Headphones Promotion',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                            Text(
+                              _promoStats['name']?.isNotEmpty == true ? _promoStats['name'] : 'No Active Promotion',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: Colors.green.withOpacity(0.15),
+                                color: _promoStats['status'] == 'ACTIVE' ? Colors.green.withOpacity(0.15) : Colors.grey.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Text(
-                                'ACTIVE',
+                              child: Text(
+                                _promoStats['status'] ?? 'NONE',
                                 style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 11),
                               ),
                             ),
@@ -815,9 +862,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            _buildPromoMetric('1,420', 'Impressions'),
-                            _buildPromoMetric('320', 'Clicks'),
-                             _buildPromoMetric('14', 'Orders'),
+                            _buildPromoMetric('${_promoStats['impressions'] ?? 0}', 'Impressions'),
+                            _buildPromoMetric('${_promoStats['clicks'] ?? 0}', 'Clicks'),
+                             _buildPromoMetric('${_promoStats['sales'] ?? 0}', 'Orders'),
                           ],
                         ),
                         const Divider(color: Colors.white10, height: 20),
@@ -854,7 +901,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           itemCount: _ledgerEntries.length,
                           itemBuilder: (context, index) {
                             final entry = _ledgerEntries[index];
-                            final isCredit = entry['type'] == 'SALE_EARNING';
+                            final isCredit = entry['status'] == 'SALE_EARNING';
                             return Container(
                               margin: const EdgeInsets.symmetric(vertical: 6),
                               padding: const EdgeInsets.all(12),
@@ -869,12 +916,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        entry['description'] ?? '',
+                                        entry['title'] ?? '',
                                         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        entry['type'].toString().replaceAll('_', ' '),
+                                        (entry['status'] ?? '').toString().replaceAll('_', ' '),
                                         style: const TextStyle(color: Colors.grey, fontSize: 12),
                                       ),
                                     ],

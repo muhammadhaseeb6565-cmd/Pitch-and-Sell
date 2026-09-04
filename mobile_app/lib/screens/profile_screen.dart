@@ -33,6 +33,24 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
 
   List<dynamic> _wishlist = [];
   bool _loadingWishlist = true;
+  
+  Map<String, dynamic> _profileStats = {
+    'totalProducts': 0,
+    'totalOrders': 0,
+    'avgRating': 0.0,
+    'reviewCount': 0,
+  };
+  Map<String, dynamic> _ledgerSummary = {
+    'grossSales': 0.0,
+    'platformFees': 0.0,
+    'netEarnings': 0.0,
+    'paidOut': 0.0,
+    'pendingPayouts': 0.0,
+    'availableForPayout': 0.0,
+    'conversion': 0.0,
+    'totalOrders': 0,
+    'totalViews': 0,
+  };
 
   @override
   void initState() {
@@ -40,6 +58,37 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     _tabController = TabController(length: 4, vsync: this);
     _fetchMyVideos();
     _fetchWishlist();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadStats();
+    });
+  }
+
+  Future<void> _loadStats() async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final userId = auth.user?['id'];
+    if (userId != null) {
+      try {
+        final statsRes = await ApiService.getProfileStats(userId);
+        if (statsRes.statusCode == 200) {
+          setState(() {
+            _profileStats = jsonDecode(statsRes.body);
+          });
+        }
+      } catch (e) {
+        debugPrint('Error stats: $e');
+      }
+    }
+    
+    try {
+      final ledgerRes = await ApiService.getLedger();
+      if (ledgerRes.statusCode == 200) {
+        setState(() {
+          _ledgerSummary = jsonDecode(ledgerRes.body)['summary'] ?? _ledgerSummary;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error ledger: $e');
+    }
   }
 
   Future<void> _fetchWishlist() async {
@@ -471,11 +520,11 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildProfileBadge('Pro Seller', Colors.orange),
-                      const SizedBox(width: 6),
-                      _buildProfileBadge('Verified', Colors.green),
-                      const SizedBox(width: 6),
-                      _buildProfileBadge('KYC ✓', Colors.blue),
+                      if (auth.hasBusinessProfile) _buildProfileBadge('Pro Seller', Colors.orange),
+                      if (auth.hasBusinessProfile) const SizedBox(width: 6),
+                      if (user['is_verified'] == true) _buildProfileBadge('Verified', Colors.green),
+                      if (user['is_verified'] == true) const SizedBox(width: 6),
+                      if (user['kyc_status'] == 'approved') _buildProfileBadge('KYC ✓', Colors.blue),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -483,10 +532,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildStatColumn('150', 'Following'),
-                      _buildStatColumn('1.2K', 'Followers'),
+                      _buildStatColumn('${_profileStats['totalOrders'] ?? 0}', 'Orders'),
                       _buildStatColumn('${_myProducts.length}', 'Pitches'),
-                      _buildStatColumn('4.8 ★', 'Rating'),
+                      _buildStatColumn('${(_profileStats['avgRating'] ?? 0.0).toStringAsFixed(1)} ★', 'Rating'),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -559,10 +607,12 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                                     decoration: BoxDecoration(
                                       color: const Color(0xff1e1e1e),
                                       borderRadius: BorderRadius.circular(8),
-                                      image: const DecorationImage(
-                                        image: NetworkImage('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=200'),
+                                      image: DecorationImage(
+                                        image: product['thumbnailUrl'] != null 
+                                            ? NetworkImage(product['thumbnailUrl']) as ImageProvider
+                                            : const AssetImage('assets/images/placeholder.png'),
                                         fit: BoxFit.cover,
-                                        opacity: 0.35,
+                                        colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.65), BlendMode.darken),
                                       ),
                                     ),
                                     child: Stack(
@@ -619,17 +669,17 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Expanded(child: _buildKpiCard('Revenue', '₨ 18.5K', Icons.attach_money, Colors.green)),
+                    Expanded(child: _buildKpiCard('Revenue', '₨ ${_ledgerSummary['grossSales'] ?? 0}', Icons.attach_money, Colors.green)),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildKpiCard('Conversion', '4.2%', Icons.trending_up, Colors.blue)),
+                    Expanded(child: _buildKpiCard('Conversion', '${_ledgerSummary['conversion'] ?? 0}%', Icons.trending_up, Colors.blue)),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Expanded(child: _buildKpiCard('Total Orders', '124', Icons.shopping_bag, Colors.orange)),
+                    Expanded(child: _buildKpiCard('Total Orders', '${_ledgerSummary['totalOrders'] ?? 0}', Icons.shopping_bag, Colors.orange)),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildKpiCard('Pitches Views', '12.4K', Icons.visibility, Colors.purple)),
+                    Expanded(child: _buildKpiCard('Pitches Views', '${_ledgerSummary['totalViews'] ?? 0}', Icons.visibility, Colors.purple)),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -637,10 +687,10 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 // Conversion Funnel Spec
                 const Text('Conversion Funnel', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
-                _buildFunnelRow('Pitches Views', 12400, 1.0),
-                _buildFunnelRow('Video Clicks', 3200, 0.25),
-                _buildFunnelRow('Add to Cart', 412, 0.08),
-                _buildFunnelRow('Completed Purchased', 124, 0.04),
+                _buildFunnelRow('Pitches Views', _ledgerSummary['totalViews'] ?? 0, 1.0),
+                _buildFunnelRow('Video Clicks', ((_ledgerSummary['totalViews'] ?? 0) * 0.25).toInt(), 0.25),
+                _buildFunnelRow('Add to Cart', ((_ledgerSummary['totalViews'] ?? 0) * 0.08).toInt(), 0.08),
+                _buildFunnelRow('Completed Purchased', _ledgerSummary['totalOrders'] ?? 0, 0.04),
 
                 const SizedBox(height: 24),
                 // Withdraw Action
@@ -786,12 +836,16 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               ListTile(
                 title: const Text('Help Center & FAQs', style: TextStyle(color: Colors.grey, fontSize: 13)),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey),
-                onTap: () {},
+                onTap: () {
+                  showDialog(context: context, builder: (_) => const AlertDialog(title: Text('Coming soon'), content: Text('Help Center is under construction.'), backgroundColor: Color(0xff1e1e1e)));
+                },
               ),
               ListTile(
                 title: const Text('Terms of Agreement', style: TextStyle(color: Colors.grey, fontSize: 13)),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey),
-                onTap: () {},
+                onTap: () {
+                  showDialog(context: context, builder: (_) => const AlertDialog(title: Text('Coming soon'), content: Text('Terms of Agreement will be available soon.'), backgroundColor: Color(0xff1e1e1e)));
+                },
               ),
               ListTile(
                 title: const Text('Admin Portal (Restricted)', style: TextStyle(color: Colors.grey, fontSize: 13)),

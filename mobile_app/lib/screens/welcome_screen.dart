@@ -7,7 +7,8 @@ import '../providers/auth_provider.dart';
 import 'main_navigation_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
-  const WelcomeScreen({super.key});
+  final String initialMode;
+  const WelcomeScreen({super.key, this.initialMode = 'customer'});
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
@@ -23,6 +24,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   final _signUpPhoneCtrl = TextEditingController();
   final _signUpPassCtrl = TextEditingController();
   final _signUpConfirmPassCtrl = TextEditingController();
+  final _signUpShopNameCtrl = TextEditingController();
+  final _signUpShopDescCtrl = TextEditingController();
   final _signUpFormKey = GlobalKey<FormState>();
   bool _obscureSignIn = true;
   bool _obscureSignUp = true;
@@ -34,6 +37,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
+    _selectedMode = widget.initialMode;
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() { if (mounted) setState(() {}); });
   }
@@ -45,6 +49,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     _signUpFirstCtrl.dispose(); _signUpLastCtrl.dispose();
     _signUpEmailCtrl.dispose(); _signUpPhoneCtrl.dispose();
     _signUpPassCtrl.dispose(); _signUpConfirmPassCtrl.dispose();
+    _signUpShopNameCtrl.dispose(); _signUpShopDescCtrl.dispose();
     super.dispose();
   }
 
@@ -115,12 +120,24 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
 
   Future<void> _handleSignUp(AuthProvider auth) async {
     if (!_signUpFormKey.currentState!.validate()) return;
-    if (!_acceptTerms) { _showError('Please accept the Terms & Privacy Policy to continue.'); return; }
+    if (_selectedMode == 'seller' && _signUpShopNameCtrl.text.trim().isEmpty) {
+      _showError('Please enter your Shop / Store Name.');
+      return;
+    }
+    if (!_acceptTerms) {
+      _showError('Please accept the Terms & Privacy Policy to continue.');
+      return;
+    }
     try {
       final success = await auth.signUpWithEmail(
-        _signUpEmailCtrl.text.trim(), _signUpPassCtrl.text,
-        _signUpFirstCtrl.text.trim(), _signUpLastCtrl.text.trim(),
-        _signUpPhoneCtrl.text.trim(), _selectedMode,
+        email: _signUpEmailCtrl.text.trim(),
+        password: _signUpPassCtrl.text,
+        firstName: _signUpFirstCtrl.text.trim(),
+        lastName: _signUpLastCtrl.text.trim(),
+        phone: _signUpPhoneCtrl.text.trim(),
+        role: _selectedMode,
+        shopName: _selectedMode == 'seller' ? _signUpShopNameCtrl.text.trim() : null,
+        shopDescription: _selectedMode == 'seller' ? _signUpShopDescCtrl.text.trim() : null,
       );
       if (success && mounted) {
         _showSuccess('Account created! Welcome to Pitch & Sell!');
@@ -143,13 +160,144 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     try {
       final success = await auth.loginGoogle();
       if (success && mounted) {
-        _showSuccess('Signed in with Google successfully ?');
+        final user = auth.user;
+        final currentRole = user?['role']?.toString().toLowerCase();
+        if (currentRole == null || currentRole == 'user') {
+          _showGoogleRoleSelectionDialog(auth);
+          return;
+        }
+        _showSuccess('Signed in with Google successfully!');
         await Future.delayed(const Duration(milliseconds: 500));
         _goToMain();
       }
     } catch (e) {
       _showError('Google Sign-In failed. Please use email & password.');
     }
+  }
+
+  void _showGoogleRoleSelectionDialog(AuthProvider auth) {
+    String selectedRole = 'customer';
+    final shopNameCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: const Color(0xff1e1e1e),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text(
+              'Select Account Type',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Are you joining Pitch & Sell as a Customer or a Shop?',
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setDialogState(() => selectedRole = 'customer'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: selectedRole == 'customer' ? const Color(0xffFF5722).withOpacity(0.15) : const Color(0xff2a2a2a),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: selectedRole == 'customer' ? const Color(0xffFF5722) : Colors.white12,
+                                width: selectedRole == 'customer' ? 1.5 : 1,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                Icon(Icons.shopping_bag_outlined, color: selectedRole == 'customer' ? const Color(0xffFF5722) : Colors.grey, size: 24),
+                                const SizedBox(height: 6),
+                                Text('Customer', style: TextStyle(color: selectedRole == 'customer' ? const Color(0xffFF5722) : Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                const Text('Browse & Buy', style: TextStyle(color: Colors.grey, fontSize: 10)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setDialogState(() => selectedRole = 'seller'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: selectedRole == 'seller' ? const Color(0xffFF5722).withOpacity(0.15) : const Color(0xff2a2a2a),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: selectedRole == 'seller' ? const Color(0xffFF5722) : Colors.white12,
+                                width: selectedRole == 'seller' ? 1.5 : 1,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                Icon(Icons.storefront_outlined, color: selectedRole == 'seller' ? const Color(0xffFF5722) : Colors.grey, size: 24),
+                                const SizedBox(height: 6),
+                                Text('Shop / Seller', style: TextStyle(color: selectedRole == 'seller' ? const Color(0xffFF5722) : Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                const Text('Pitch & Sell', style: TextStyle(color: Colors.grey, fontSize: 10)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (selectedRole == 'seller') ...[
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: shopNameCtrl,
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      decoration: InputDecoration(
+                        labelText: 'Shop / Store Name *',
+                        labelStyle: const TextStyle(color: Colors.grey, fontSize: 12),
+                        filled: true,
+                        fillColor: const Color(0xff2a2a2a),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        prefixIcon: const Icon(Icons.store, color: Color(0xffFF5722), size: 18),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  if (selectedRole == 'seller' && shopNameCtrl.text.trim().isEmpty) {
+                    _showError('Please enter your Shop Name');
+                    return;
+                  }
+                  Navigator.pop(dialogCtx);
+                  try {
+                    await auth.setAccountRole(
+                      selectedRole,
+                      shopName: selectedRole == 'seller' ? shopNameCtrl.text.trim() : null,
+                    );
+                    _showSuccess('Welcome to Pitch & Sell!');
+                    _goToMain();
+                  } catch (e) {
+                    _showError('Failed to set role. Please try again.');
+                  }
+                },
+                child: const Text('Continue', style: TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   Future<void> _handleForgotPassword() async {
@@ -275,58 +423,195 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     return Form(
       key: _signUpFormKey,
       child: Column(key: const ValueKey('signup'), crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Create an account', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+        const Text('Create an Account', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
-        const Text('Join Pitch & Sell today', style: TextStyle(color: Colors.grey, fontSize: 13)),
-        const SizedBox(height: 24),
-        Center(child: GestureDetector(onTap: _pickImage, child: Stack(children: [
-          CircleAvatar(radius: 42, backgroundColor: const Color(0xff1e1e1e),
-            backgroundImage: _profileImagePath != null ? FileImage(File(_profileImagePath!)) : null,
-            child: _profileImagePath == null ? const Icon(Icons.person, color: Colors.grey, size: 40) : null),
-          Positioned(bottom: 0, right: 0, child: Container(
-            padding: const EdgeInsets.all(6),
-            decoration: const BoxDecoration(color: Color(0xffFF5722), shape: BoxShape.circle),
-            child: const Icon(Icons.camera_alt, color: Colors.white, size: 14))),
-        ]))),
+        const Text('Select your account type to get started', style: TextStyle(color: Colors.grey, fontSize: 13)),
         const SizedBox(height: 20),
+
+        // 1. MANDATORY ACCOUNT TYPE SELECTION (TOP OF FORM)
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xff161616),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xffFF5722).withOpacity(0.35), width: 1.2),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.how_to_reg_rounded, color: Color(0xffFF5722), size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    'STEP 1: SELECT YOUR ACCOUNT TYPE *',
+                    style: TextStyle(color: Color(0xffFF5722), fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  _modeCard(
+                    icon: Icons.shopping_bag_outlined,
+                    label: 'Customer',
+                    subtitle: 'Browse & Buy',
+                    value: 'customer',
+                  ),
+                  const SizedBox(width: 12),
+                  _modeCard(
+                    icon: Icons.storefront_outlined,
+                    label: 'Shop / Seller',
+                    subtitle: 'Pitch & Sell',
+                    value: 'seller',
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // 2. CONDITIONAL SHOP INFORMATION (If Shop selected)
+        if (_selectedMode == 'seller') ...[
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xff1e1e1e),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xffFF5722).withOpacity(0.5), width: 1.5),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.store, color: Color(0xffFF5722), size: 18),
+                    SizedBox(width: 8),
+                    Text(
+                      'SHOP / STORE DETAILS',
+                      style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _field(
+                  controller: _signUpShopNameCtrl,
+                  label: 'Shop / Business Name *',
+                  icon: Icons.store_mall_directory_outlined,
+                  validator: (v) {
+                    if (_selectedMode == 'seller' && (v == null || v.trim().isEmpty)) {
+                      return 'Shop Name is required';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                _field(
+                  controller: _signUpShopDescCtrl,
+                  label: 'What does your shop sell? (e.g. Shoes, Watches)',
+                  icon: Icons.category_outlined,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+
+        // 3. PERSONAL & LOGIN DETAILS
+        Center(
+          child: GestureDetector(
+            onTap: _pickImage,
+            child: Stack(
+              children: [
+                CircleAvatar(
+                  radius: 38,
+                  backgroundColor: const Color(0xff1e1e1e),
+                  backgroundImage: _profileImagePath != null ? FileImage(File(_profileImagePath!)) : null,
+                  child: _profileImagePath == null ? const Icon(Icons.person, color: Colors.grey, size: 36) : null,
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: const BoxDecoration(color: Color(0xffFF5722), shape: BoxShape.circle),
+                    child: const Icon(Icons.camera_alt, color: Colors.white, size: 13),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
         Row(children: [
-          Expanded(child: _field(controller: _signUpFirstCtrl, label: 'First Name', icon: Icons.person_outlined,
-            validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null)),
+          Expanded(child: _field(
+            controller: _signUpFirstCtrl,
+            label: _selectedMode == 'seller' ? 'Owner First Name' : 'First Name',
+            icon: Icons.person_outlined,
+            validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+          )),
           const SizedBox(width: 12),
-          Expanded(child: _field(controller: _signUpLastCtrl, label: 'Last Name', icon: Icons.person_outlined,
-            validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null)),
+          Expanded(child: _field(
+            controller: _signUpLastCtrl,
+            label: _selectedMode == 'seller' ? 'Owner Last Name' : 'Last Name',
+            icon: Icons.person_outlined,
+            validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+          )),
         ]),
-        const SizedBox(height: 16),
-        _field(controller: _signUpEmailCtrl, label: 'Email Address', icon: Icons.email_outlined,
+        const SizedBox(height: 14),
+        _field(
+          controller: _signUpEmailCtrl,
+          label: 'Email Address',
+          icon: Icons.email_outlined,
           keyboardType: TextInputType.emailAddress,
-          validator: (v) { if (v == null || v.isEmpty) return 'Email is required';
-            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v.trim())) return 'Enter a valid email'; return null; }),
-        const SizedBox(height: 16),
-        _field(controller: _signUpPhoneCtrl, label: 'Phone (e.g. 03001234567)', icon: Icons.phone_outlined,
+          validator: (v) {
+            if (v == null || v.isEmpty) return 'Email is required';
+            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v.trim())) return 'Enter a valid email';
+            return null;
+          },
+        ),
+        const SizedBox(height: 14),
+        _field(
+          controller: _signUpPhoneCtrl,
+          label: 'Phone Number (e.g. 03001234567)',
+          icon: Icons.phone_outlined,
           keyboardType: TextInputType.phone,
-          validator: (v) { if (v == null || v.isEmpty) return 'Phone is required';
-            if (v.replaceAll(RegExp(r'\D'), '').length < 10) return 'Enter a valid phone number'; return null; }),
-        const SizedBox(height: 16),
-        _field(controller: _signUpPassCtrl, label: 'Password', icon: Icons.lock_outlined,
-          obscure: _obscureSignUp, toggleObscure: () => setState(() => _obscureSignUp = !_obscureSignUp),
-          validator: (v) { if (v == null || v.isEmpty) return 'Password is required';
+          validator: (v) {
+            if (v == null || v.isEmpty) return 'Phone is required';
+            if (v.replaceAll(RegExp(r'\D'), '').length < 10) return 'Enter a valid phone number';
+            return null;
+          },
+        ),
+        const SizedBox(height: 14),
+        _field(
+          controller: _signUpPassCtrl,
+          label: 'Password',
+          icon: Icons.lock_outlined,
+          obscure: _obscureSignUp,
+          toggleObscure: () => setState(() => _obscureSignUp = !_obscureSignUp),
+          validator: (v) {
+            if (v == null || v.isEmpty) return 'Password is required';
             if (v.length < 8) return 'Minimum 8 characters';
             if (!RegExp(r'[A-Z]').hasMatch(v)) return 'Must include uppercase letter';
-            if (!RegExp(r'[0-9]').hasMatch(v)) return 'Must include a number'; return null; }),
-        const SizedBox(height: 16),
-        _field(controller: _signUpConfirmPassCtrl, label: 'Confirm Password', icon: Icons.lock_outlined,
-          obscure: _obscureConfirm, toggleObscure: () => setState(() => _obscureConfirm = !_obscureConfirm),
-          validator: (v) { if (v == null || v.isEmpty) return 'Please confirm password';
-            if (v != _signUpPassCtrl.text) return 'Passwords do not match'; return null; }),
-        const SizedBox(height: 20),
-        const Text('I want to use Pitch & Sell as:', style: TextStyle(color: Colors.grey, fontSize: 13)),
-        const SizedBox(height: 10),
-        Row(children: [
-          _modeCard(icon: Icons.shopping_bag_outlined, label: 'Customer', subtitle: 'Browse & buy', value: 'customer'),
-          const SizedBox(width: 12),
-          _modeCard(icon: Icons.storefront_outlined, label: 'Shop', subtitle: 'Pitch & sell', value: 'seller'),
-        ]),
-        const SizedBox(height: 20),
+            if (!RegExp(r'[0-9]').hasMatch(v)) return 'Must include a number';
+            return null;
+          },
+        ),
+        const SizedBox(height: 14),
+        _field(
+          controller: _signUpConfirmPassCtrl,
+          label: 'Confirm Password',
+          icon: Icons.lock_outlined,
+          obscure: _obscureConfirm,
+          toggleObscure: () => setState(() => _obscureConfirm = !_obscureConfirm),
+          validator: (v) {
+            if (v == null || v.isEmpty) return 'Please confirm password';
+            if (v != _signUpPassCtrl.text) return 'Passwords do not match';
+            return null;
+          },
+        ),
+        const SizedBox(height: 18),
         GestureDetector(
           onTap: () => setState(() => _acceptTerms = !_acceptTerms),
           child: Row(children: [
@@ -345,8 +630,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
               style: TextStyle(color: Colors.grey, fontSize: 12))),
           ]),
         ),
-        const SizedBox(height: 24),
-        _btn(label: 'Create Account', icon: Icons.person_add_rounded, isLoading: isLoading, onPressed: () => _handleSignUp(auth)),
+        const SizedBox(height: 22),
+        _btn(
+          label: _selectedMode == 'seller' ? 'Register My Shop' : 'Create Customer Account',
+          icon: _selectedMode == 'seller' ? Icons.storefront_rounded : Icons.person_add_rounded,
+          isLoading: isLoading,
+          onPressed: () => _handleSignUp(auth),
+        ),
       ]),
     );
   }

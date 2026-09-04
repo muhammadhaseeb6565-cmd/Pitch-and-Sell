@@ -220,7 +220,12 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                         itemCount: _products.length,
                         itemBuilder: (context, index) {
                           final product = _products[index];
-                          return Container(
+                          return GestureDetector(
+                            onTap: () {
+                              // Navigate to feed focused on this product
+                              // Alternatively, to a placeholder product detail
+                            },
+                            child: Container(
                             decoration: BoxDecoration(
                               color: const Color(0xff1e1e1e),
                               borderRadius: BorderRadius.circular(12),
@@ -233,8 +238,10 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                                     decoration: BoxDecoration(
                                       color: Colors.black26,
                                       borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                      image: const DecorationImage(
-                                        image: NetworkImage('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=200'),
+                                      image: DecorationImage(
+                                        image: product['thumbnailUrl'] != null 
+                                          ? NetworkImage(product['thumbnailUrl']) as ImageProvider
+                                          : const AssetImage('assets/images/placeholder.png'),
                                         fit: BoxFit.cover,
                                       ),
                                     ),
@@ -262,7 +269,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                                 ),
                               ],
                             ),
-                          );
+                          ));
                         },
                       ),
           ),

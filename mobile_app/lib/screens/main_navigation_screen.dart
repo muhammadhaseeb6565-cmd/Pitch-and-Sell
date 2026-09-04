@@ -7,10 +7,7 @@ import 'feed_screen.dart';
 import 'messages_list_screen.dart';
 import 'orders_history_screen.dart';
 import 'profile_screen.dart';
-import 'deals_screen.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:video_player/video_player.dart';
-import 'dart:io';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -22,13 +19,26 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
 
+  bool _isSeller(BuildContext context) {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    return auth.hasBusinessProfile;
+  }
+
   void _onItemTapped(int index) {
-    if (index == 2) {
+    final isSeller = _isSeller(context);
+    if (isSeller && index == 2) {
+      // Seller mode: middle tab is Upload
       _triggerUploadFlow();
       return;
     }
     setState(() {
-      _selectedIndex = index > 2 ? index - 1 : index;
+      if (isSeller) {
+        // Seller: 5 tabs → Home(0), Chat(1), Upload(skip), Orders(2), Profile(3)
+        _selectedIndex = index > 2 ? index - 1 : index;
+      } else {
+        // Customer: 4 tabs → Home(0), Chat(1), Orders(2), Profile(3)
+        _selectedIndex = index;
+      }
     });
   }
 
@@ -184,29 +194,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             ),
                             onPressed: () async {
-                                final ImagePicker picker = ImagePicker();
-                                final XFile? file = await picker.pickVideo(source: ImageSource.gallery);
-                                if (file != null) {
-                                  final controller = VideoPlayerController.file(File(file.path));
-                                  await controller.initialize();
-                                  final duration = controller.value.duration;
-                                  controller.dispose();
-                                  
-                                  if (duration.inSeconds > 60) {
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Videos must be 60 seconds or shorter.')),
-                                      );
-                                    }
-                                    return;
-                                  }
-
-                                  setModalState(() {
-                                    selectedVideoFile = file;
-                                    selectedFileName = file.name;
-                                  });
-                                }
-                              },
+                              final ImagePicker picker = ImagePicker();
+                              final XFile? file = await picker.pickVideo(source: ImageSource.gallery);
+                              if (file != null) {
+                                setModalState(() {
+                                  selectedVideoFile = file;
+                                  selectedFileName = file.name;
+                                });
+                              }
+                            },
                             icon: const Icon(Icons.video_library, size: 16),
                             label: const Text('Choose Video', style: TextStyle(fontSize: 12)),
                           ),
@@ -251,41 +247,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                             return;
                           }
 
-                          // Show fake upload progress dialog
+                          // Show loading dialog
                           showDialog(
                             context: context,
                             barrierDismissible: false,
                             builder: (context) {
-                              return StatefulBuilder(
-                                builder: (context, setProgressState) {
-                                  double progress = 0.0;
-                                  Future.delayed(const Duration(milliseconds: 100), () {
-                                    if (progress < 1.0) {
-                                      setProgressState(() {
-                                        progress += 0.1;
-                                      });
-                                    }
-                                  });
-                                  return AlertDialog(
-                                    backgroundColor: const Color(0xff1e1e1e),
-                                    title: const Text('Uploading Video...', style: TextStyle(color: Colors.white)),
-                                    content: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        LinearProgressIndicator(
-                                          value: progress,
-                                          backgroundColor: Colors.white12,
-                                          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xffFF5722)),
-                                        ),
-                                        const SizedBox(height: 12),
-                                        Text(
-                                          'Sending ${selectedFileName} (${(progress * 100).toInt()}%)...',
-                                          style: const TextStyle(color: Colors.grey, fontSize: 13),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
+                              return const Center(
+                                child: CircularProgressIndicator(color: Color(0xffFF5722)),
                               );
                             },
                           );
@@ -332,61 +300,74 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Map current selected index on bottom navigation bar
-    int navIndex = _selectedIndex >= 2 ? _selectedIndex + 1 : _selectedIndex;
+    final isSeller = _isSeller(context);
+
+    // Pages for IndexedStack
+    final pages = <Widget>[
+      FeedScreen(isVisible: _selectedIndex == 0),   // 0: Home
+      const MessagesListScreen(),                     // 1: Chat
+      const OrdersHistoryScreen(),                    // 2: Orders
+      const ProfileScreen(),                          // 3: Profile
+    ];
+
+    // Bottom nav items for Customer (4 tabs)
+    final customerNavItems = const [
+      BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+      BottomNavigationBarItem(icon: Icon(Icons.chat_bubble), label: 'Chat'),
+      BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: 'Orders'),
+      BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+    ];
+
+    // Bottom nav items for Seller (5 tabs — Upload in the middle)
+    final sellerNavItems = [
+      const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+      const BottomNavigationBarItem(icon: Icon(Icons.chat_bubble), label: 'Chat'),
+      BottomNavigationBarItem(
+        icon: Container(
+          width: 44,
+          height: 28,
+          decoration: BoxDecoration(
+            color: const Color(0xffFF5722),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(Icons.add, color: Colors.white, size: 20),
+        ),
+        label: '',
+      ),
+      const BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: 'Orders'),
+      const BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+    ];
+
+    // Calculate the nav bar index from the page index
+    int navIndex;
+    if (isSeller) {
+      navIndex = _selectedIndex >= 2 ? _selectedIndex + 1 : _selectedIndex;
+    } else {
+      navIndex = _selectedIndex;
+    }
+
+    // Clamp to valid range
+    final maxIndex = isSeller ? sellerNavItems.length - 1 : customerNavItems.length - 1;
+    if (navIndex > maxIndex) navIndex = maxIndex;
+    if (_selectedIndex >= pages.length) _selectedIndex = 0;
 
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
-        children: [
-          FeedScreen(isVisible: _selectedIndex == 0),
-          const DealsScreen(),
-          const MessagesListScreen(),
-          const ProfileScreen(),
-        ],
+        children: pages,
       ),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: const Color(0xff1e1e1e),
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xffFF5722), // Emulgic Orange
+        selectedItemColor: const Color(0xffFF5722),
         unselectedItemColor: Colors.grey,
         selectedFontSize: 10,
         unselectedFontSize: 10,
         currentIndex: navIndex,
         onTap: _onItemTapped,
-        items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.local_offer),
-            label: 'Deals',
-          ),
-          BottomNavigationBarItem(
-            icon: Container(
-              width: 44,
-              height: 28,
-              decoration: BoxDecoration(
-                color: const Color(0xffFF5722), // Emulgic Orange highlight
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.add, color: Colors.white, size: 20),
-            ),
-            label: '',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble),
-            label: 'Chat',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+        items: isSeller ? sellerNavItems : customerNavItems,
       ),
     );
   }
 }
-
 

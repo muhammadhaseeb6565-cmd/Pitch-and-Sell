@@ -1,7 +1,7 @@
 buildscript {
     ext {
         kotlin_version = '2.1.0'
-        compileSdkVersion = 35
+        compileSdkVersion = 36
     }
     repositories {
         google()
@@ -25,7 +25,7 @@ project(":app").afterEvaluate {
     if (!rootProject.ext.has("flutter")) {
         rootProject.ext.flutter = [:]
     }
-    rootProject.ext.flutter.compileSdkVersion = 35
+    rootProject.ext.flutter.compileSdkVersion = 36
     rootProject.ext.flutter.minSdkVersion = 24
     rootProject.ext.flutter.targetSdkVersion = 35
 }

@@ -38,13 +38,11 @@ class _DealsScreenState extends State<DealsScreen> {
     if (user == null) return;
     try {
       // Record transaction, Emulgic gets PKR 5 fee
-      if (!dealId.startsWith('mock')) {
-        await _supabase.from('deal_transactions').insert({
-          'user_id': user.id,
-          'deal_id': dealId,
-          'platform_fee': 5
-        });
-      }
+      await _supabase.from('deal_transactions').insert({
+        'user_id': user.id,
+        'deal_id': dealId,
+        'platform_fee': 5
+      });
       
       if (mounted) {
         showDialog(
@@ -79,7 +77,9 @@ class _DealsScreenState extends State<DealsScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
-          : ListView.builder(
+          : _deals.isEmpty
+              ? const Center(child: Text('No deals available right now. Check back later!', style: TextStyle(color: Colors.grey)))
+              : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: _deals.length,
               itemBuilder: (context, index) {
