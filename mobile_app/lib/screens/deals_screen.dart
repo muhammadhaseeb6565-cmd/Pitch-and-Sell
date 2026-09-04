@@ -26,16 +26,7 @@ class _DealsScreenState extends State<DealsScreen> {
     try {
       final res = await _supabase.from('deals').select('*').eq('status', 'active');
       
-      // If empty, let's mock some data just for MVP demo purposes if table is empty
-      if (res.isEmpty) {
-        _deals = [
-          {'id': 'mock1', 'business_name': 'KFC Pakistan', 'offer_title': 'Flat 30% OFF on Zinger', 'bank_or_card': 'HBL Credit Cards', 'validity': 'Valid till 30th Sept'},
-          {'id': 'mock2', 'business_name': 'Sapphire', 'offer_title': '20% Flat Discount', 'bank_or_card': 'Meezan Bank Debit', 'validity': 'Valid till 15th Oct'},
-          {'id': 'mock3', 'business_name': 'Gloria Jeans', 'offer_title': 'Buy 1 Get 1 Free', 'bank_or_card': 'UBL Cards', 'validity': 'Valid till 10th Oct'},
-        ];
-      } else {
-        _deals = res;
-      }
+      _deals = res;
       setState(() => _isLoading = false);
     } catch (e) {
       setState(() => _isLoading = false);
@@ -137,3 +128,4 @@ class _DealsScreenState extends State<DealsScreen> {
     );
   }
 }
+

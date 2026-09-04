@@ -11,7 +11,7 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   String _selectedPayment = 'Cash on Delivery (COD)';
-  final String _deliveryAddress = 'House 14-A, Block C, Gulberg III, Lahore';
+  final TextEditingController _addressController = TextEditingController(text: 'House 14-A, Block C, Gulberg III, Lahore');
 
   @override
   Widget build(BuildContext context) {
@@ -248,3 +248,4 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 }
+
