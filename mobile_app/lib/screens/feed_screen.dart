@@ -371,6 +371,7 @@ class _FeedScreenState extends State<FeedScreen> {
                       }),
                     ],
                   ),
+                ),
 
                 // Billboard - visible only on the first feed video
                 if (_currentIndex == 0) ...[
