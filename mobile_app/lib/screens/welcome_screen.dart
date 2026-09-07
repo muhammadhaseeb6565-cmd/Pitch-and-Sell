@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../providers/auth_provider.dart';
+import '../constants/legal_content.dart';
+import 'legal_document_screen.dart';
 import 'main_navigation_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -130,10 +132,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
       _showError('Please enter your Shop / Store Name.');
       return;
     }
-    if (!_acceptTerms) {
-      _showError('Please accept the Terms & Privacy Policy to continue.');
-      return;
-    }
+    // Always show T&C modal before creating account
+    final agreed = await _showTermsAndConditionsModal();
+    if (!agreed) return;
     try {
       final success = await auth.signUpWithEmail(
         email: _signUpEmailCtrl.text.trim(),
@@ -169,6 +170,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
         final user = auth.user;
         final currentRole = user?['role']?.toString().toLowerCase();
         if (currentRole == null || currentRole == 'user') {
+          // New Google user — show T&C first
+          final agreed = await _showTermsAndConditionsModal();
+          if (!agreed) {
+            await auth.logout();
+            return;
+          }
           _showGoogleRoleSelectionDialog(auth);
           return;
         }
@@ -178,7 +185,224 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
       }
     } catch (e) {
       _showError('Google Sign-In failed. Please use email & password.');
+
     }
+  }
+
+  /// Shows the full Terms & Conditions bottom sheet.
+  /// Returns true if the user agreed, false if they dismissed/declined.
+  Future<bool> _showTermsAndConditionsModal() async {
+    bool agreed = false;
+    bool _localAccepted = false;
+    int _selectedTab = 0;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black87,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final tabs = ['Terms of Service', 'Privacy Policy', 'Help Centre'];
+            final contents = [kTermsOfService, kPrivacyPolicy, kHelpCentre];
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.88,
+              decoration: const BoxDecoration(
+                color: Color(0xff111111),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                children: [
+                  // Handle bar
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 40, height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Title
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        Icon(Icons.gavel_rounded, color: Color(0xffFF5722), size: 22),
+                        SizedBox(width: 10),
+                        Text(
+                          'Terms & Conditions',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      'Please read all documents before signing up.',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  // Tab selector
+                  SizedBox(
+                    height: 36,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: tabs.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      itemBuilder: (_, i) {
+                        final selected = i == _selectedTab;
+                        return GestureDetector(
+                          onTap: () => setModalState(() => _selectedTab = i),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: selected ? const Color(0xffFF5722) : const Color(0xff1e1e1e),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: selected ? const Color(0xffFF5722) : Colors.white12,
+                              ),
+                            ),
+                            child: Text(
+                              tabs[i],
+                              style: TextStyle(
+                                color: selected ? Colors.white : Colors.grey,
+                                fontSize: 12,
+                                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Document content
+                  Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xff1a1a1a),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: SingleChildScrollView(
+                        child: Text(
+                          contents[_selectedTab],
+                          style: const TextStyle(
+                            color: Color(0xffCCCCCC),
+                            fontSize: 12.5,
+                            height: 1.7,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Agree checkbox
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: GestureDetector(
+                      onTap: () => setModalState(() => _localAccepted = !_localAccepted),
+                      child: Row(
+                        children: [
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: 22, height: 22,
+                            decoration: BoxDecoration(
+                              color: _localAccepted ? const Color(0xffFF5722) : Colors.transparent,
+                              border: Border.all(
+                                color: _localAccepted ? const Color(0xffFF5722) : Colors.white30,
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: _localAccepted
+                                ? const Icon(Icons.check, color: Colors.white, size: 14)
+                                : null,
+                          ),
+                          const SizedBox(width: 10),
+                          const Expanded(
+                            child: Text(
+                              'I have read and agree to all Terms of Service, Privacy Policy, and Help Centre guidelines.',
+                              style: TextStyle(color: Colors.grey, fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Action buttons
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.white24),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text('Decline', style: TextStyle(color: Colors.grey)),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: ElevatedButton(
+                            onPressed: _localAccepted
+                                ? () {
+                                    agreed = true;
+                                    Navigator.pop(ctx);
+                                  }
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xffFF5722),
+                              disabledBackgroundColor: Colors.white12,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'I Agree & Continue',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    return agreed;
   }
 
   void _showGoogleRoleSelectionDialog(AuthProvider auth) {

@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
+import '../constants/legal_content.dart';
+import 'legal_document_screen.dart';
 import 'welcome_screen.dart';
 import 'my_orders_screen.dart';
 import 'notifications_screen.dart';
@@ -15,6 +17,7 @@ import 'package:flutter/services.dart';
 import 'checkout_screen.dart';
 import 'wallet_screen.dart';
 import '../main.dart';
+
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -834,17 +837,48 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               const Divider(color: Colors.white10, height: 32),
               const Text('Support & Info', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
               ListTile(
-                title: const Text('Help Center & FAQs', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                title: const Text('Help Centre & FAQs', style: TextStyle(color: Colors.grey, fontSize: 13)),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey),
                 onTap: () {
-                  showDialog(context: context, builder: (_) => const AlertDialog(title: Text('Coming soon'), content: Text('Help Center is under construction.'), backgroundColor: Color(0xff1e1e1e)));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LegalDocumentScreen(
+                        title: 'Help Centre',
+                        content: kHelpCentre,
+                      ),
+                    ),
+                  );
                 },
               ),
               ListTile(
-                title: const Text('Terms of Agreement', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                title: const Text('Terms of Service', style: TextStyle(color: Colors.grey, fontSize: 13)),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey),
                 onTap: () {
-                  showDialog(context: context, builder: (_) => const AlertDialog(title: Text('Coming soon'), content: Text('Terms of Agreement will be available soon.'), backgroundColor: Color(0xff1e1e1e)));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LegalDocumentScreen(
+                        title: 'Terms of Service',
+                        content: kTermsOfService,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                title: const Text('Privacy Policy', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LegalDocumentScreen(
+                        title: 'Privacy Policy',
+                        content: kPrivacyPolicy,
+                      ),
+                    ),
+                  );
                 },
               ),
               ListTile(

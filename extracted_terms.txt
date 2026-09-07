@@ -1,0 +1,863 @@
+PITCH & SELL
+
+TERMS OF SERVICE
+
+Operated by Emulgic Private Limited
+
+Effective Date: [REQUIRES CONFIRMATION] Last Updated: [REQUIRES CONFIRMATION]
+
+1. INTRODUCTION
+
+Welcome to Pitch & Sell, a social-commerce platform operated by Emulgic Private Limited (“Emulgic”, “we”, “us”, “our”, or the “Company”).
+
+These Terms of Service (“Terms”) govern your access to and use of the Pitch & Sell mobile application, website, platform, features, services, and related functionality (collectively, the “Platform”).
+
+By creating an account, accessing the Platform, uploading content, purchasing products, selling products, communicating with other users, using promotional services, or otherwise using the Platform, you agree to be bound by these Terms and our Privacy Policy.
+
+If you do not agree to these Terms, you must not use the Platform.
+
+Our Privacy Policy explains how we collect, use, disclose, store, and protect personal information and is incorporated into these Terms by reference.
+
+2. ABOUT PITCH & SELL
+
+Pitch & Sell is a social-commerce platform that combines content discovery, product discovery, product promotion, selling, purchasing, reviews, communication, and related commerce functionality.
+
+The Platform may allow users to:
+
+Discover short-form videos and product-related content.
+
+Personalize their feed based on selected interests and categories.
+
+Like, save, share, and review content or products where those features are available.
+
+Search for products and sellers.
+
+Create a personal user profile.
+
+Create a seller, shop, or brand profile.
+
+Upload product-related videos.
+
+Create product listings.
+
+Receive and manage orders.
+
+Communicate through available chat functionality.
+
+Use a wallet and related payment or payout functionality where enabled.
+
+View seller analytics and business information.
+
+Promote videos, products, or other eligible content through available promotional features.
+
+Generate promotional or sales-oriented content using the AI Pitch Generator.
+
+Participate in additional features that Emulgic may introduce over time.
+
+Certain features may be unavailable, disabled, under development, or limited to selected users.
+
+For example, live commerce or live selling functionality may be introduced in the future and is not considered available unless it is expressly enabled within the Platform.
+
+3. ELIGIBILITY
+
+You may use Pitch & Sell only if you are legally capable of entering into a binding agreement under the laws applicable to you.
+
+The minimum age for using the Platform is:
+
+[REQUIRES CONFIRMATION: Minimum user age]
+
+Additional eligibility requirements may apply to sellers, businesses, payment accounts, promotional services, or other features.
+
+You must not use the Platform if doing so would violate applicable law or regulation.
+
+4. ACCOUNT REGISTRATION
+
+To use certain features, you may be required to create an account.
+
+Depending on the available registration options, you may be asked to provide information including:
+
+First name;
+
+Last name;
+
+Email address;
+
+Mobile number;
+
+Profile photograph or brand logo;
+
+Account role;
+
+Business or seller information where applicable.
+
+You may also be able to authenticate using Google Sign-In or another supported authentication method.
+
+You are responsible for ensuring that the information you provide is accurate, current, and not misleading.
+
+You must not:
+
+Create an account using another person’s identity without authorization.
+
+Impersonate another person, company, brand, or organization.
+
+Create fraudulent or deceptive accounts.
+
+Maintain accounts for abusive or prohibited purposes.
+
+Circumvent an account suspension or termination.
+
+You are responsible for maintaining the confidentiality and security of your account credentials.
+
+If you believe that your account has been compromised, you should notify us promptly.
+
+5. USER ROLES
+
+Pitch & Sell may provide different experiences depending on the role selected by the user.
+
+These may include:
+
+5.1 User / Buyer
+
+A User or Buyer may browse content, discover products, communicate with sellers, place orders, submit reviews, save content, and use other consumer-facing features.
+
+5.2 Seller / Shop / Brand Owner
+
+A Seller may create a business or seller profile, upload product content, create listings, manage inventory, receive orders, access analytics, receive eligible payouts, and use promotional services.
+
+A person or business using seller functionality is responsible for complying with all laws and obligations applicable to their business and products.
+
+5.3 Role Switching
+
+Where the Platform provides role switching, users may switch between available user and seller experiences.
+
+Access to a particular role or feature may depend on eligibility, verification, account status, or other requirements.
+
+6. CONTENT AND USER-GENERATED CONTENT
+
+Pitch & Sell allows users and sellers to create, upload, publish, transmit, or otherwise provide content.
+
+This may include:
+
+Videos;
+
+Images;
+
+Product descriptions;
+
+Product names;
+
+Product prices;
+
+Sizes;
+
+Colors;
+
+Stock information;
+
+Reviews;
+
+Ratings;
+
+Messages;
+
+Business information;
+
+Profile information;
+
+Promotional material;
+
+AI-assisted content;
+
+Other information submitted through the Platform.
+
+Collectively, this is referred to as “User Content.”
+
+You remain responsible for the User Content you submit.
+
+You represent and warrant that:
+
+You own the content or have obtained all necessary rights and permissions to use it.
+
+You have the right to submit the content to Pitch & Sell.
+
+Your content does not infringe another person’s intellectual-property, privacy, publicity, contractual, or other legal rights.
+
+Your content is not fraudulent or materially misleading.
+
+Your content complies with these Terms and applicable law.
+
+7. LICENSE TO USER CONTENT
+
+You retain ownership of User Content that you own.
+
+By uploading or submitting User Content to Pitch & Sell, you grant Emulgic Private Limited a non-exclusive, worldwide, royalty-free license to host, store, reproduce, display, distribute, communicate, format, modify where technically necessary, and otherwise use that content solely as reasonably necessary to:
+
+Operate the Platform;
+
+Display content to other users;
+
+Provide requested services;
+
+Distribute content through Platform features;
+
+Improve and maintain the Platform;
+
+Moderate and enforce Platform rules;
+
+Promote the Platform or its functionality, where permitted by applicable law.
+
+This license continues for as long as reasonably necessary to provide the relevant service and for legitimate operational, legal, security, or archival purposes.
+
+You may request removal of eligible content through the mechanisms provided by the Platform.
+
+Removal of content does not necessarily mean that all copies will immediately disappear from backups, security logs, legal records, or other systems where retention is required or reasonably necessary.
+
+8. CONTENT MODERATION
+
+Emulgic may review, moderate, restrict, remove, disable, or otherwise act upon User Content when we reasonably believe that the content:
+
+Violates these Terms;
+
+Violates applicable law;
+
+Infringes intellectual-property rights;
+
+Is fraudulent or deceptive;
+
+Creates a safety or security risk;
+
+Harasses, threatens, or abuses another person;
+
+Contains prohibited material;
+
+Misuses the Platform;
+
+Creates legal or regulatory risk;
+
+Violates applicable Platform policies.
+
+We may use automated tools, human review, reports from users, or other appropriate methods to identify potentially violating content.
+
+Moderation decisions may include:
+
+Removing content;
+
+Restricting visibility;
+
+Limiting account functionality;
+
+Suspending an account;
+
+Terminating an account;
+
+Restricting seller functionality;
+
+Holding or restricting certain transactions or payouts where legally and operationally justified.
+
+9. PROHIBITED CONTENT AND CONDUCT
+
+You must not use Pitch & Sell to:
+
+Commit or facilitate illegal activity.
+
+Sell illegal goods or services.
+
+Promote fraudulent schemes.
+
+Sell counterfeit goods.
+
+Sell stolen goods.
+
+Misrepresent products.
+
+Make materially false or deceptive claims.
+
+Manipulate reviews or ratings.
+
+Create fake transactions.
+
+Engage in spam.
+
+Harass, threaten, bully, or intimidate others.
+
+Publish another person’s private information without authorization.
+
+Upload content that infringes copyright, trademark, or other intellectual-property rights.
+
+Upload sexually explicit or exploitative material prohibited by applicable law or Platform policy.
+
+Exploit or endanger children.
+
+Promote terrorism or violent extremist activity.
+
+Encourage dangerous or unlawful conduct.
+
+Attempt to obtain another user’s account or credentials.
+
+Circumvent Platform security.
+
+Introduce malicious software or code.
+
+Manipulate Platform algorithms through fraudulent activity.
+
+Operate multiple accounts for abusive or deceptive purposes.
+
+Use automated systems to scrape or abuse the Platform without authorization.
+
+Use the Platform for activities prohibited by applicable law.
+
+Additional Community Guidelines may apply.
+
+10. SELLER RESPONSIBILITIES
+
+Sellers are solely responsible for the products and services they offer through Pitch & Sell.
+
+A Seller must:
+
+Provide accurate product information.
+
+Provide accurate prices.
+
+Maintain accurate stock information.
+
+Provide truthful descriptions.
+
+Ensure that products are legal to sell.
+
+Ensure that products are authentic where authenticity is claimed.
+
+Have all necessary licenses, permissions, and approvals.
+
+Honor legitimate orders accepted through the Platform.
+
+Handle fulfillment and delivery obligations applicable to their sales arrangement.
+
+Comply with applicable consumer-protection requirements.
+
+Comply with applicable tax obligations.
+
+Respond appropriately to legitimate customer inquiries.
+
+Avoid misleading advertising and product claims.
+
+Unless expressly stated otherwise, Emulgic is a platform operator and does not manufacture, own, inspect, or guarantee every product listed by independent Sellers.
+
+11. PRODUCT LISTINGS
+
+Sellers may be able to create listings containing information such as:
+
+Product name;
+
+Price;
+
+Description;
+
+Sizes;
+
+Colors;
+
+Category;
+
+Stock quantity;
+
+Product video;
+
+Images or other supporting information.
+
+Sellers must ensure that listing information remains accurate.
+
+Emulgic may remove or restrict listings that violate these Terms or applicable law.
+
+12. ORDERS AND PURCHASES
+
+When a Buyer places an order through the Platform, information relating to the order may be made available to the relevant Seller.
+
+Orders may include information such as:
+
+Product information;
+
+Quantity;
+
+Price;
+
+Buyer information;
+
+Contact information;
+
+Delivery information where applicable;
+
+Order status;
+
+Transaction information.
+
+An order may be cancelled, rejected, restricted, or placed on hold where permitted by applicable law and the Platform’s applicable policies.
+
+The exact order cancellation, return, replacement, refund, shipping, and dispute process is governed by the applicable policies displayed by Pitch & Sell.
+
+[REQUIRES CONFIRMATION: Final buyer refund, return, cancellation and shipping policy.]
+
+13. PAYMENTS
+
+Pitch & Sell may provide payment-related functionality.
+
+Depending on the applicable feature, this may include:
+
+Wallet balance;
+
+Send;
+
+Receive;
+
+Withdraw;
+
+QR Pay;
+
+Transaction history;
+
+Seller payouts;
+
+Promotional payments;
+
+Other payment functionality.
+
+The availability of a payment feature does not guarantee that every user will qualify to use it.
+
+Payment services may be provided through third-party payment or financial service providers.
+
+[REQUIRES CONFIRMATION: Payment provider(s), wallet provider, payout provider and exact payment architecture.]
+
+Users must provide accurate information required for payment processing.
+
+You must not use the Platform for money laundering, fraud, unauthorized transactions, sanctions violations, or other unlawful financial activity.
+
+14. SELLER PAYOUTS
+
+Eligible Sellers may receive amounts generated through eligible sales after applicable deductions.
+
+The Seller dashboard may display information including:
+
+Gross sales;
+
+Platform fees;
+
+Net earnings;
+
+Amount paid out;
+
+Available payout amount.
+
+Payouts may be subject to:
+
+Verification;
+
+Transaction completion;
+
+Refunds;
+
+Chargebacks;
+
+Disputes;
+
+Fraud prevention;
+
+Applicable fees;
+
+Legal requirements.
+
+[REQUIRES CONFIRMATION: Exact payout schedule, minimum payout amount, platform fee percentage, payment processing fees, taxes and payout holds.]
+
+15. PROMOTIONS, BOOSTS AND BILLBOARD ADVERTISING
+
+Pitch & Sell may provide paid promotional services allowing eligible Sellers or users to promote products or content.
+
+These may include:
+
+Video boosts;
+
+Product promotions;
+
+Featured placements;
+
+Promotional campaigns;
+
+Billboard placements;
+
+Other advertising or visibility-enhancement features.
+
+The exact availability, pricing, duration, targeting, scheduling, and eligibility of each promotion will be displayed before purchase.
+
+Where supported, Sellers may be able to select specific time periods or time-zone-based scheduling for promotional delivery.
+
+A promotional purchase does not guarantee:
+
+A specific number of views;
+
+Sales;
+
+Clicks;
+
+Orders;
+
+Followers;
+
+Revenue;
+
+Engagement.
+
+Promotional content may be identified as promoted, sponsored, or otherwise commercially supported where required by applicable law or Platform policy.
+
+[REQUIRES CONFIRMATION: Exact promotion pricing, cancellation rules, refund rules, targeting options and sponsored-content labeling.]
+
+16. REVIEWS AND RATINGS
+
+Users may be permitted to submit reviews and ratings for products or transactions.
+
+Reviews must represent genuine experiences.
+
+You must not:
+
+Submit fake reviews.
+
+Pay or offer benefits for misleading reviews.
+
+Review a product you did not meaningfully interact with where such interaction is required.
+
+Manipulate ratings.
+
+Threaten or harass another person through a review.
+
+Submit defamatory or unlawful content.
+
+Emulgic may remove reviews that violate these Terms or applicable policies.
+
+17. LIKES, SAVES, SHARES AND ENGAGEMENT
+
+Pitch & Sell may provide engagement functionality including:
+
+Likes;
+
+Saves;
+
+Shares;
+
+Reviews;
+
+Ratings;
+
+Views;
+
+Wishlist functionality;
+
+Other interaction features.
+
+Engagement metrics may be generated or calculated by Platform systems and may not always be perfectly accurate.
+
+Users must not manipulate engagement metrics through fraudulent, automated, deceptive, or coordinated activity.
+
+18. CHAT AND COMMUNICATION
+
+Pitch & Sell may provide chat or messaging functionality between users and sellers.
+
+Users are responsible for communications they send.
+
+You must not use chat to:
+
+Harass another user;
+
+Threaten another user;
+
+Send unlawful or abusive content;
+
+Conduct scams;
+
+Request sensitive credentials;
+
+Distribute malicious files or links;
+
+Circumvent Platform rules.
+
+[REQUIRES CONFIRMATION: Message retention, moderation, automated scanning and access policies.]
+
+19. AI PITCH GENERATOR
+
+Pitch & Sell may provide an AI Pitch Generator to help sellers create promotional or sales-oriented content.
+
+AI-generated content is provided as an assistance tool.
+
+You remain responsible for reviewing AI-generated content before publishing or using it.
+
+You must ensure that AI-generated content:
+
+Is accurate;
+
+Does not contain unlawful claims;
+
+Does not make unsupported medical, financial, safety, or other regulated claims;
+
+Does not infringe third-party rights;
+
+Does not misrepresent a product;
+
+Complies with applicable advertising requirements.
+
+Emulgic does not guarantee that AI-generated content will always be accurate, complete, original, or appropriate for every purpose.
+
+[REQUIRES CONFIRMATION: Whether AI processing is performed internally or through a third-party AI provider.]
+
+20. INTELLECTUAL PROPERTY
+
+The Pitch & Sell Platform, including its software, branding, interface, logos, design, graphics, original text, systems, and other Company-owned materials, is owned by or licensed to Emulgic Private Limited unless otherwise stated.
+
+You may not copy, modify, distribute, reverse engineer, reproduce, sell, or commercially exploit Platform materials without authorization.
+
+Pitch & Sell, Emulgic, and related names, logos, marks, and branding may be protected by intellectual-property laws.
+
+Nothing in these Terms grants you ownership of Company intellectual property.
+
+21. COPYRIGHT COMPLAINTS
+
+If you believe content on Pitch & Sell infringes your copyright or other intellectual-property rights, you may submit a complaint through:
+
+[REQUIRES CONFIRMATION: Copyright/IP complaint email or reporting mechanism]
+
+Your complaint should contain sufficient information for us to identify:
+
+The protected work;
+
+The allegedly infringing content;
+
+Your relationship to the rights holder;
+
+Your contact information;
+
+The basis for your complaint.
+
+We may remove or restrict content where appropriate.
+
+22. THIRD-PARTY SERVICES
+
+Pitch & Sell may integrate with third-party services.
+
+Examples may include authentication providers, payment providers, hosting providers, analytics providers, AI providers, communication services, or other technology providers.
+
+Your use of third-party services may be subject to their own terms and privacy policies.
+
+The currently confirmed third-party authentication option is Google Sign-In.
+
+Other third-party services are:
+
+[REQUIRES CONFIRMATION]
+
+23. PRIVACY
+
+Your use of Pitch & Sell is also governed by our Privacy Policy.
+
+The Privacy Policy explains how we collect and process personal information.
+
+You can access the Privacy Policy through:
+
+[PRIVACY POLICY LINK — REQUIRES CONFIRMATION]
+
+24. SECURITY
+
+We take reasonable measures designed to protect the Platform and information processed through it.
+
+However, no online service can guarantee absolute security.
+
+You acknowledge that:
+
+Internet transmissions may carry risks;
+
+No system is completely secure;
+
+You are responsible for protecting your account credentials;
+
+You should notify us promptly of suspected unauthorized access.
+
+25. ACCOUNT SUSPENSION AND TERMINATION
+
+We may suspend, restrict, or terminate your account if:
+
+You violate these Terms;
+
+You violate applicable law;
+
+You engage in fraud;
+
+You abuse other users;
+
+You misuse the Platform;
+
+You infringe intellectual-property rights;
+
+Your activity creates a security or legal risk;
+
+We are legally required to do so;
+
+Continued access is otherwise reasonably necessary to protect the Platform or users.
+
+Where appropriate and legally permissible, we may provide notice or an opportunity to resolve the issue.
+
+We may also terminate or discontinue features of the Platform for operational, commercial, technical, or legal reasons.
+
+26. ACCOUNT DELETION
+
+You may request deletion of your account through the available account settings or support process.
+
+[REQUIRES CONFIRMATION: Exact account deletion mechanism.]
+
+Certain information may need to be retained where required by law or reasonably necessary for:
+
+Financial records;
+
+Fraud prevention;
+
+Dispute resolution;
+
+Security;
+
+Legal compliance;
+
+Enforcement of agreements.
+
+27. DISCLAIMERS
+
+To the maximum extent permitted by applicable law, Pitch & Sell is provided on an “as available” and “as is” basis.
+
+Emulgic does not guarantee that:
+
+The Platform will always be available;
+
+The Platform will be uninterrupted;
+
+All content will be accurate;
+
+All sellers are trustworthy;
+
+All products are authentic or safe;
+
+Every order will be fulfilled;
+
+Every seller will satisfy its obligations;
+
+AI-generated content will be error-free;
+
+Promotional campaigns will produce a particular result.
+
+Products offered by independent Sellers are the responsibility of those Sellers, subject to applicable law and Platform policies.
+
+28. LIMITATION OF LIABILITY
+
+To the maximum extent permitted by applicable law, Emulgic Private Limited and its directors, officers, employees, affiliates, contractors, and service providers will not be liable for indirect, incidental, special, consequential, exemplary, or punitive damages arising from or relating to your use of the Platform.
+
+Nothing in these Terms excludes or limits liability that cannot legally be excluded or limited under applicable law.
+
+[LAWYER REVIEW REQUIRED: Final liability exclusions, caps and statutory exceptions.]
+
+29. INDEMNIFICATION
+
+To the extent permitted by applicable law, you agree to defend, indemnify, and hold harmless Emulgic Private Limited and its directors, officers, employees, affiliates, and service providers from claims, liabilities, damages, losses, costs, and expenses arising from:
+
+Your violation of these Terms;
+
+Your User Content;
+
+Your products or product listings;
+
+Your transactions;
+
+Your violation of another person’s rights;
+
+Your unlawful or fraudulent conduct;
+
+Your use or misuse of the Platform.
+
+[LAWYER REVIEW REQUIRED]
+
+30. DISPUTES
+
+Users should first contact Pitch & Sell support to attempt to resolve disputes informally.
+
+Support: [REQUIRES CONFIRMATION]
+
+The governing law and dispute-resolution mechanism are:
+
+[REQUIRES CONFIRMATION: Governing law, jurisdiction, courts and/or arbitration mechanism.]
+
+Any mandatory consumer rights that cannot legally be waived remain unaffected.
+
+31. CHANGES TO THESE TERMS
+
+We may update these Terms from time to time.
+
+When material changes are made, we may provide notice through appropriate means.
+
+The updated Terms will include a revised “Last Updated” date.
+
+Your continued use of the Platform after the effective date of updated Terms may constitute acceptance to the extent permitted by applicable law.
+
+32. SEVERABILITY
+
+If any provision of these Terms is found to be invalid or unenforceable, the remaining provisions will continue to apply to the extent permitted by law.
+
+33. ENTIRE AGREEMENT
+
+These Terms, together with the Privacy Policy and other policies expressly incorporated into them, constitute the agreement between you and Emulgic concerning your use of Pitch & Sell, subject to any additional agreements applicable to particular services.
+
+34. NO WAIVER
+
+Failure by Emulgic to enforce any provision of these Terms does not constitute a waiver of that provision or our right to enforce it later.
+
+35. ASSIGNMENT
+
+You may not transfer or assign your rights or obligations under these Terms without our prior written consent where such consent is required.
+
+Emulgic may transfer or assign its rights and obligations in connection with a merger, acquisition, restructuring, sale of assets, or other lawful corporate transaction.
+
+36. CONTACT
+
+Emulgic Private Limited
+
+Platform: Pitch & Sell
+
+Legal/Support Email: [REQUIRES CONFIRMATION]
+
+Registered Address: [REQUIRES CONFIRMATION]
+
+Country/Jurisdiction: [REQUIRES CONFIRMATION]
+
+IMPORTANT LEGAL NOTICE
+
+This document is a structured product/legal draft based on the currently known Pitch & Sell functionality. It is not a substitute for advice from a qualified lawyer.
+
+The following areas should receive legal review before publication:
+
+Governing law and jurisdiction;
+
+Consumer rights;
+
+Refunds and returns;
+
+Payment and financial services;
+
+Seller obligations;
+
+Tax obligations;
+
+Limitation of liability;
+
+Indemnification;
+
+Intellectual-property procedures;
+
+Data-protection obligations;
+
+Age restrictions;
+
+AI-generated content;
+
+Advertising and sponsored content;
+
+Dispute resolution;
+
+Account termination.

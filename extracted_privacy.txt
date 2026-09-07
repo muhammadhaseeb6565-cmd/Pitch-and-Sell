@@ -1,0 +1,615 @@
+PITCH & SELL
+
+PRIVACY POLICY
+
+Operated by Emulgic Private Limited
+
+Effective Date: [REQUIRES CONFIRMATION] Last Updated: [REQUIRES CONFIRMATION]
+
+1. INTRODUCTION
+
+Emulgic Private Limited (“Emulgic”, “we”, “us”, or “our”) operates Pitch & Sell, a social-commerce platform.
+
+This Privacy Policy explains how we collect, use, disclose, store, and protect information when you use Pitch & Sell.
+
+We are committed to handling personal information responsibly and transparently.
+
+By using Pitch & Sell, you acknowledge the practices described in this Privacy Policy, subject to any consent requirements imposed by applicable law.
+
+2. INFORMATION WE COLLECT
+
+The information we collect depends on how you use the Platform.
+
+2.1 Account Information
+
+When you create an account, we may collect:
+
+First name;
+
+Last name;
+
+Email address;
+
+Mobile number;
+
+Profile photograph;
+
+Brand logo;
+
+Account role;
+
+Login and authentication information.
+
+2.2 Google Sign-In Information
+
+If you choose to use Google Sign-In, we may receive information made available to us through Google’s authentication service.
+
+This may include information such as your name, email address, profile information, and authentication identifiers as permitted by the authorization process.
+
+Our use of information received through Google is subject to applicable Google requirements and this Privacy Policy.
+
+3. SELLER AND BUSINESS INFORMATION
+
+If you create a seller, shop, or brand profile, we may collect information you provide about:
+
+Your business;
+
+Brand identity;
+
+Seller profile;
+
+Products;
+
+Product descriptions;
+
+Prices;
+
+Sizes;
+
+Colors;
+
+Stock;
+
+Product media;
+
+Business-related information.
+
+You are responsible for ensuring that information submitted about your business and products is accurate.
+
+4. USER-GENERATED CONTENT
+
+Pitch & Sell allows users to create and share content.
+
+This may include:
+
+Videos;
+
+Images;
+
+Product content;
+
+Reviews;
+
+Ratings;
+
+Messages;
+
+Promotional content;
+
+Profile content;
+
+Other information you voluntarily submit.
+
+Some User Content may be visible to other users depending on the feature and your settings.
+
+5. PURCHASE AND ORDER INFORMATION
+
+When you use commerce functionality, we may process information relating to:
+
+Orders;
+
+Products purchased;
+
+Product prices;
+
+Quantities;
+
+Order status;
+
+Seller information;
+
+Buyer information;
+
+Delivery information where applicable;
+
+Refunds;
+
+Cancellations;
+
+Reviews;
+
+Transaction records.
+
+6. WALLET AND PAYMENT INFORMATION
+
+Pitch & Sell may provide wallet, payment, transaction, and payout functionality.
+
+Depending on the applicable service, information may include:
+
+Wallet balance;
+
+Transaction history;
+
+Payment status;
+
+Payout information;
+
+Linked account information;
+
+Payment-related identifiers;
+
+Withdrawal information.
+
+[REQUIRES CONFIRMATION: Exact payment information collected and whether payment information is handled directly by Pitch & Sell or by third-party payment providers.]
+
+Where third-party payment providers are used, they may process information according to their own privacy policies.
+
+7. CONTENT AND PERSONALIZATION DATA
+
+Pitch & Sell may process information relating to how you use the Platform.
+
+This may include:
+
+Selected content interests;
+
+Category preferences;
+
+Likes;
+
+Saves;
+
+Shares;
+
+Reviews;
+
+Ratings;
+
+Searches;
+
+Wishlist activity;
+
+Product interactions;
+
+Video views;
+
+Seller interactions;
+
+Promotion interactions;
+
+Orders;
+
+Pitches;
+
+Other Platform activity.
+
+This information may be used to provide and personalize the Pitch & Sell experience.
+
+8. SEARCH INFORMATION
+
+When you use search functionality, we may process the search terms and related interaction information necessary to provide search results and improve the Platform.
+
+[REQUIRES CONFIRMATION: Whether search history is permanently stored, temporarily processed, or associated with user accounts.]
+
+9. CHAT AND COMMUNICATION INFORMATION
+
+If you use chat functionality, we may process the messages and related information necessary to provide the communication service.
+
+[REQUIRES CONFIRMATION: Message retention period, moderation system, automated scanning, and whether administrators can access messages.]
+
+10. DEVICE AND TECHNICAL INFORMATION
+
+Pitch & Sell may process technical information necessary for operating, securing, and troubleshooting the Platform.
+
+This may potentially include:
+
+Device type;
+
+Operating system;
+
+App version;
+
+Device identifiers;
+
+IP address;
+
+Network information;
+
+Error logs;
+
+Crash information;
+
+Performance information.
+
+[REQUIRES CONFIRMATION: Exact device identifiers, IP logging, crash analytics and technical data actually collected.]
+
+We will not claim to collect technical information that is not actually processed by the Platform.
+
+11. CAMERA, PHOTOS, VIDEO AND MICROPHONE
+
+Certain Platform functionality may require access to media or device permissions.
+
+For example, users may upload or create:
+
+Profile photographs;
+
+Brand logos;
+
+Videos;
+
+Images;
+
+Product media.
+
+If the app requires camera or microphone access for recording functionality, the relevant operating-system permission will be requested.
+
+[REQUIRES CONFIRMATION: Whether Pitch & Sell directly records through the camera/microphone or only selects existing media from the device.]
+
+12. LOCATION INFORMATION
+
+Pitch & Sell may provide functionality involving time zones or scheduled promotional campaigns.
+
+However, use of a time-zone selection does not necessarily mean that precise location information is collected.
+
+[REQUIRES CONFIRMATION: Whether Pitch & Sell collects approximate or precise location information.]
+
+If location information is collected in the future, this Privacy Policy should be updated to explain:
+
+What location information is collected;
+
+Why it is collected;
+
+How it is used;
+
+Whether it is shared;
+
+How long it is retained;
+
+How users can control access.
+
+13. NOTIFICATIONS
+
+Pitch & Sell may use notifications for relevant Platform activity, such as:
+
+Orders;
+
+Seller updates;
+
+Reviews;
+
+Messages;
+
+Account activity;
+
+Promotions;
+
+Other service notifications.
+
+[REQUIRES CONFIRMATION: Push-notification provider, notification identifiers/tokens, marketing notifications and user controls.]
+
+14. HOW WE USE INFORMATION
+
+We may use information to:
+
+Create and maintain accounts;
+
+Authenticate users;
+
+Provide the Platform;
+
+Personalize content;
+
+Provide search;
+
+Process orders;
+
+Facilitate seller activity;
+
+Provide wallet and payment functionality;
+
+Process payouts;
+
+Provide customer support;
+
+Facilitate communication;
+
+Display products;
+
+Display and distribute User Content;
+
+Provide seller analytics;
+
+Provide promotional services;
+
+Generate AI-assisted content;
+
+Prevent fraud and abuse;
+
+Moderate content;
+
+Detect security threats;
+
+Improve Platform performance;
+
+Troubleshoot technical problems;
+
+Comply with legal obligations;
+
+Enforce our Terms and policies;
+
+Protect users, the Company, and the Platform.
+
+15. AI PROCESSING
+
+Pitch & Sell includes an AI Pitch Generator.
+
+The feature may process information supplied by sellers or users to generate promotional or sales-oriented content.
+
+[REQUIRES CONFIRMATION: AI provider, whether information is sent to a third-party AI service, whether prompts/outputs are retained by that provider, and whether user content is used for model training.]
+
+We recommend that the final implementation disclose these details accurately before launch.
+
+16. HOW WE SHARE INFORMATION
+
+We may share information when reasonably necessary to operate Pitch & Sell.
+
+Potential categories of recipients include:
+
+Service Providers
+
+Technology providers that support hosting, storage, authentication, payments, communications, security, analytics, AI functionality, or other Platform services.
+
+Sellers and Buyers
+
+Certain information may be shared between buyers and sellers when necessary to complete transactions or provide relevant services.
+
+Payment Providers
+
+Information necessary to process payments or payouts may be shared with applicable financial or payment providers.
+
+Legal Authorities
+
+Information may be disclosed where required by law, court order, legal process, or lawful government request.
+
+Business Transfers
+
+Information may be transferred in connection with a merger, acquisition, restructuring, financing, sale of assets, or similar corporate transaction.
+
+Safety and Fraud Prevention
+
+Information may be shared where reasonably necessary to detect, investigate, prevent, or address fraud, abuse, security incidents, or unlawful activity.
+
+We do not claim to share information with third-party advertising networks unless such services are actually implemented.
+
+17. THIRD-PARTY SERVICES
+
+Pitch & Sell currently has a confirmed integration with:
+
+Google Sign-In
+
+Additional providers may include:
+
+Payment providers;
+
+Cloud infrastructure;
+
+Database services;
+
+Analytics;
+
+AI services;
+
+Push notifications;
+
+Security services;
+
+Other technology providers.
+
+[REQUIRES CONFIRMATION: Final list of third-party services and SDKs.]
+
+The final Privacy Policy should identify material third-party categories accurately.
+
+18. ADVERTISING AND PROMOTIONAL DATA
+
+Pitch & Sell may provide internal promotional features allowing Sellers to promote products or videos.
+
+Information may be used to provide and measure these services.
+
+This may include information relating to:
+
+Campaign settings;
+
+Selected categories;
+
+Time windows;
+
+Time zones;
+
+Campaign performance;
+
+Views;
+
+Engagement;
+
+Clicks or interactions where implemented.
+
+[REQUIRES CONFIRMATION: Whether promotional targeting uses interests, location, demographics, behavior, or only campaign settings selected by the Seller.]
+
+Third-party advertising networks are:
+
+[REQUIRES CONFIRMATION]
+
+19. COOKIES AND SIMILAR TECHNOLOGIES
+
+If Pitch & Sell provides a website or web application, it may use cookies or similar technologies.
+
+[REQUIRES CONFIRMATION: Whether Pitch & Sell operates a web application/site using cookies.]
+
+If cookies are used, the final Privacy Policy should explain:
+
+Essential cookies;
+
+Analytics cookies;
+
+Preference cookies;
+
+Advertising cookies, if applicable;
+
+User controls.
+
+20. DATA RETENTION
+
+We retain information for as long as reasonably necessary for the purposes described in this Privacy Policy, unless a longer period is required or permitted by law.
+
+Specific retention periods are:
+
+[REQUIRES CONFIRMATION: Account data retention period]
+
+[REQUIRES CONFIRMATION: Transaction data retention period]
+
+[REQUIRES CONFIRMATION: User-content retention period]
+
+[REQUIRES CONFIRMATION: Chat retention period]
+
+[REQUIRES CONFIRMATION: Backup/log retention period]
+
+21. ACCOUNT DELETION
+
+Users may request deletion of their account through:
+
+[REQUIRES CONFIRMATION: In-app deletion path / support email / web form]
+
+Deletion may remove or anonymize personal information, subject to technical limitations and legal obligations.
+
+Some information may need to be retained for:
+
+Legal compliance;
+
+Financial records;
+
+Fraud prevention;
+
+Security;
+
+Dispute resolution;
+
+Enforcement of agreements.
+
+22. DATA SECURITY
+
+We use reasonable technical and organizational measures designed to protect information against unauthorized access, misuse, alteration, disclosure, or destruction.
+
+However, no electronic system or internet transmission can be guaranteed to be completely secure.
+
+Users should protect their account credentials and notify us if they suspect unauthorized access.
+
+23. USER RIGHTS
+
+Depending on applicable law, users may have rights relating to their personal information, including:
+
+Access;
+
+Correction;
+
+Deletion;
+
+Restriction;
+
+Objection;
+
+Withdrawal of consent where applicable;
+
+Data portability where applicable;
+
+Complaint to a relevant regulatory authority.
+
+The availability of these rights depends on applicable law and circumstances.
+
+Requests may be submitted to:
+
+[REQUIRES CONFIRMATION: Privacy contact email]
+
+24. CHILDREN
+
+Pitch & Sell is not intended for users who are below the minimum age permitted by applicable law.
+
+The minimum age for the Platform is:
+
+[REQUIRES CONFIRMATION]
+
+If we become aware that we have collected personal information from a child in violation of applicable law, we may take appropriate steps to delete that information.
+
+25. INTERNATIONAL DATA TRANSFERS
+
+Your information may be processed or stored in countries other than the country where you live, depending on the infrastructure and service providers used by Pitch & Sell.
+
+[REQUIRES CONFIRMATION: Countries in which data is stored/processed and applicable transfer mechanisms.]
+
+Where required by law, appropriate safeguards will be implemented.
+
+26. CHANGES TO THIS PRIVACY POLICY
+
+We may update this Privacy Policy from time to time.
+
+Material changes may be communicated through appropriate channels.
+
+The “Last Updated” date will indicate when this Privacy Policy was most recently changed.
+
+27. CONTACT US
+
+Emulgic Private Limited
+
+Product: Pitch & Sell
+
+Privacy Contact: [REQUIRES CONFIRMATION]
+
+Legal Address: [REQUIRES CONFIRMATION]
+
+Country/Jurisdiction: [REQUIRES CONFIRMATION]
+
+IMPORTANT LEGAL REVIEW NOTICE
+
+This Privacy Policy should be reviewed by qualified privacy/legal counsel before publication.
+
+In particular, Emulgic should confirm:
+
+Exact data collected by the production app.
+
+Exact third-party SDKs.
+
+Google authentication data.
+
+Payment provider data flows.
+
+AI provider and AI data processing.
+
+Hosting/database provider.
+
+Analytics.
+
+Advertising systems.
+
+Push notifications.
+
+Location permissions.
+
+Camera/microphone permissions.
+
+Data retention periods.
+
+Account deletion process.
+
+Applicable privacy laws.
+
+International data transfers.
+
+Children’s privacy requirements.
