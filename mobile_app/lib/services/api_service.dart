@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:video_compress/video_compress.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -241,8 +242,43 @@ class ApiService {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) return http.Response('Unauthorized', 401);
+
+      // Ensure buyer has a row in public.profiles table to prevent foreign key violations (orders_buyer_id_fkey)
+      try {
+        final existingProfile = await _supabase.from('profiles').select('id').eq('id', user.id).maybeSingle();
+        if (existingProfile == null) {
+          final meta = user.userMetadata ?? {};
+          await _supabase.from('profiles').upsert({
+            'id': user.id,
+            'email': user.email ?? '',
+            'name': (buyerName != null && buyerName.isNotEmpty)
+                ? buyerName
+                : (meta['full_name'] ?? meta['name'] ?? user.email?.split('@').first ?? 'Customer'),
+            'phone': buyerPhone ?? user.phone ?? meta['phone'],
+            'role': 'customer',
+            'is_business': false,
+            'address': deliveryAddress,
+          });
+        }
+      } catch (profileErr) {
+        debugPrint('Warning ensuring buyer profile: $profileErr');
+      }
       
       final product = await _supabase.from('products').select('seller_id, price').eq('id', productId).single();
+
+      // Also ensure seller exists in public.profiles if orphaned
+      try {
+        final sellerId = product['seller_id'] as String;
+        final existingSeller = await _supabase.from('profiles').select('id').eq('id', sellerId).maybeSingle();
+        if (existingSeller == null) {
+          await _supabase.from('profiles').upsert({
+            'id': sellerId,
+            'name': 'Seller',
+            'role': 'seller',
+            'is_business': true,
+          });
+        }
+      } catch (_) {}
       
       final res = await _supabase.from('orders').insert({
         'buyer_id': user.id,

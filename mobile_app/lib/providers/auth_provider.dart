@@ -290,8 +290,25 @@ class AuthProvider with ChangeNotifier {
     Map<String, dynamic>? profileData;
     try {
       profileData = await _supabase.from('profiles').select('*').eq('id', supabaseUser.id).maybeSingle();
+      if (profileData == null) {
+        // Auto-create missing profile row to guarantee foreign key integrity
+        final defaultRole = meta['role'] ?? 'customer';
+        final isBiz = meta['is_business'] == true || defaultRole == 'seller' || defaultRole == 'shop';
+        final fullName = meta['full_name'] ?? meta['name'] ?? (supabaseUser.email?.split('@').first ?? 'User');
+        await _supabase.from('profiles').upsert({
+          'id': supabaseUser.id,
+          'email': supabaseUser.email ?? '',
+          'name': fullName,
+          'phone': supabaseUser.phone ?? meta['phone'],
+          'role': isBiz ? 'seller' : 'customer',
+          'is_business': isBiz,
+          'business_name': isBiz ? (meta['business_name'] ?? fullName) : null,
+          'business_description': isBiz ? meta['business_description'] : null,
+        });
+        profileData = await _supabase.from('profiles').select('*').eq('id', supabaseUser.id).maybeSingle();
+      }
     } catch (e) {
-      debugPrint('Error fetching profile from Supabase: $e');
+      debugPrint('Error fetching/upserting profile from Supabase: $e');
     }
 
     final String rawRole = (profileData?['role'] ?? meta['role'] ?? 'customer').toString().toLowerCase();
