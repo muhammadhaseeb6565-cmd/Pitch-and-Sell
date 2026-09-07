@@ -35,10 +35,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
       if (authProvider.isAuthenticated) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-        );
+        if (!authProvider.hasAcceptedTerms) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const WelcomeScreen(forceTerms: true)),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+          );
+        }
       } else {
         final prefs = await SharedPreferences.getInstance();
         final hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;

@@ -10,7 +10,8 @@ import 'main_navigation_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   final String initialMode;
-  const WelcomeScreen({super.key, this.initialMode = 'customer'});
+  final bool forceTerms;
+  const WelcomeScreen({super.key, this.initialMode = 'customer', this.forceTerms = false});
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
@@ -34,15 +35,35 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   bool _obscureConfirm = true;
   bool _acceptTerms = false;
   String? _profileImagePath;
-  String _selectedMode = 'customer';
-  String _signInSelectedMode = 'customer';
+  late String _selectedMode;
+  late String _signInSelectedMode;
 
   @override
   void initState() {
     super.initState();
     _selectedMode = widget.initialMode;
+    _signInSelectedMode = widget.initialMode;
     _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() { if (mounted) setState(() {}); });
+    _tabController.addListener(() {
+      FocusScope.of(context).unfocus();
+    });
+
+    if (widget.forceTerms) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _forceTermsCheck();
+      });
+    }
+  }
+
+  Future<void> _forceTermsCheck() async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final agreed = await _showTermsAndConditionsModal();
+    if (agreed) {
+      await auth.acceptTerms();
+      _goToMain();
+    } else {
+      await auth.logout();
+    }
   }
 
   @override
@@ -105,6 +126,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     try {
       final success = await auth.signInWithEmail(_signInEmailCtrl.text.trim(), _signInPassCtrl.text);
       if (success && mounted) {
+        if (!auth.hasAcceptedTerms) {
+          final agreed = await _showTermsAndConditionsModal();
+          if (!agreed) {
+            await auth.logout();
+            return;
+          }
+          await auth.acceptTerms();
+        }
+
         // Apply the selected role from the sign-in form
         final currentRole = auth.user?['role']?.toString().toLowerCase();
         if (currentRole != _signInSelectedMode) {
@@ -147,6 +177,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
         shopDescription: _selectedMode == 'seller' ? _signUpShopDescCtrl.text.trim() : null,
       );
       if (success && mounted) {
+        // Because we already showed the modal and they agreed, mark terms accepted.
+        await auth.acceptTerms();
         _showSuccess('Account created! Welcome to Pitch & Sell!');
         await Future.delayed(const Duration(milliseconds: 600));
         _goToMain();
@@ -167,15 +199,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     try {
       final success = await auth.loginGoogle();
       if (success && mounted) {
-        final user = auth.user;
-        final currentRole = user?['role']?.toString().toLowerCase();
-        if (currentRole == null || currentRole == 'user') {
-          // New Google user — show T&C first
+        if (!auth.hasAcceptedTerms) {
           final agreed = await _showTermsAndConditionsModal();
           if (!agreed) {
             await auth.logout();
             return;
           }
+          await auth.acceptTerms();
+        }
+
+        final user = auth.user;
+        final currentRole = user?['role']?.toString().toLowerCase();
+        if (currentRole == null || currentRole == 'user') {
           _showGoogleRoleSelectionDialog(auth);
           return;
         }
@@ -184,8 +219,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
         _goToMain();
       }
     } catch (e) {
-      _showError('Google Sign-In failed. Please use email & password.');
-
+      _showError('Google Sign-In failed. Please try again.');
     }
   }
 

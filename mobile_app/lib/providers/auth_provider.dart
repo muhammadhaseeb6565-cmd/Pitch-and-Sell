@@ -177,6 +177,10 @@ class AuthProvider with ChangeNotifier {
       final GoogleSignIn googleSignIn = GoogleSignIn(
         serverClientId: '771454392765-jb01guktvorvh6pcktr5s2ntcann92f6.apps.googleusercontent.com',
       );
+      
+      // Force account selector to show every time
+      await googleSignIn.signOut();
+      
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         _isLoading = false;
@@ -246,6 +250,21 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Terms & Conditions
+  bool get hasAcceptedTerms => _user?['terms_accepted'] == true;
+
+  Future<void> acceptTerms() async {
+    if (_user == null) return;
+    try {
+      await _supabase.from('profiles').update({'terms_accepted': true}).eq('id', _user!['id']);
+      _user!['terms_accepted'] = true;
+      await _saveSessionLocally();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error accepting terms: $e');
+    }
+  }
+
   // Logout
   Future<void> logout() async {
     try { await _supabase.auth.signOut(); } catch (_) {}
@@ -301,6 +320,7 @@ class AuthProvider with ChangeNotifier {
       'role': isBusiness ? 'seller' : 'customer',
       'is_business': isBusiness,
       'businessProfile': bProfile,
+      'terms_accepted': profileData?['terms_accepted'] == true,
     };
     _isAuthenticated = true;
     _currentMode = isBusiness ? UserMode.seller : UserMode.customer;
