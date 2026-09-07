@@ -153,6 +153,52 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                               ),
                             ],
                           ),
+                          if (order['deliveryAddress'] != null && order['deliveryAddress'].toString().isNotEmpty) ...[
+                            const SizedBox(height: 10),
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.black26,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(Icons.location_on_outlined, color: Color(0xffFF5722), size: 16),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      'Deliver to: ${order['buyerName'] ?? 'You'} • ${order['deliveryAddress']}, ${order['city'] ?? ''} (${order['buyerPhone'] ?? ''})',
+                                      style: const TextStyle(color: Colors.white70, fontSize: 11),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          if (order['trackingNumber'] != null) ...[
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.indigo.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.indigo.withOpacity(0.3)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.local_shipping, color: Colors.indigoAccent, size: 16),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Courier: ${order['courierName'] ?? 'Courier'} • Tracking: ${order['trackingNumber']}',
+                                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           _buildTimeline(order['status'] ?? 'UNKNOWN'),
                           if ((order['status'] ?? 'UNKNOWN') == 'PENDING' || (order['status'] ?? 'UNKNOWN') == 'ACCEPTED' || (order['status'] ?? 'UNKNOWN') == 'PROCESSING') ...[
                             const SizedBox(height: 8),

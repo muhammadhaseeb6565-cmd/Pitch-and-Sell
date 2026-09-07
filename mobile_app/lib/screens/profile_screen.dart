@@ -11,12 +11,9 @@ import 'welcome_screen.dart';
 import 'my_orders_screen.dart';
 import 'notifications_screen.dart';
 import 'dashboard_screen.dart';
-import 'seller_profile_screen.dart';
 import 'admin_portal_screen.dart';
-import 'package:flutter/services.dart';
 import 'checkout_screen.dart';
 import 'wallet_screen.dart';
-import '../main.dart';
 
 
 class ProfileScreen extends StatefulWidget {
@@ -31,7 +28,6 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   List<dynamic> _myProducts = [];
   bool _loadingVideos = true;
   String _appLanguage = 'English';
-  bool _darkMode = true;
   bool _pushNotifications = true;
 
   List<dynamic> _wishlist = [];
@@ -202,12 +198,13 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                           'city': cityController.text,
                           'address': addressController.text,
                         });
-                        if (response.statusCode == 201 && context.mounted) {
+                        if ((response.statusCode == 200 || response.statusCode == 201) && context.mounted) {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Profile created. Awaiting Verification.')),
+                            const SnackBar(content: Text('Seller Profile created! Switched to Seller Mode.'), backgroundColor: Color(0xffFF5722)),
                           );
                           await auth.reloadUserProfile();
+                          await auth.switchMode(UserMode.seller);
                           _fetchMyVideos();
                         }
                       } catch (e) {
@@ -530,7 +527,109 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                       if (user['kyc_status'] == 'approved') _buildProfileBadge('KYC ✓', Colors.blue),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
+
+                  // 🔁 Role Switcher Card (Customer ↔ Seller)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: auth.isSellerMode
+                          ? const Color(0xffFF5722).withOpacity(0.12)
+                          : const Color(0xff252525),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: auth.isSellerMode
+                            ? const Color(0xffFF5722).withOpacity(0.4)
+                            : Colors.white12,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: auth.isSellerMode ? const Color(0xffFF5722) : Colors.white10,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            auth.isSellerMode ? Icons.storefront : Icons.shopping_bag_outlined,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                auth.isSellerMode ? 'SELLER MODE' : 'CUSTOMER MODE',
+                                style: TextStyle(
+                                  color: auth.isSellerMode ? const Color(0xffFF5722) : Colors.greenAccent,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                auth.isSellerMode
+                                    ? (user['businessProfile']?['name'] ?? user['business_name'] ?? 'Managing Shop & Pitches')
+                                    : 'Browsing products as a buyer',
+                                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.swap_horiz, size: 16),
+                          label: Text(
+                            auth.isSellerMode
+                                ? 'Switch to Buyer'
+                                : (auth.hasBusinessProfile ? 'Switch to Seller' : 'Become Seller'),
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: auth.isSellerMode ? Colors.white12 : const Color(0xffFF5722),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          onPressed: () async {
+                            if (auth.isSellerMode) {
+                              await auth.switchMode(UserMode.customer);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Switched to Customer Mode. Enjoy shopping!'),
+                                    backgroundColor: Colors.green,
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            } else {
+                              if (auth.hasBusinessProfile) {
+                                await auth.switchMode(UserMode.seller);
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Switched to Seller Mode. Welcome to your store!'),
+                                      backgroundColor: Color(0xffFF5722),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              } else {
+                                _showOnboardingSheet(auth);
+                              }
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -584,7 +683,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   ),
                   const Divider(color: Colors.white10, height: 32),
 
-                  if (auth.hasBusinessProfile) ...[
+                  if (auth.isSellerMode) ...[
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text('My Pitches Grid', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
@@ -643,15 +742,39 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                       decoration: BoxDecoration(
                         color: const Color(0xff1e1e1e),
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white10),
                       ),
                       child: Column(
                         children: [
-                          const Text('Sell your own products on Pitch and Sell!', style: TextStyle(color: Colors.white, fontSize: 14)),
-                          const SizedBox(height: 12),
-                          ElevatedButton(
+                          Text(
+                            auth.hasBusinessProfile
+                                ? 'You own a seller shop (${user['businessProfile']?['name'] ?? 'Store'}).'
+                                : 'Sell your own products on Pitch and Sell!',
+                            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            auth.hasBusinessProfile
+                                ? 'Switch to Seller Mode above or below to upload pitches and manage orders.'
+                                : 'Create your business profile to start uploading video pitches and selling to customers.',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.grey, fontSize: 12),
+                          ),
+                          const SizedBox(height: 14),
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.storefront, size: 16),
                             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722)),
-                            onPressed: () => _showOnboardingSheet(auth),
-                            child: const Text('Create Business Profile', style: TextStyle(color: Colors.white)),
+                            onPressed: () async {
+                              if (auth.hasBusinessProfile) {
+                                await auth.switchMode(UserMode.seller);
+                              } else {
+                                _showOnboardingSheet(auth);
+                              }
+                            },
+                            label: Text(
+                              auth.hasBusinessProfile ? 'Switch to Seller Mode' : 'Create Business Profile',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ],
                       ),
@@ -665,59 +788,101 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           // Tab 2: Dashboard View
           SingleChildScrollView(
             padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Business Analytics', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(child: _buildKpiCard('Revenue', '₨ ${_ledgerSummary['grossSales'] ?? 0}', Icons.attach_money, Colors.green)),
-                    const SizedBox(width: 12),
-                    Expanded(child: _buildKpiCard('Conversion', '${_ledgerSummary['conversion'] ?? 0}%', Icons.trending_up, Colors.blue)),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(child: _buildKpiCard('Total Orders', '${_ledgerSummary['totalOrders'] ?? 0}', Icons.shopping_bag, Colors.orange)),
-                    const SizedBox(width: 12),
-                    Expanded(child: _buildKpiCard('Pitches Views', '${_ledgerSummary['totalViews'] ?? 0}', Icons.visibility, Colors.purple)),
-                  ],
-                ),
-                const SizedBox(height: 24),
+            child: !auth.isSellerMode
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 40.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.storefront, color: Color(0xffFF5722), size: 64),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Seller Dashboard',
+                            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'You are currently in Customer Mode.\nSwitch to Seller Mode to view your store revenue, conversion funnel, and pitches.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey, fontSize: 13, height: 1.4),
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.swap_horiz, size: 18),
+                            label: Text(
+                              auth.hasBusinessProfile ? 'Switch to Seller Mode' : 'Register as a Seller',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xffFF5722),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            onPressed: () async {
+                              if (auth.hasBusinessProfile) {
+                                await auth.switchMode(UserMode.seller);
+                              } else {
+                                _showOnboardingSheet(auth);
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Business Analytics', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(child: _buildKpiCard('Revenue', '₨ ${_ledgerSummary['grossSales'] ?? 0}', Icons.attach_money, Colors.green)),
+                          const SizedBox(width: 12),
+                          Expanded(child: _buildKpiCard('Conversion', '${_ledgerSummary['conversion'] ?? 0}%', Icons.trending_up, Colors.blue)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(child: _buildKpiCard('Total Orders', '${_ledgerSummary['totalOrders'] ?? 0}', Icons.shopping_bag, Colors.orange)),
+                          const SizedBox(width: 12),
+                          Expanded(child: _buildKpiCard('Pitches Views', '${_ledgerSummary['totalViews'] ?? 0}', Icons.visibility, Colors.purple)),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
 
-                // Conversion Funnel Spec
-                const Text('Conversion Funnel', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
-                _buildFunnelRow('Pitches Views', _ledgerSummary['totalViews'] ?? 0, 1.0),
-                _buildFunnelRow('Video Clicks', ((_ledgerSummary['totalViews'] ?? 0) * 0.25).toInt(), 0.25),
-                _buildFunnelRow('Add to Cart', ((_ledgerSummary['totalViews'] ?? 0) * 0.08).toInt(), 0.08),
-                _buildFunnelRow('Completed Purchased', _ledgerSummary['totalOrders'] ?? 0, 0.04),
+                      // Conversion Funnel Spec
+                      const Text('Conversion Funnel', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 12),
+                      _buildFunnelRow('Pitches Views', _ledgerSummary['totalViews'] ?? 0, 1.0),
+                      _buildFunnelRow('Video Clicks', ((_ledgerSummary['totalViews'] ?? 0) * 0.25).toInt(), 0.25),
+                      _buildFunnelRow('Add to Cart', ((_ledgerSummary['totalViews'] ?? 0) * 0.08).toInt(), 0.08),
+                      _buildFunnelRow('Completed Purchased', _ledgerSummary['totalOrders'] ?? 0, 0.04),
 
-                const SizedBox(height: 24),
-                // Withdraw Action
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722)),
-                    onPressed: () {
-                      auth.toggleUserMode();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const DashboardScreen()),
-                      ).then((_) {
-                        auth.toggleUserMode();
-                        _fetchMyVideos();
-                      });
-                    },
-                    icon: const Icon(Icons.dashboard, color: Colors.white),
-                    label: const Text('Open Full Seller Dashboard', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 24),
+                      // Full Seller Dashboard
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722)),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const DashboardScreen()),
+                            ).then((_) {
+                              _fetchMyVideos();
+                            });
+                          },
+                          icon: const Icon(Icons.dashboard, color: Colors.white),
+                          label: const Text('Open Full Seller Dashboard', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
           ),
 
           // Tab 3: Wishlist View

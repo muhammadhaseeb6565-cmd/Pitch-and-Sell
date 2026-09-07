@@ -323,8 +323,35 @@ class AuthProvider with ChangeNotifier {
       'terms_accepted': profileData?['terms_accepted'] == true,
     };
     _isAuthenticated = true;
-    _currentMode = isBusiness ? UserMode.seller : UserMode.customer;
+    
+    // Restore preferred user mode if previously chosen
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedMode = prefs.getString('preferred_user_mode');
+      if (savedMode == 'customer') {
+        _currentMode = UserMode.customer;
+      } else if (savedMode == 'seller' && isBusiness) {
+        _currentMode = UserMode.seller;
+      } else {
+        _currentMode = isBusiness ? UserMode.seller : UserMode.customer;
+      }
+    } catch (_) {
+      _currentMode = isBusiness ? UserMode.seller : UserMode.customer;
+    }
+
     try { SocketService.connect(_user!['id']); } catch (_) {}
+  }
+
+  bool get isSellerMode => _currentMode == UserMode.seller;
+  bool get isCustomerMode => _currentMode == UserMode.customer;
+
+  Future<void> switchMode(UserMode mode) async {
+    _currentMode = mode;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('preferred_user_mode', mode.name);
+    } catch (_) {}
+    notifyListeners();
   }
 
   Future<void> _saveSessionLocally() async {
@@ -345,14 +372,14 @@ class AuthProvider with ChangeNotifier {
   Future<void> reloadUserProfile() async {
     final su = _supabase.auth.currentUser;
     if (su != null) {
-      _setUserFromSupabase(su);
+      await _setUserFromSupabase(su);
       await _saveSessionLocally();
       notifyListeners();
     }
   }
 
-  void toggleUserMode() {
-    _currentMode = _currentMode == UserMode.customer ? UserMode.seller : UserMode.customer;
-    notifyListeners();
+  Future<void> toggleUserMode() async {
+    final newMode = _currentMode == UserMode.customer ? UserMode.seller : UserMode.customer;
+    await switchMode(newMode);
   }
 }

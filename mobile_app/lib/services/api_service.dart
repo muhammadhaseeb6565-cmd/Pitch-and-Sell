@@ -225,7 +225,19 @@ class ApiService {
   }
 
   // Orders API
-  static Future<http.Response> createOrder(String productId, int quantity, String paymentMethod, {String? size, String? color}) async {
+  static Future<http.Response> createOrder(
+    String productId, 
+    int quantity, 
+    String paymentMethod, {
+    String? size, 
+    String? color,
+    String? buyerName,
+    String? buyerPhone,
+    String? buyerAltPhone,
+    String? deliveryAddress,
+    String? city,
+    String? deliveryInstructions,
+  }) async {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) return http.Response('Unauthorized', 401);
@@ -239,9 +251,16 @@ class ApiService {
         'quantity': quantity,
         'total_price': (product['price'] as num) * quantity,
         'payment_method': paymentMethod,
+        'payment_status': paymentMethod.toUpperCase().contains('COD') ? 'pending' : 'paid',
         'status': 'pending',
         'selected_size': size,
         'selected_color': color,
+        'buyer_name': buyerName,
+        'buyer_phone': buyerPhone,
+        'buyer_alt_phone': buyerAltPhone,
+        'delivery_address': deliveryAddress,
+        'city': city,
+        'delivery_instructions': deliveryInstructions,
       }).select();
       return http.Response(jsonEncode(res.first), 200);
     } catch (e) {
@@ -285,9 +304,16 @@ class ApiService {
         'shippedAt': o['shipped_at'],
         'quantity': o['quantity'],
         'paymentMethod': o['payment_method'],
+        'paymentStatus': o['payment_status'],
         'unitPrice': o['products']?['price'],
         'selectedSize': o['selected_size'],
         'selectedColor': o['selected_color'],
+        'buyerName': o['buyer_name'],
+        'buyerPhone': o['buyer_phone'],
+        'buyerAltPhone': o['buyer_alt_phone'],
+        'deliveryAddress': o['delivery_address'],
+        'city': o['city'],
+        'deliveryInstructions': o['delivery_instructions'],
         'product': {
           'name': o['products']?['name'] ?? 'Product',
           'video': {'url': o['products']?['video_url']},
@@ -476,7 +502,13 @@ class ApiService {
       
       String hook, problem, solution, offer, cta;
       
-      if (tone == 'Professional') {
+      if (language.toString().toLowerCase().contains('urdu')) {
+        hook = 'Rukiye! 🔥 Yeh video zaroor dekhein!';
+        problem = 'Kya aap behtareen quality ki cheez dhoond rahay hain?';
+        solution = '$productName ab dastiyab hai! $sellingPoint';
+        offer = 'Abhi order karein sirf limited stock mein!';
+        cta = 'Neechay diye gaye Buy button par click karein aur apna order book karein! 💰';
+      } else if (tone == 'Professional') {
         hook = 'Attention! Discover $productName — the product everyone is talking about.';
         problem = 'Finding quality products that deliver on their promises can be challenging.';
         solution = '$productName stands out because $sellingPoint';

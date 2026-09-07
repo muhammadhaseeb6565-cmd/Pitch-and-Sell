@@ -6,6 +6,7 @@ import '../services/api_service.dart';
 import 'feed_screen.dart';
 import 'messages_list_screen.dart';
 import 'orders_history_screen.dart';
+import 'manage_orders_screen.dart';
 import 'profile_screen.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -21,7 +22,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   bool _isSeller(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context, listen: false);
-    return auth.hasBusinessProfile;
+    return auth.isSellerMode;
   }
 
   void _onItemTapped(int index) {
@@ -70,9 +71,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final priceController = TextEditingController();
     final descController = TextEditingController();
     final stockController = TextEditingController(text: '10');
-    final videoUrlController = TextEditingController(
-      text: 'https://assets.mixkit.co/videos/preview/mixkit-hands-typing-on-a-mechanical-keyboard-41724-large.mp4',
-    );
     String category = 'Electronics';
     bool allowDownload = true;
     String? selectedFileName;
@@ -300,13 +298,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isSeller = _isSeller(context);
+    final auth = Provider.of<AuthProvider>(context);
+    final isSeller = auth.isSellerMode;
 
     // Pages for IndexedStack
     final pages = <Widget>[
       FeedScreen(isVisible: _selectedIndex == 0),   // 0: Home
       const MessagesListScreen(),                     // 1: Chat
-      const OrdersHistoryScreen(),                    // 2: Orders
+      isSeller ? const ManageOrdersScreen() : const OrdersHistoryScreen(), // 2: Orders (Shop orders vs My purchases)
       const ProfileScreen(),                          // 3: Profile
     ];
 

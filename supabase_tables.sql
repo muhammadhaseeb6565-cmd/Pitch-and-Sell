@@ -83,13 +83,19 @@ CREATE TABLE IF NOT EXISTS public.orders (
     total_price     NUMERIC NOT NULL CHECK (total_price >= 0),
     platform_fee    NUMERIC NOT NULL DEFAULT 0 CHECK (platform_fee >= 0),
     payment_method  TEXT NOT NULL DEFAULT 'COD',
+    payment_status  TEXT NOT NULL DEFAULT 'pending',
     status          TEXT NOT NULL DEFAULT 'pending'
                         CHECK (status IN (
                             'pending', 'processing', 'shipped',
                             'delivered', 'completed', 'cancelled',
                             'refunded', 'paid', 'cart_abandoned'
                         )),
+    buyer_name      TEXT,
+    buyer_phone     TEXT,
+    buyer_alt_phone TEXT,
     delivery_address TEXT,
+    city            TEXT,
+    delivery_instructions TEXT,
     tracking_number TEXT,
     courier_name    TEXT,
     shipped_at      TIMESTAMPTZ,
@@ -98,6 +104,15 @@ CREATE TABLE IF NOT EXISTS public.orders (
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Safe migrations for existing databases
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS buyer_name TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS buyer_phone TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS buyer_alt_phone TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS delivery_address TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS city TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS delivery_instructions TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT 'pending';
 
 DROP TRIGGER IF EXISTS trg_orders_updated_at ON public.orders;
 CREATE TRIGGER trg_orders_updated_at
