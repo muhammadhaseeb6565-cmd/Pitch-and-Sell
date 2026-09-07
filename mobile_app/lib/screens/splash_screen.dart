@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'onboarding_screen.dart';
 import 'welcome_screen.dart';
 import 'main_navigation_screen.dart';
+import 'category_preferences_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 
@@ -39,6 +40,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const WelcomeScreen(forceTerms: true)),
+          );
+        } else if (!authProvider.hasSetPreferredCategories) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const CategoryPreferencesScreen(isFirstTime: true)),
           );
         } else {
           Navigator.pushReplacement(

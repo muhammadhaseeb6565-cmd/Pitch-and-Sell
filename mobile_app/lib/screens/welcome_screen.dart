@@ -2,11 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../providers/auth_provider.dart';
 import '../constants/legal_content.dart';
-import 'legal_document_screen.dart';
 import 'main_navigation_screen.dart';
+import 'category_preferences_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   final String initialMode;
@@ -118,7 +117,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
 
   void _goToMain() {
     if (!mounted) return;
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigationScreen()));
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    if (!auth.hasSetPreferredCategories) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const CategoryPreferencesScreen(isFirstTime: true)),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+      );
+    }
   }
 
   Future<void> _handleSignIn(AuthProvider auth) async {

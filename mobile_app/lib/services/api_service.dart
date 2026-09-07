@@ -686,6 +686,38 @@ class ApiService {
     }
   }
 
+  // Update Preferred Categories
+  static Future<http.Response> updatePreferredCategories(List<String> categories) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return http.Response('Unauthorized', 401);
+
+      await _supabase.from('profiles').update({
+        'preferred_categories': categories,
+      }).eq('id', user.id);
+
+      return http.Response(jsonEncode({'preferred_categories': categories}), 200);
+    } catch (e) {
+      return http.Response(jsonEncode({'error': e.toString()}), 500);
+    }
+  }
+
+  // Get Preferred Categories
+  static Future<List<String>> getPreferredCategories() async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return [];
+
+      final data = await _supabase.from('profiles').select('preferred_categories').eq('id', user.id).maybeSingle();
+      if (data != null && data['preferred_categories'] != null) {
+        return List<String>.from(data['preferred_categories']);
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
   // Dummy methods to satisfy imports if needed
   static Future<void> setToken(String token) async {}
   static Future<void> clearToken() async {}

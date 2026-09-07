@@ -14,6 +14,7 @@ import 'dashboard_screen.dart';
 import 'admin_portal_screen.dart';
 import 'checkout_screen.dart';
 import 'wallet_screen.dart';
+import 'category_preferences_screen.dart';
 
 
 class ProfileScreen extends StatefulWidget {
@@ -997,6 +998,27 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   setState(() {
                     _appLanguage = _appLanguage == 'English' ? 'اردو (Urdu)' : 'English';
                   });
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.tune_rounded, color: Color(0xffFF5722), size: 22),
+                title: const Text('Feed Category Preferences', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                subtitle: Text(
+                  auth.preferredCategories.isEmpty
+                      ? 'Select categories to personalize your feed'
+                      : '${auth.preferredCategories.length} categories active: ${auth.preferredCategories.join(", ")}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.grey, fontSize: 11),
+                ),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const CategoryPreferencesScreen(isFirstTime: false),
+                    ),
+                  );
                 },
               ),
               const Divider(color: Colors.white10, height: 32),

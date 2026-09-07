@@ -13,6 +13,7 @@ class AuthProvider with ChangeNotifier {
   UserMode _currentMode = UserMode.customer;
   bool _isLoading = false;
   bool _isDarkMode = true;
+  List<String> _preferredCategories = [];
 
   SupabaseClient get _supabase => Supabase.instance.client;
 
@@ -21,6 +22,8 @@ class AuthProvider with ChangeNotifier {
   UserMode get currentMode => _currentMode;
   bool get isLoading => _isLoading;
   bool get isDarkMode => _isDarkMode;
+  List<String> get preferredCategories => _preferredCategories;
+  bool get hasSetPreferredCategories => _preferredCategories.isNotEmpty;
 
     Future<void> resetPassword(String email) async {
     await _supabase.auth.resetPasswordForEmail(email);
@@ -321,8 +324,28 @@ class AuthProvider with ChangeNotifier {
       'is_business': isBusiness,
       'businessProfile': bProfile,
       'terms_accepted': profileData?['terms_accepted'] == true,
+      'preferred_categories': profileData?['preferred_categories'] != null
+          ? List<String>.from(profileData!['preferred_categories'])
+          : <String>[],
     };
     _isAuthenticated = true;
+
+    // Load preferred categories into provider state
+    if (profileData?['preferred_categories'] != null && (profileData!['preferred_categories'] as List).isNotEmpty) {
+      _preferredCategories = List<String>.from(profileData['preferred_categories']);
+    } else {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final localCats = prefs.getStringList('preferred_categories_${supabaseUser.id}');
+        if (localCats != null && localCats.isNotEmpty) {
+          _preferredCategories = localCats;
+        } else {
+          _preferredCategories = [];
+        }
+      } catch (_) {
+        _preferredCategories = [];
+      }
+    }
     
     // Restore preferred user mode if previously chosen
     try {
@@ -381,5 +404,28 @@ class AuthProvider with ChangeNotifier {
   Future<void> toggleUserMode() async {
     final newMode = _currentMode == UserMode.customer ? UserMode.seller : UserMode.customer;
     await switchMode(newMode);
+  }
+
+  // Save selected categories to Supabase and locally
+  Future<void> savePreferredCategories(List<String> categories) async {
+    _preferredCategories = List<String>.from(categories);
+    if (_user != null) {
+      _user!['preferred_categories'] = _preferredCategories;
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setStringList('preferred_categories_${_user!['id']}', _preferredCategories);
+      } catch (_) {}
+
+      try {
+        await _supabase.from('profiles').update({
+          'preferred_categories': _preferredCategories,
+        }).eq('id', _user!['id']);
+      } catch (e) {
+        debugPrint('Error saving preferred categories to Supabase: $e');
+      }
+
+      await _saveSessionLocally();
+    }
+    notifyListeners();
   }
 }

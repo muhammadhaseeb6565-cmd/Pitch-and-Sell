@@ -25,9 +25,13 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     business_name   TEXT,
     business_description TEXT,
     address         TEXT,
+    preferred_categories TEXT[] DEFAULT '{}',
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Backward-compatibility migration for existing installations
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS preferred_categories TEXT[] DEFAULT '{}';
 
 -- Auto-update updated_at on every row change
 CREATE OR REPLACE FUNCTION public.set_updated_at()

@@ -1,32 +1,19 @@
-import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_new/return_code.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:convert';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:video_player/video_player.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
-import '../main.dart';
 import 'chat_screen.dart';
 import 'dashboard_screen.dart';
-import 'checkout_screen.dart';
 import 'live_stream_screen.dart';
 import 'explore_screen.dart';
 import 'cart_screen.dart';
 import 'notifications_screen.dart';
-import '../providers/cart_provider.dart';
-import '../services/socket_service.dart';
 import '../features/feed/widgets/video_player_item.dart';
-import 'seller_profile_screen.dart';
 import 'my_orders_screen.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'seller_profile_screen.dart';
+import 'category_preferences_screen.dart';
 
 class FeedScreen extends StatefulWidget {
   final bool isVisible;
@@ -341,7 +328,20 @@ class _FeedScreenState extends State<FeedScreen> {
                         ),
                       ),
                       // Categories
-                      ...['All', 'Fashion', 'Tech', 'Food', 'Handmade'].map((cat) {
+                      ...([
+                        'All',
+                        ...authProvider.preferredCategories,
+                        'Clothing',
+                        'Foods',
+                        'Medicine',
+                        'Electronics',
+                        'Beauty',
+                        'Footwear',
+                        'Jewelry',
+                        'Home',
+                        'Sports',
+                        'Books',
+                      ].toSet().toList()).map((cat) {
                         final isSelected = _selectedCategory == cat;
                         return GestureDetector(
                           onTap: () {
@@ -369,6 +369,34 @@ class _FeedScreenState extends State<FeedScreen> {
                           ),
                         );
                       }),
+                      // Preferences shortcut button
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const CategoryPreferencesScreen(isFirstTime: false)),
+                          ).then((_) => _fetchFeed());
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white10,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: Colors.white24),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.tune, size: 12, color: Colors.white70),
+                              SizedBox(width: 4),
+                              Text(
+                                'Preferences',
+                                style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
