@@ -196,8 +196,8 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text('Products', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold)),
