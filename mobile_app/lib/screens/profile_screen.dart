@@ -151,7 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xff1e1e1e),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).brightness == Brightness.dark ? const Color(0xff1e1e1e) : Colors.white : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -168,9 +168,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Register Business Profile',
-                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
                 
@@ -214,7 +214,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                         debugPrint(e.toString());
                       }
                     },
-                    child: const Text('Submit Application', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    child: Text('Submit Application', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -244,7 +244,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xff1e1e1e),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).brightness == Brightness.dark ? const Color(0xff1e1e1e) : Colors.white : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -265,9 +265,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Setup & Edit Profile',
-                    style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   TabBar(
@@ -290,7 +290,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                           children: [
                             _buildField(nameController, 'Full Name'),
                             const SizedBox(height: 12),
-                            const Text('Profile Picture', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                            Text('Profile Picture', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 13, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 8),
                             GestureDetector(
                               onTap: () async {
@@ -315,7 +315,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                                     Expanded(
                                       child: Text(
                                         localImagePath ?? 'Tap to select an image from gallery',
-                                        style: TextStyle(color: localImagePath != null ? Colors.white : Colors.grey, fontSize: 13),
+                                        style: TextStyle(color: localImagePath != null ? Theme.of(context).colorScheme.onSurface : Colors.grey, fontSize: 13),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
@@ -402,7 +402,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                           debugPrint(e.toString());
                         }
                       },
-                      child: const Text('Save Setup', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      child: Text('Save Setup', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -422,11 +422,11 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       padding: const EdgeInsets.only(bottom: 12.0),
       child: TextField(
         controller: controller,
-        style: const TextStyle(color: Colors.white),
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         decoration: InputDecoration(
           labelText: label,
           labelStyle: const TextStyle(color: Colors.grey),
-          enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.black12)),
         ),
       ),
     );
@@ -437,7 +437,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       children: [
         Text(
           count,
-          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
         Text(
@@ -457,11 +457,14 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final textColor = theme.colorScheme.onSurface;
+    final cardColor = isDark ? Theme.of(context).brightness == Brightness.dark ? const Color(0xff1e1e1e) : Colors.white : Colors.white;
+    final dividerColor = isDark ? Theme.of(context).brightness == Brightness.dark ? Colors.white10 : Colors.black12 : Colors.black12;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xff1e1e1e) : Colors.white,
+        backgroundColor: isDark ? Theme.of(context).brightness == Brightness.dark ? const Color(0xff1e1e1e) : Colors.white : Colors.white,
         elevation: 0,
         title: Text('My Profile', style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
         iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
@@ -514,7 +517,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                         : const Icon(Icons.person, size: 46, color: Color(0xffFF5722)),
                   ),
                   const SizedBox(height: 16),
-                  Text(user['name'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text(user['name'] ?? '', style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   Text(user['email'] ?? '', style: const TextStyle(color: Colors.grey, fontSize: 13)),
                   const SizedBox(height: 16),
@@ -555,7 +558,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: const Color(0xffFF5722).withOpacity(0.3)),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Row(
@@ -564,7 +567,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                               SizedBox(width: 12),
                               Text(
                                 'My PitchnSell Wallet',
-                                style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 13, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
@@ -582,18 +585,18 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                       ),
                     ),
                   ),
-                  const Divider(color: Colors.white10, height: 32),
+                  Divider(color: dividerColor, height: 32),
 
                   if (auth.hasBusinessProfile) ...[
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
-                      child: Text('My Pitches Grid', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                      child: Text('My Pitches Grid', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(height: 12),
                     _loadingVideos
                         ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
                         : _myProducts.isEmpty
-                            ? const Text('No pitches uploaded.', style: TextStyle(color: Colors.grey))
+                            ? Text('No pitches uploaded.', style: TextStyle(color: Colors.grey))
                             : GridView.builder(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
@@ -608,7 +611,8 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                                   final product = _myProducts[index];
                                   return Container(
                                     decoration: BoxDecoration(
-                                      color: const Color(0xff1e1e1e),
+                                      color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).brightness == Brightness.dark ? const Color(0xff1e1e1e) : Colors.white : Colors.white,
+        boxShadow: Theme.of(context).brightness == Brightness.dark ? null : [BoxShadow(color: Colors.black12, blurRadius: 4)],
                                       borderRadius: BorderRadius.circular(8),
                                       image: DecorationImage(
                                         image: product['thumbnailUrl'] != null 
@@ -629,7 +633,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                                             product['name'],
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 10, fontWeight: FontWeight.bold),
                                           ),
                                         ),
                                       ],
@@ -641,17 +645,18 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xff1e1e1e),
+                        color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).brightness == Brightness.dark ? const Color(0xff1e1e1e) : Colors.white : Colors.white,
+        boxShadow: Theme.of(context).brightness == Brightness.dark ? null : [BoxShadow(color: Colors.black12, blurRadius: 4)],
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
                         children: [
-                          const Text('Sell your own products on Pitch and Sell!', style: TextStyle(color: Colors.white, fontSize: 14)),
+                          Text('Sell your own products on Pitch and Sell!', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14)),
                           const SizedBox(height: 12),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722)),
                             onPressed: () => _showOnboardingSheet(auth),
-                            child: const Text('Create Business Profile', style: TextStyle(color: Colors.white)),
+                            child: Text('Create Business Profile', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                           ),
                         ],
                       ),
@@ -668,7 +673,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Business Analytics', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text('Business Analytics', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -688,7 +693,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 const SizedBox(height: 24),
 
                 // Conversion Funnel Spec
-                const Text('Conversion Funnel', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                Text('Conversion Funnel', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
                 _buildFunnelRow('Pitches Views', _ledgerSummary['totalViews'] ?? 0, 1.0),
                 _buildFunnelRow('Video Clicks', ((_ledgerSummary['totalViews'] ?? 0) * 0.25).toInt(), 0.25),
@@ -713,7 +718,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                       });
                     },
                     icon: const Icon(Icons.dashboard, color: Colors.white),
-                    label: const Text('Open Full Seller Dashboard', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    label: Text('Open Full Seller Dashboard', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
@@ -739,7 +744,8 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                     return Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xff1e1e1e),
+                        color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).brightness == Brightness.dark ? const Color(0xff1e1e1e) : Colors.white : Colors.white,
+        boxShadow: Theme.of(context).brightness == Brightness.dark ? null : [BoxShadow(color: Colors.black12, blurRadius: 4)],
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
@@ -782,7 +788,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                             ),
                           ),
                           const SizedBox(height: 8),
-                          Text(item['name'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                          Text(item['name'], style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 13)),
                           const SizedBox(height: 4),
                           Text('₨ ${item['price']}', style: const TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold)),
                           const SizedBox(height: 8),
@@ -797,7 +803,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                                   MaterialPageRoute(builder: (_) => CheckoutScreen(product: item)),
                                 );
                               },
-                              child: const Text('Quick Buy', style: TextStyle(color: Colors.white, fontSize: 11)),
+                              child: Text('Quick Buy', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 11)),
                             ),
                           ),
                         ],
@@ -810,9 +816,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              const Text('Preferences', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              Text('Preferences', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.bold)),
               SwitchListTile(
-                title: const Text('Dark Theme Mode', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                title: Text('Dark Theme Mode', style: TextStyle(color: Colors.grey, fontSize: 13)),
                 value: auth.isDarkMode,
                 activeColor: const Color(0xffFF5722),
                 onChanged: (val) {
@@ -820,13 +826,13 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 },
               ),
               SwitchListTile(
-                title: const Text('Push Notifications', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                title: Text('Push Notifications', style: TextStyle(color: Colors.grey, fontSize: 13)),
                 value: _pushNotifications,
                 activeColor: const Color(0xffFF5722),
                 onChanged: (val) => setState(() => _pushNotifications = val),
               ),
               ListTile(
-                title: const Text('Language Selector', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                title: Text('Language Selector', style: TextStyle(color: Colors.grey, fontSize: 13)),
                 trailing: Text(_appLanguage, style: const TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold)),
                 onTap: () {
                   setState(() {
@@ -834,10 +840,10 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   });
                 },
               ),
-              const Divider(color: Colors.white10, height: 32),
-              const Text('Support & Info', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              Divider(color: dividerColor, height: 32),
+              Text('Support & Info', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.bold)),
               ListTile(
-                title: const Text('Help Centre & FAQs', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                title: Text('Help Centre & FAQs', style: TextStyle(color: Colors.grey, fontSize: 13)),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey),
                 onTap: () {
                   Navigator.push(
@@ -852,7 +858,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 },
               ),
               ListTile(
-                title: const Text('Terms of Service', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                title: Text('Terms of Service', style: TextStyle(color: Colors.grey, fontSize: 13)),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey),
                 onTap: () {
                   Navigator.push(
@@ -867,7 +873,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 },
               ),
               ListTile(
-                title: const Text('Privacy Policy', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                title: Text('Privacy Policy', style: TextStyle(color: Colors.grey, fontSize: 13)),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey),
                 onTap: () {
                   Navigator.push(
@@ -882,7 +888,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 },
               ),
               ListTile(
-                title: const Text('Admin Portal (Restricted)', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                title: Text('Admin Portal (Restricted)', style: TextStyle(color: Colors.grey, fontSize: 13)),
                 trailing: const Icon(Icons.security, size: 16, color: Color(0xffFF5722)),
                 onTap: () {
                   Navigator.push(
@@ -894,7 +900,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               const SizedBox(height: 24),
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.redAccent),
-                title: const Text('Log Out', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                title: Text('Log Out', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
                 onTap: () async {
                   await auth.logout();
                   if (mounted) {
@@ -931,7 +937,8 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xff1e1e1e),
+        color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).brightness == Brightness.dark ? const Color(0xff1e1e1e) : Colors.white : Colors.white,
+        boxShadow: Theme.of(context).brightness == Brightness.dark ? null : [BoxShadow(color: Colors.black12, blurRadius: 4)],
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -942,7 +949,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             children: [
               Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
               const SizedBox(height: 8),
-              Text(val, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(val, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold)),
             ],
           ),
           Icon(icon, color: color, size: 24),
@@ -960,13 +967,13 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-              Text('$value', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+              Text('$value', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 12, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 6),
           LinearProgressIndicator(
             value: percentage,
-            backgroundColor: Colors.white10,
+            backgroundColor: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).brightness == Brightness.dark ? Colors.white10 : Colors.black12 : Colors.black12,
             valueColor: const AlwaysStoppedAnimation<Color>(Color(0xffFF5722)),
             minHeight: 6,
           ),
