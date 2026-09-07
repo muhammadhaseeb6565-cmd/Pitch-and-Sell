@@ -114,7 +114,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
         children: [
           const Icon(Icons.verified, color: Colors.blue, size: 18),
           const SizedBox(width: 4),
-          const Text('Top Rated Seller', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 13)),
+          Text('Top Rated Seller', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 13)),
         ],
       );
     } else if (_completedOrders >= 400) {
@@ -128,7 +128,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     } else if (_completedOrders >= 5) {
       return _badgeUI('Bronze Seller 🥉', Colors.brown[300]!);
     }
-    return const Text('New Seller 🌱', style: TextStyle(color: Colors.grey, fontSize: 13));
+    return Text('New Seller 🌱', style: TextStyle(color: Colors.grey, fontSize: 13));
   }
 
   Widget _badgeUI(String text, Color color) {
@@ -148,9 +148,9 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     return Scaffold(
       backgroundColor: const Color(0xff121212),
       appBar: AppBar(
-        backgroundColor: const Color(0xff1e1e1e),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xff1e1e1e) : Colors.white,
         elevation: 0,
-        title: Text(widget.businessName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text(widget.businessName, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
       ),
       body: Column(
         children: [
@@ -174,7 +174,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                 const SizedBox(height: 16),
                 Text(
                   widget.businessName,
-                  style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 _buildTierBadge(),
@@ -189,7 +189,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                     ),
                     onPressed: _startChat,
                     icon: const Icon(Icons.chat, color: Colors.white),
-                    label: const Text('Chat with Seller', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                    label: Text('Chat with Seller', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
@@ -200,7 +200,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             padding: EdgeInsets.symmetric(horizontal: 16.0),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text('Products', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              child: Text('Products', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold)),
             ),
           ),
           const SizedBox(height: 12),
@@ -227,7 +227,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                             },
                             child: Container(
                             decoration: BoxDecoration(
-                              color: const Color(0xff1e1e1e),
+                              color: Theme.of(context).brightness == Brightness.dark ? const Color(0xff1e1e1e) : Colors.white,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Column(
@@ -257,7 +257,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                                         product['name'],
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
