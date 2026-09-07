@@ -476,6 +476,12 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
                                     icon: const Icon(Icons.copy, color: Colors.grey, size: 16),
                                     tooltip: 'Copy Tracking',
                                     onPressed: () => _copyToClipboard(order['trackingNumber'].toString(), 'Tracking ID'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
                     );
                   },
                 ),
