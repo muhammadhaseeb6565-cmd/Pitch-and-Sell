@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import 'chat_screen.dart';
-import 'dashboard_screen.dart';
 import 'live_stream_screen.dart';
 import 'explore_screen.dart';
 import 'cart_screen.dart';
@@ -262,26 +261,81 @@ class _FeedScreenState extends State<FeedScreen> {
                         const SizedBox(width: 10),
                         // Mode switch button
                         GestureDetector(
-                          onTap: () {
-                            if (authProvider.currentMode == UserMode.customer) {
-                              authProvider.toggleUserMode();
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => const DashboardScreen()),
-                              ).then((_) => authProvider.toggleUserMode());
+                          onTap: () async {
+                            final isCurrentlySeller = authProvider.isSellerMode;
+                            if (isCurrentlySeller) {
+                              await authProvider.switchMode(UserMode.customer);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Row(
+                                      children: [
+                                        Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 18),
+                                        SizedBox(width: 8),
+                                        Text('Switched to Customer Mode'),
+                                      ],
+                                    ),
+                                    backgroundColor: Colors.green,
+                                    duration: Duration(seconds: 2),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
+                            } else {
+                              if (authProvider.hasBusinessProfile) {
+                                await authProvider.switchMode(UserMode.seller);
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Row(
+                                        children: [
+                                          Icon(Icons.storefront, color: Colors.white, size: 18),
+                                          SizedBox(width: 8),
+                                          Text('Switched to Seller Mode. Welcome back!'),
+                                        ],
+                                      ),
+                                      backgroundColor: Color(0xffFF5722),
+                                      duration: Duration(seconds: 2),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
+                              } else {
+                                // Navigate to profile tab to register seller business
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Please register a Business Profile in the Profile tab to start selling.'),
+                                    backgroundColor: Color(0xffFF5722),
+                                    duration: Duration(seconds: 3),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
                             }
                           },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
-                              color: const Color(0xffFF5722),
-                              borderRadius: BorderRadius.circular(10),
+                              color: authProvider.isSellerMode ? const Color(0xffFF5722) : Colors.black54,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: authProvider.isSellerMode ? const Color(0xffFF5722) : Colors.white24,
+                                width: 1,
+                              ),
                             ),
-                            child: const Row(
+                            child: Row(
                               children: [
-                                Icon(Icons.swap_horiz, size: 12, color: Colors.white),
-                                SizedBox(width: 2),
-                                Text('Sell', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                Icon(
+                                  authProvider.isSellerMode ? Icons.storefront : Icons.swap_horiz,
+                                  size: 13, 
+                                  color: Colors.white,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  authProvider.isSellerMode ? 'Seller Mode' : 'Switch to Seller',
+                                  style: const TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.bold),
+                                ),
                               ],
                             ),
                           ),
