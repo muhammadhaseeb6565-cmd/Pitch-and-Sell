@@ -47,7 +47,8 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: const Color(0xff1e1e1e),
-              title: const Text('Mark as Shipped', style: TextStyle(color: Colors.white)),
+              title: const Text('Mark as Shipped',
+                  style: TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -68,9 +69,10 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
                     controller: trackingController,
                     style: const TextStyle(color: Colors.white),
                     decoration: const InputDecoration(
-                      labelText: 'Tracking Number',
+                      labelText: 'Estimated Time of Arrival',
                       labelStyle: TextStyle(color: Colors.grey),
-                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                      enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white24)),
                     ),
                   ),
                 ],
@@ -105,30 +107,44 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = Theme.of(context).colorScheme.onSurface;
+    final cardColor = Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xff1e1e1e)
+        : Colors.white;
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
+
     return Scaffold(
-      backgroundColor: const Color(0xff121212),
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xff1e1e1e),
-        title: const Text('Manage Orders', style: TextStyle(color: Colors.white)),
+        backgroundColor: cardColor,
+        title: Text('Manage Orders',
+            style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
+        iconTheme: IconThemeData(color: textColor),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
           : _orders.isEmpty
-              ? const Center(child: Text('No orders found.', style: TextStyle(color: Colors.grey)))
+              ? const Center(
+                  child: Text('No orders found.', style: TextStyle(color: Colors.grey)))
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: _orders.length,
                   itemBuilder: (context, index) {
                     final order = _orders[index];
-                    final isPending = order['status'] == 'pending' || order['status'] == 'processing';
+                    final isPending =
+                        order['status'] == 'pending' || order['status'] == 'processing';
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 16),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xff1e1e1e),
+                        color: cardColor,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white10),
+                        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.black.withOpacity(0.05), blurRadius: 6),
+                        ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,44 +152,81 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Order #${order['id'].toString().substring(0, 8)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              Text(
+                                'Order #${order['id'].toString().substring(0, 8)}',
+                                style: const TextStyle(
+                                    color: Color(0xffFF5722),
+                                    fontWeight: FontWeight.bold),
+                              ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: isPending ? Colors.orange.withOpacity(0.2) : Colors.green.withOpacity(0.2),
+                                  color: isPending
+                                      ? Colors.orange.withOpacity(0.15)
+                                      : Colors.green.withOpacity(0.15),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   order['status'].toString().toUpperCase(),
-                                  style: TextStyle(color: isPending ? Colors.orange : Colors.green, fontSize: 10, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    color: isPending ? Colors.orange : Colors.green,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 8),
-                          Text('Product: ${order['product']['name']}', style: const TextStyle(color: Colors.grey)),
-                          Text('Amount: PKR ${order['totalAmount']}', style: const TextStyle(color: Colors.grey)),
+                          Text(
+                            'Product: ${order['product']['name']}',
+                            style: TextStyle(color: textColor, fontSize: 14),
+                          ),
+                          Text(
+                            'Amount: PKR ${order['totalAmount']}',
+                            style: const TextStyle(color: Colors.grey, fontSize: 13),
+                          ),
                           const SizedBox(height: 12),
                           if (isPending)
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722)),
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xffFF5722)),
                                 onPressed: () => _showShippingDialog(order['id']),
-                                child: const Text('Mark as Shipped & Add Tracking', style: TextStyle(color: Colors.white)),
+                                child: const Text('Mark as Shipped & Add ETA',
+                                    style: TextStyle(color: Colors.white)),
                               ),
                             )
                           else if (order['trackingNumber'] != null)
                             Container(
                               padding: const EdgeInsets.all(12),
-                              color: Colors.black26,
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                              ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('SHIPPING DETAILS', style: TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  const Text('SHIPPING DETAILS',
+                                      style: TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold)),
                                   const SizedBox(height: 4),
-                                  Text('Courier: ${order['courierName']}', style: const TextStyle(color: Colors.white, fontSize: 13)),
-                                  Text('Tracking ID: ${order['trackingNumber']}', style: const TextStyle(color: Colors.white, fontSize: 13)),
+                                  Text(
+                                    'Courier: ${order['courierName']}',
+                                    style: TextStyle(color: textColor, fontSize: 13),
+                                  ),
+                                  Text(
+                                    'Estimated Time of Arrival: ${order['trackingNumber']}',
+                                    style: const TextStyle(
+                                        color: Color(0xffFF5722),
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold),
+                                  ),
                                 ],
                               ),
                             ),

@@ -39,7 +39,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
   void _showReviewDialog(String productId) {
     double rating = 5;
     final commentController = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (context) {
@@ -47,7 +47,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: const Color(0xff1e1e1e),
-              title: const Text('Leave a Review', style: TextStyle(color: Colors.white)),
+              title: const Text('Leave a Review', style: TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -68,7 +68,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                   const SizedBox(height: 12),
                   TextField(
                     controller: commentController,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Color(0xff2d2d2d)),
                     decoration: const InputDecoration(
                       hintText: 'Share your experience...',
                       hintStyle: TextStyle(color: Colors.grey),
@@ -87,9 +87,11 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                   onPressed: () async {
                     Navigator.pop(context);
                     await ApiService.addReview(productId, rating, commentController.text.trim());
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Review submitted!'), backgroundColor: Colors.green),
-                    );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Review submitted!'), backgroundColor: Colors.green),
+                      );
+                    }
                   },
                   child: const Text('Submit', style: TextStyle(color: Colors.white)),
                 ),
@@ -103,11 +105,19 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = Theme.of(context).colorScheme.onSurface;
+    final cardColor = Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xff1e1e1e)
+        : Colors.white;
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
+
     return Scaffold(
-      backgroundColor: const Color(0xff121212),
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xff1e1e1e),
-        title: const Text('My Orders & Tracking', style: TextStyle(color: Colors.white)),
+        backgroundColor: cardColor,
+        title: Text('My Orders & Tracking',
+            style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
+        iconTheme: IconThemeData(color: textColor),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
@@ -124,9 +134,12 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                       margin: const EdgeInsets.only(bottom: 16),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xff1e1e1e),
+                        color: cardColor,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white10),
+                        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 6),
+                        ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,32 +147,45 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Order #${order['id'].toString().substring(0, 8)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              Text(
+                                'Order #${order['id'].toString().substring(0, 8)}',
+                                style: const TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold),
+                              ),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: isPending ? Colors.orange.withOpacity(0.2) : Colors.green.withOpacity(0.2),
+                                  color: isPending ? Colors.orange.withOpacity(0.15) : Colors.green.withOpacity(0.15),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   order['status'].toString().toUpperCase(),
-                                  style: TextStyle(color: isPending ? Colors.orange : Colors.green, fontSize: 10, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    color: isPending ? Colors.orange : Colors.green,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 8),
-                          Text('Product: ${order['product']['name']}', style: const TextStyle(color: Colors.white, fontSize: 16)),
-                          Text('Total Paid: PKR ${order['totalAmount']}', style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                          Text(
+                            'Product: ${order['product']['name']}',
+                            style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.w500),
+                          ),
+                          Text(
+                            'Total Paid: PKR ${order['totalAmount']}',
+                            style: const TextStyle(color: Colors.grey, fontSize: 14),
+                          ),
                           const SizedBox(height: 12),
-                          
-                          // Tracking Details Box
+
+                          // Shipping / ETA Details Box
                           if (order['trackingNumber'] != null)
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.blue.withOpacity(0.1),
+                                color: Colors.blue.withOpacity(0.08),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(color: Colors.blue.withOpacity(0.3)),
                               ),
@@ -170,24 +196,39 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                                     children: [
                                       Icon(Icons.local_shipping, color: Colors.blue, size: 16),
                                       SizedBox(width: 6),
-                                      Text('SHIPPING DETAILS', style: TextStyle(color: Colors.blue, fontSize: 12, fontWeight: FontWeight.bold)),
+                                      Text('SHIPPING DETAILS',
+                                          style: TextStyle(color: Colors.blue, fontSize: 12, fontWeight: FontWeight.bold)),
                                     ],
                                   ),
                                   const SizedBox(height: 8),
-                                  Text('Courier: ${order['courierName']}', style: const TextStyle(color: Colors.white, fontSize: 14)),
-                                  Text('Tracking ID: ${order['trackingNumber']}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                                  Text(
+                                    'Courier: ${order['courierName']}',
+                                    style: TextStyle(color: textColor, fontSize: 14),
+                                  ),
+                                  Text(
+                                    'Estimated Time of Arrival: ${order['trackingNumber']}',
+                                    style: const TextStyle(color: Color(0xffFF5722), fontSize: 14, fontWeight: FontWeight.bold),
+                                  ),
                                 ],
                               ),
                             )
                           else
                             Container(
                               padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(8)),
-                              child: const Row(
+                              decoration: BoxDecoration(
+                                color: Colors.grey.withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
                                 children: [
-                                  Icon(Icons.access_time, color: Colors.grey, size: 16),
-                                  SizedBox(width: 8),
-                                  Expanded(child: Text('Seller is preparing your order. Tracking details will appear here soon.', style: TextStyle(color: Colors.grey, fontSize: 12))),
+                                  const Icon(Icons.access_time, color: Colors.grey, size: 16),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Seller is preparing your order. Estimated arrival time will appear here soon.',
+                                      style: TextStyle(color: textColor.withOpacity(0.6), fontSize: 12),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
