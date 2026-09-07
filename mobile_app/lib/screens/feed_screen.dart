@@ -327,48 +327,43 @@ class _FeedScreenState extends State<FeedScreen> {
                           ),
                         ),
                       ),
-                      // Categories
-                      ...([
-                        'All',
-                        ...authProvider.preferredCategories,
-                        'Clothing',
-                        'Foods',
-                        'Medicine',
-                        'Electronics',
-                        'Beauty',
-                        'Footwear',
-                        'Jewelry',
-                        'Home',
-                        'Sports',
-                        'Books',
-                      ].toSet().toList()).map((cat) {
-                        final isSelected = _selectedCategory == cat;
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() => _selectedCategory = cat);
-                            _fetchFeed();
-                          },
-                          child: Container(
-                            margin: const EdgeInsets.only(right: 8),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: isSelected ? const Color(0xffFF5722) : Colors.black45,
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(color: isSelected ? const Color(0xffFF5722) : Colors.white12),
-                            ),
-                            child: Center(
-                              child: Text(
-                                cat,
-                                style: TextStyle(
-                                  color: isSelected ? Colors.white : Colors.white70, 
-                                  fontSize: 12, 
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal
+                      // Dynamic User-Selected Categories Bar
+                      ...(() {
+                        final preferred = authProvider.preferredCategories;
+                        // If user has chosen specific preferences, show ONLY those categories
+                        final visibleCategories = preferred.isNotEmpty 
+                            ? ['All', ...preferred]
+                            : ['All', 'Clothing', 'Foods', 'Electronics', 'Beauty', 'Footwear'];
+
+                        return visibleCategories.map((cat) {
+                          final isSelected = _selectedCategory == cat;
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() => _selectedCategory = cat);
+                              _fetchFeed();
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: isSelected ? const Color(0xffFF5722) : Colors.black45,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: isSelected ? const Color(0xffFF5722) : Colors.white12),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  cat,
+                                  style: TextStyle(
+                                    color: isSelected ? Colors.white : Colors.white70, 
+                                    fontSize: 12, 
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        );
-                      }),
+                          );
+                        });
+                      }()),
                       // Preferences shortcut button
                       GestureDetector(
                         onTap: () {
