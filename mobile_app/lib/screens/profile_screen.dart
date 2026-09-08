@@ -275,6 +275,8 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     }
 
     String selectedProductId = _myProducts.first['id'].toString();
+    String selectedPaymentMethod = 'EasyPaisa';
+    final tidController = TextEditingController();
     bool isSubmitting = false;
 
     showModalBottomSheet(
@@ -389,13 +391,100 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          '• Duration: 3 Days continuous auto-rotation\n• Displayed directly above video feed on Home Screen\n• Buyers tapping your billboard slide directly jump to your pitch!',
+                          '• Duration: 3 Days continuous auto-rotation\n• Displayed directly above video feed on Home Screen\n• Buyers tapping your billboard slide directly jump to your pitch!\n• Slot activates after Admin verifies your payment.',
                           style: TextStyle(color: Colors.grey[400], fontSize: 11.5, height: 1.4),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Select Payment Method:',
+                    style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  StatefulBuilder(
+                    builder: (ctx, setLocalState) {
+                      return Column(
+                        children: [
+                          Row(
+                            children: [
+                              _buildPaymentMethodOption('EasyPaisa', selectedPaymentMethod, (m) {
+                                setModalState(() => selectedPaymentMethod = m);
+                              }),
+                              const SizedBox(width: 8),
+                              _buildPaymentMethodOption('JazzCash', selectedPaymentMethod, (m) {
+                                setModalState(() => selectedPaymentMethod = m);
+                              }),
+                              const SizedBox(width: 8),
+                              _buildPaymentMethodOption('Bank Transfer', selectedPaymentMethod, (m) {
+                                setModalState(() => selectedPaymentMethod = m);
+                              }),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          // Payment instructions card
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xff1f1f1f),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.white10),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.account_balance_wallet, color: Color(0xffFF5722), size: 16),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Send ₨ 100 to $selectedPaymentMethod:',
+                                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                if (selectedPaymentMethod == 'EasyPaisa') ...[
+                                  const Text('• Account Number: 0300-1234567', style: TextStyle(color: Colors.white70, fontSize: 11.5)),
+                                  const Text('• Account Title: Pitch & Sell Official', style: TextStyle(color: Colors.white70, fontSize: 11.5)),
+                                ] else if (selectedPaymentMethod == 'JazzCash') ...[
+                                  const Text('• Account Number: 0300-7654321', style: TextStyle(color: Colors.white70, fontSize: 11.5)),
+                                  const Text('• Account Title: Pitch & Sell Official', style: TextStyle(color: Colors.white70, fontSize: 11.5)),
+                                ] else ...[
+                                  const Text('• Bank: Meezan Bank Ltd', style: TextStyle(color: Colors.white70, fontSize: 11.5)),
+                                  const Text('• IBAN: PK64MEZN00012345678901', style: TextStyle(color: Colors.white70, fontSize: 11.5)),
+                                  const Text('• Title: Pitch & Sell Pvt Ltd', style: TextStyle(color: Colors.white70, fontSize: 11.5)),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Transaction ID (TID) / Sender Reference:',
+                    style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: tidController,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: InputDecoration(
+                      hintText: 'e.g. 1029384756 or Ref #',
+                      hintStyle: const TextStyle(color: Colors.white30, fontSize: 12),
+                      filled: true,
+                      fillColor: const Color(0xff252525),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white12)),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xffFF5722))),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
                   SizedBox(
                     width: double.infinity,
                     height: 46,
@@ -408,26 +497,48 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                       onPressed: isSubmitting
                           ? null
                           : () async {
+                              final tid = tidController.text.trim();
+                              if (tid.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Please enter your Transaction ID (TID) from payment receipt.'),
+                                    backgroundColor: Colors.red,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                                return;
+                              }
+
                               setModalState(() => isSubmitting = true);
                               try {
-                                final res = await ApiService.promoteProduct(selectedProductId, 'BILLBOARD');
+                                final res = await ApiService.promoteProduct(
+                                  selectedProductId,
+                                  'BILLBOARD',
+                                  amount: 100.0,
+                                  durationDays: 3,
+                                  paymentMethod: selectedPaymentMethod,
+                                  transactionId: tid,
+                                );
                                 if ((res.statusCode == 200 || res.statusCode == 201) && mounted) {
                                   Navigator.pop(ctx);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Row(
                                         children: [
-                                          Icon(Icons.check_circle, color: Colors.white, size: 18),
+                                          Icon(Icons.access_time_filled, color: Colors.white, size: 18),
                                           SizedBox(width: 8),
-                                          Text('Billboard Promotion Plan activated successfully! 🎉'),
+                                          Expanded(
+                                            child: Text('Submitted for Admin Verification! Your billboard slot will activate once payment is verified. 🚀'),
+                                          ),
                                         ],
                                       ),
                                       backgroundColor: Colors.green,
                                       behavior: SnackBarBehavior.floating,
+                                      duration: Duration(seconds: 4),
                                     ),
                                   );
                                 } else {
-                                  String errorMsg = 'Failed to activate plan';
+                                  String errorMsg = 'Failed to submit plan';
                                   try {
                                     final data = jsonDecode(res.body);
                                     if (data['error'] != null) errorMsg = data['error'];
@@ -455,7 +566,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                             )
                           : const Text(
-                              'Pay & Activate Billboard (₨ 100)',
+                              'Submit Subscription for Verification',
                               style: TextStyle(color: Colors.white, fontSize: 13.5, fontWeight: FontWeight.bold),
                             ),
                     ),
@@ -466,6 +577,50 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           },
         );
       },
+    );
+  }
+
+  Widget _buildPaymentMethodOption(String title, String currentSelected, Function(String) onSelect) {
+    final isSelected = title == currentSelected;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => onSelect(title),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xffFF5722).withOpacity(0.2) : const Color(0xff252525),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isSelected ? const Color(0xffFF5722) : Colors.white12,
+              width: isSelected ? 1.5 : 1.0,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                title == 'EasyPaisa'
+                    ? Icons.phone_android
+                    : title == 'JazzCash'
+                        ? Icons.mobile_screen_share
+                        : Icons.account_balance,
+                color: isSelected ? const Color(0xffFF5722) : Colors.white70,
+                size: 20,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                title,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.white70,
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

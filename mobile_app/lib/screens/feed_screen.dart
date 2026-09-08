@@ -435,19 +435,40 @@ class _FeedScreenState extends State<FeedScreen> {
     );
   }
 
-  void _initBillboard() {
-    _billboardItems = [
+  List<Map<String, dynamic>> _getPlatformPromotionSlides() {
+    return [
       {
-        'tag': 'BILLBOARD SPOT',
+        'tag': 'PITCH & SELL PROMO',
         'tagColor': const Color(0xFFFF5722),
-        'icon': Icons.campaign_rounded,
+        'icon': Icons.bolt_rounded,
         'iconBg': const Color(0xFFFF5722),
-        'title': 'Showcase Your Product Here',
-        'subtitle': 'Promote your pitch on this billboard • Tap to learn more',
+        'title': 'Welcome to Pitch & Sell Pakistan! 🚀',
+        'subtitle': 'Watch short video pitches & shop genuine products directly from verified sellers!',
+        'type': 'platform_intro',
+      },
+      {
+        'tag': 'SPECIAL DEAL',
+        'tagColor': const Color(0xFFFFB300),
+        'icon': Icons.local_fire_department_rounded,
+        'iconBg': const Color(0xFFFF8F00),
+        'title': '⚡ Super Deals & Flash Discounts',
+        'subtitle': 'Explore top trending products with verified Cash On Delivery & Fast Shipping!',
+        'type': 'explore_deals',
+      },
+      {
+        'tag': 'SELLER SPOTLIGHT',
+        'tagColor': const Color(0xFF00E676),
+        'icon': Icons.storefront_rounded,
+        'iconBg': const Color(0xFF00C853),
+        'title': 'Grow Your Business on Billboard 📢',
+        'subtitle': 'Promote your product to thousands of buyers for just ₨ 100 • Tap to subscribe',
         'type': 'promote_info',
       },
     ];
+  }
 
+  void _initBillboard() {
+    _billboardItems = _getPlatformPromotionSlides();
     _billboardController = PageController();
     _startBillboardTimer();
     _loadPaidPromotions();
@@ -495,19 +516,10 @@ class _FeedScreenState extends State<FeedScreen> {
         if (mounted) {
           setState(() {
             if (promoSlides.isNotEmpty) {
-              _billboardItems = promoSlides;
+              // Combine paid seller promotions with Pitch & Sell official promo experience
+              _billboardItems = [...promoSlides, ..._getPlatformPromotionSlides()];
             } else {
-              _billboardItems = [
-                {
-                  'tag': 'BILLBOARD SPOT',
-                  'tagColor': const Color(0xFFFF5722),
-                  'icon': Icons.campaign_rounded,
-                  'iconBg': const Color(0xFFFF5722),
-                  'title': 'Showcase Your Product Here',
-                  'subtitle': 'Promote your pitch on this billboard • Tap to learn more',
-                  'type': 'promote_info',
-                },
-              ];
+              _billboardItems = _getPlatformPromotionSlides();
             }
           });
         }
@@ -527,6 +539,11 @@ class _FeedScreenState extends State<FeedScreen> {
         );
         return;
       }
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ExploreScreen()),
+      );
+    } else if (item['type'] == 'explore_deals' || item['type'] == 'platform_intro') {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const ExploreScreen()),

@@ -611,7 +611,14 @@ class ApiService {
     }
   }
 
-  static Future<http.Response> promoteProduct(String productId, String plan) async {
+  static Future<http.Response> promoteProduct(
+    String productId,
+    String plan, {
+    double amount = 100.0,
+    int durationDays = 3,
+    String paymentMethod = 'EasyPaisa',
+    String? transactionId,
+  }) async {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) return http.Response('Unauthorized', 401);
@@ -620,19 +627,89 @@ class ApiService {
         'seller_id': user.id,
         'product_id': productId,
         'plan_name': plan,
-        'status': 'active',
+        'amount': amount,
+        'duration_days': durationDays,
+        'payment_method': paymentMethod,
+        'transaction_id': transactionId ?? '',
+        'status': 'pending', // Pending Admin Verification
+        'created_at': DateTime.now().toIso8601String(),
       }).select();
       
-      return http.Response(jsonEncode({'promotion': res.first}), 200);
+      return http.Response(jsonEncode({
+        'promotion': res.first,
+        'message': 'Promotion plan submitted! Admin will verify payment and activate your billboard shortly.',
+      }), 200);
     } catch (e) {
       return http.Response(jsonEncode({'error': e.toString()}), 500);
     }
   }
 
+  // Get active billboard promotions (only admin-approved and unexpired)
   static Future<http.Response> getPromotions() async {
     try {
-      final res = await _supabase.from('promotions').select('*, products(*)').eq('status', 'active');
+      final res = await _supabase
+          .from('promotions')
+          .select('*, products(*)')
+          .eq('status', 'active');
+      
+      final now = DateTime.now();
+      final activeList = (res as List<dynamic>).where((p) {
+        final expiresAt = p['expires_at'];
+        if (expiresAt == null) return true;
+        final expDate = DateTime.tryParse(expiresAt.toString());
+        return expDate == null || expDate.isAfter(now);
+      }).toList();
+
+      return http.Response(jsonEncode({'promotions': activeList}), 200);
+    } catch (e) {
+      return http.Response(jsonEncode({'error': e.toString(), 'promotions': []}), 500);
+    }
+  }
+
+  // Admin: Get all promotions for verification
+  static Future<http.Response> getAllPromotionsForAdmin({String? statusFilter}) async {
+    try {
+      dynamic query = _supabase
+          .from('promotions')
+          .select('*, products(name, price, video_url), profiles(name, business_name, email, phone)');
+      
+      if (statusFilter != null && statusFilter.isNotEmpty && statusFilter != 'All') {
+        query = query.eq('status', statusFilter.toLowerCase());
+      }
+
+      final res = await query.order('created_at', ascending: false);
       return http.Response(jsonEncode({'promotions': res}), 200);
+    } catch (e) {
+      return http.Response(jsonEncode({'error': e.toString(), 'promotions': []}), 500);
+    }
+  }
+
+  // Admin: Verify/Approve or Reject promotion plan
+  static Future<http.Response> verifyPromotionPlan(
+    String promotionId,
+    bool approve, {
+    String? adminNotes,
+    int durationDays = 3,
+  }) async {
+    try {
+      final now = DateTime.now();
+      final Map<String, dynamic> updates = {
+        'status': approve ? 'active' : 'rejected',
+        'admin_notes': adminNotes,
+        'updated_at': now.toIso8601String(),
+      };
+
+      if (approve) {
+        updates['started_at'] = now.toIso8601String();
+        updates['expires_at'] = now.add(Duration(days: durationDays)).toIso8601String();
+      }
+
+      await _supabase.from('promotions').update(updates).eq('id', promotionId);
+      return http.Response(jsonEncode({
+        'success': true,
+        'status': approve ? 'active' : 'rejected',
+        'message': approve ? 'Promotion activated on Billboard!' : 'Promotion request rejected.',
+      }), 200);
     } catch (e) {
       return http.Response(jsonEncode({'error': e.toString()}), 500);
     }

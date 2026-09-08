@@ -149,10 +149,28 @@ CREATE TABLE IF NOT EXISTS public.promotions (
     product_id      UUID NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
     seller_id       UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     plan_name       TEXT NOT NULL,
-    status          TEXT NOT NULL DEFAULT 'active'
-                        CHECK (status IN ('active', 'expired', 'pending')),
+    amount          NUMERIC DEFAULT 100.0,
+    duration_days   INT DEFAULT 3,
+    payment_method  TEXT DEFAULT 'EasyPaisa',
+    transaction_id  TEXT DEFAULT '',
+    status          TEXT NOT NULL DEFAULT 'pending'
+                        CHECK (status IN ('active', 'expired', 'pending', 'rejected')),
+    admin_notes     TEXT,
+    started_at      TIMESTAMPTZ,
+    expires_at      TIMESTAMPTZ,
+    updated_at      TIMESTAMPTZ,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Safe migrations for existing databases
+ALTER TABLE public.promotions ADD COLUMN IF NOT EXISTS amount NUMERIC DEFAULT 100.0;
+ALTER TABLE public.promotions ADD COLUMN IF NOT EXISTS duration_days INT DEFAULT 3;
+ALTER TABLE public.promotions ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT 'EasyPaisa';
+ALTER TABLE public.promotions ADD COLUMN IF NOT EXISTS transaction_id TEXT DEFAULT '';
+ALTER TABLE public.promotions ADD COLUMN IF NOT EXISTS admin_notes TEXT;
+ALTER TABLE public.promotions ADD COLUMN IF NOT EXISTS started_at TIMESTAMPTZ;
+ALTER TABLE public.promotions ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ;
+ALTER TABLE public.promotions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ;
 
 
 -- ============================================================================
@@ -396,12 +414,16 @@ CREATE POLICY "Offers: participant update"
 -- ── Promotions ──────────────────────────────────────────────────────────────
 DROP POLICY IF EXISTS "Promotions: public read"        ON public.promotions;
 DROP POLICY IF EXISTS "Promotions: seller insert"      ON public.promotions;
+DROP POLICY IF EXISTS "Promotions: public update"      ON public.promotions;
 
 CREATE POLICY "Promotions: public read"
     ON public.promotions FOR SELECT USING (true);
 CREATE POLICY "Promotions: seller insert"
     ON public.promotions FOR INSERT
     WITH CHECK (auth.uid() = seller_id);
+CREATE POLICY "Promotions: public update"
+    ON public.promotions FOR UPDATE
+    USING (true);
 
 
 -- ── Chats ───────────────────────────────────────────────────────────────────

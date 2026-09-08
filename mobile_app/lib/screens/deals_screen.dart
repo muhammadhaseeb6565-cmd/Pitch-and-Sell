@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'dart:convert';
-import 'package:shimmer/shimmer.dart';
 
 class DealsScreen extends StatefulWidget {
   const DealsScreen({super.key});

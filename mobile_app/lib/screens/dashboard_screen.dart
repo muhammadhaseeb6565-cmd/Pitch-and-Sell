@@ -9,7 +9,6 @@ import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import 'pitch_generator_screen.dart';
 import 'manage_orders_screen.dart';
-import '../main.dart';
 import 'package:shimmer/shimmer.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -81,8 +80,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final ordersRes = await client.from('orders').select('id').eq('status', 'cart_abandoned').count(CountOption.exact);
         _insights = {
           'totalViews': _summary['totalViews'] ?? 0,
-          'saves': savesRes.count ?? 0,
-          'cartAbandons': ordersRes.count ?? 0,
+          'saves': savesRes.count,
+          'cartAbandons': ordersRes.count,
         };
       }
     } catch (e) {
