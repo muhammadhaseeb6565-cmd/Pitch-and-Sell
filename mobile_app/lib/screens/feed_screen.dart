@@ -40,7 +40,6 @@ class _FeedScreenState extends State<FeedScreen> {
   String _selectedCategory = 'All';
   int _currentIndex = 0;
   String _searchQuery = '';
-  bool _showBillboard = true;
   PageController? _billboardController;
   Timer? _billboardTimer;
   int _billboardIndex = 0;
@@ -476,7 +475,7 @@ class _FeedScreenState extends State<FeedScreen> {
   void _startBillboardTimer() {
     _billboardTimer?.cancel();
     _billboardTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
-      if (!mounted || !_showBillboard || _billboardItems.isEmpty) return;
+      if (!mounted || _billboardItems.isEmpty) return;
       if (_billboardController != null && _billboardController!.hasClients) {
         final nextIndex = (_billboardIndex + 1) % _billboardItems.length;
         _billboardController!.animateToPage(
@@ -532,7 +531,7 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   Widget _buildBillboardCarousel() {
-    if (_currentIndex != 0 || !_showBillboard || _billboardItems.isEmpty) {
+    if (_currentIndex != 0 || _billboardItems.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -570,7 +569,7 @@ class _FeedScreenState extends State<FeedScreen> {
                   onTap: () => _handleBillboardTap(item),
                   behavior: HitTestBehavior.opaque,
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 8, right: 34),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: Row(
                       children: [
                         // Left Icon
@@ -640,6 +639,7 @@ class _FeedScreenState extends State<FeedScreen> {
                             ],
                           ),
                         ),
+                        const SizedBox(width: 4),
                         // Arrow
                         Icon(
                           Icons.arrow_forward_ios_rounded,
@@ -653,38 +653,11 @@ class _FeedScreenState extends State<FeedScreen> {
               },
             ),
 
-            // Top-right Dismiss Button (✕)
-            Positioned(
-              top: 0,
-              bottom: 0,
-              right: 6,
-              child: Center(
-                child: GestureDetector(
-                  onTap: () {
-                    _billboardTimer?.cancel();
-                    setState(() => _showBillboard = false);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.close,
-                      color: Colors.white.withOpacity(0.6),
-                      size: 15,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
             // Bottom Carousel Dot Indicators
             Positioned(
               bottom: 2,
               left: 0,
-              right: 36,
+              right: 0,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(_billboardItems.length, (idx) {
