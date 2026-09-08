@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../../services/api_service.dart';
 import '../../../providers/cart_provider.dart';
 import '../../../screens/checkout_screen.dart';
-import '../../../screens/seller_profile_screen.dart';
 import 'dart:convert';
 
 class FeedDialogService {

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/cart_provider.dart';
 import '../services/api_service.dart';
 import 'chat_screen.dart';
 import 'live_stream_screen.dart';
@@ -37,6 +38,7 @@ class _FeedScreenState extends State<FeedScreen> {
   String _selectedCategory = 'All';
   int _currentIndex = 0;
   String _searchQuery = '';
+  bool _showBillboard = true;
 
   @override
   void initState() {
@@ -167,367 +169,373 @@ class _FeedScreenState extends State<FeedScreen> {
                       },
                     ),
 
-          // Sticky Overlay Header: Search, Notifications, Category, Stories, Flash Sale Banner
+          // Sticky Overlay Header: Search, Orders, Cart, Notifications, Category, Stories, Billboard
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Search Bar + Logo + Notification
-                    Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Row(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.75),
+                    Colors.black.withOpacity(0.35),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Top Row: Logo & Brand + 4 Action Buttons
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Icon(Icons.smart_toy_outlined, color: Color(0xffFF5722), size: 24),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const LiveStreamScreen()),
-                                );
-                              },
-                              child: const Text(
-                                'PITCH & SELL',
-                                style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: 1),
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                          // Brand Logo & Name
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const LiveStreamScreen()),
+                              );
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xffFF5722),
+                                    borderRadius: BorderRadius.circular(8),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xffFF5722).withOpacity(0.4),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(Icons.bolt, color: Colors.white, size: 16),
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'PITCH & SELL',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1.1,
+                                    shadows: [
+                                      Shadow(color: Colors.black87, blurRadius: 4, offset: Offset(0, 1)),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
+                          ),
+
+                          // Right: 4 Action Buttons
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildHeaderIconButton(
+                                icon: Icons.search,
+                                tooltip: 'Search',
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const ExploreScreen()),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              _buildHeaderIconButton(
+                                icon: Icons.receipt_long_outlined,
+                                tooltip: 'My Orders',
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const MyOrdersScreen()),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Consumer<CartProvider>(
+                                builder: (context, cart, _) {
+                                  return _buildHeaderIconButton(
+                                    icon: Icons.shopping_cart_outlined,
+                                    tooltip: 'Cart',
+                                    badgeCount: cart.items.length,
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (_) => const CartScreen()),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                              _buildHeaderIconButton(
+                                icon: Icons.notifications_none_outlined,
+                                tooltip: 'Notifications',
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Search button
-                        IconButton(
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          icon: const Icon(Icons.search, color: Colors.white, size: 22),
-                          onPressed: () {
+                      const SizedBox(height: 10),
+
+                      // Horizontal Row: Add Story + Category Filter Bar
+                      SizedBox(
+                        height: 34,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          children: [
+                            // Add Story Button
+                            GestureDetector(
+                              onTap: () {
+                                // Add story
+                              },
+                              child: Container(
+                                margin: const EdgeInsets.only(right: 8),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.4),
+                                  borderRadius: BorderRadius.circular(17),
+                                  border: Border.all(color: Colors.white24, width: 1),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 18,
+                                      height: 18,
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xffFF5722),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(Icons.add, size: 12, color: Colors.white),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      authProvider.user?['name'] != null && authProvider.user!['name'].toString().trim().isNotEmpty
+                                          ? authProvider.user!['name'].toString().trim().split(' ').first
+                                          : 'Story',
+                                      style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w600),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            // Dynamic User-Selected Categories Bar
+                            ...(() {
+                              final preferred = authProvider.preferredCategories;
+                              final visibleCategories = preferred.isNotEmpty 
+                                  ? ['All', ...preferred]
+                                  : ['All', 'Clothing', 'Foods', 'Electronics', 'Beauty', 'Footwear'];
+
+                              return visibleCategories.map((cat) {
+                                final isSelected = _selectedCategory == cat;
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() => _selectedCategory = cat);
+                                    _fetchFeed();
+                                  },
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 180),
+                                    margin: const EdgeInsets.only(right: 6),
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: isSelected ? const Color(0xffFF5722) : Colors.black.withOpacity(0.4),
+                                      borderRadius: BorderRadius.circular(17),
+                                      border: Border.all(
+                                        color: isSelected ? const Color(0xffFF5722) : Colors.white.withOpacity(0.18),
+                                        width: 1,
+                                      ),
+                                      boxShadow: isSelected
+                                          ? [
+                                              BoxShadow(
+                                                color: const Color(0xffFF5722).withOpacity(0.35),
+                                                blurRadius: 6,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ]
+                                          : null,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        cat,
+                                        style: TextStyle(
+                                          color: isSelected ? Colors.white : Colors.white.withOpacity(0.85),
+                                          fontSize: 11.5,
+                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              });
+                            }()),
+                            // Preferences shortcut button
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const CategoryPreferencesScreen(isFirstTime: false)),
+                                ).then((_) => _fetchFeed());
+                              },
+                              child: Container(
+                                margin: const EdgeInsets.only(right: 6),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.4),
+                                  borderRadius: BorderRadius.circular(17),
+                                  border: Border.all(color: Colors.white.withOpacity(0.18), width: 1),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.tune, size: 13, color: Colors.white70),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Filter',
+                                      style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Billboard - visible only on the first feed video and if not dismissed
+                      if (_currentIndex == 0 && _showBillboard) ...[
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(builder: (_) => const ExploreScreen()),
                             );
                           },
-                        ),
-                        const SizedBox(width: 8),
-                        // My Orders button
-                        IconButton(
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          icon: const Icon(Icons.receipt_long, color: Colors.white, size: 22),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const MyOrdersScreen()),
-                            );
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        // Cart button
-                        IconButton(
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 22),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const CartScreen()),
-                            );
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        // Notification Bell with Badge
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-                            );
-                          },
-                          child: Stack(
-                            children: [
-                              const Icon(Icons.notifications_none, color: Colors.white, size: 22),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        // Mode switch button
-                        GestureDetector(
-                          onTap: () async {
-                            final isCurrentlySeller = authProvider.isSellerMode;
-                            if (isCurrentlySeller) {
-                              await authProvider.switchMode(UserMode.customer);
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Row(
-                                      children: [
-                                        Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 18),
-                                        SizedBox(width: 8),
-                                        Text('Switched to Customer Mode'),
-                                      ],
-                                    ),
-                                    backgroundColor: Colors.green,
-                                    duration: Duration(seconds: 2),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              }
-                            } else {
-                              if (authProvider.hasBusinessProfile) {
-                                await authProvider.switchMode(UserMode.seller);
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Row(
-                                        children: [
-                                          Icon(Icons.storefront, color: Colors.white, size: 18),
-                                          SizedBox(width: 8),
-                                          Text('Switched to Seller Mode. Welcome back!'),
-                                        ],
-                                      ),
-                                      backgroundColor: Color(0xffFF5722),
-                                      duration: Duration(seconds: 2),
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                }
-                              } else {
-                                // Navigate to profile tab to register seller business
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Please register a Business Profile in the Profile tab to start selling.'),
-                                    backgroundColor: Color(0xffFF5722),
-                                    duration: Duration(seconds: 3),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          child: Container(
+                            width: double.infinity,
+                            height: 44,
                             decoration: BoxDecoration(
-                              color: authProvider.isSellerMode ? const Color(0xffFF5722) : Colors.black54,
+                              color: Colors.black.withOpacity(0.65),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: authProvider.isSellerMode ? const Color(0xffFF5722) : Colors.white24,
+                                color: const Color(0xFFFF6B35).withOpacity(0.5),
                                 width: 1,
                               ),
                             ),
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
                             child: Row(
                               children: [
-                                Icon(
-                                  authProvider.isSellerMode ? Icons.storefront : Icons.swap_horiz,
-                                  size: 13, 
-                                  color: Colors.white,
+                                Container(
+                                  padding: const EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFF6B35),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.local_fire_department_rounded,
+                                    color: Colors.white,
+                                    size: 15,
+                                  ),
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  authProvider.isSellerMode ? 'Seller Mode' : 'Switch to Seller',
-                                  style: const TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.bold),
+                                const SizedBox(width: 8),
+                                const Expanded(
+                                  child: Text(
+                                    "Featured Pitches • Tap to explore trending deals",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close, color: Colors.white54, size: 16),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  onPressed: () {
+                                    setState(() => _showBillboard = false);
+                                  },
                                 ),
                               ],
                             ),
                           ),
                         ),
                       ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-
-                // Horizontal Row: Add Story + Category Filter Bar
-                SizedBox(
-                  height: 36,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      // Add Story Button
-                      GestureDetector(
-                        onTap: () {
-                          // Handle add story / profile picture
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.only(right: 12),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: Colors.white24),
-                          ),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 10,
-                                backgroundColor: const Color(0xffFF5722),
-                                child: const Icon(Icons.add, size: 14, color: Colors.white),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                authProvider.user?['name'] ?? 'Add Story',
-                                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // Dynamic User-Selected Categories Bar
-                      ...(() {
-                        final preferred = authProvider.preferredCategories;
-                        // If user has chosen specific preferences, show ONLY those categories
-                        final visibleCategories = preferred.isNotEmpty 
-                            ? ['All', ...preferred]
-                            : ['All', 'Clothing', 'Foods', 'Electronics', 'Beauty', 'Footwear'];
-
-                        return visibleCategories.map((cat) {
-                          final isSelected = _selectedCategory == cat;
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() => _selectedCategory = cat);
-                              _fetchFeed();
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: isSelected ? const Color(0xffFF5722) : Colors.black45,
-                                borderRadius: BorderRadius.circular(18),
-                                border: Border.all(color: isSelected ? const Color(0xffFF5722) : Colors.white12),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  cat,
-                                  style: TextStyle(
-                                    color: isSelected ? Colors.white : Colors.white70, 
-                                    fontSize: 12, 
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        });
-                      }()),
-                      // Preferences shortcut button
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const CategoryPreferencesScreen(isFirstTime: false)),
-                          ).then((_) => _fetchFeed());
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.only(right: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white10,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: Colors.white24),
-                          ),
-                          child: const Row(
-                            children: [
-                              Icon(Icons.tune, size: 12, color: Colors.white70),
-                              SizedBox(width: 4),
-                              Text(
-                                'Preferences',
-                                style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
-
-                // Billboard - visible only on the first feed video
-                if (_currentIndex == 0) ...[
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1A1A1A),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: const Color(0xFFFF6B35).withOpacity(0.35),
-                      ),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFF6B35),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.local_fire_department_rounded,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Featured",
-                                style: TextStyle(
-                                  color: Color(0xFFFF6B35),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              SizedBox(height: 3),
-                              Text(
-                                "Discover featured products",
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          color: Colors.white70,
-                          size: 16,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ],
+              ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeaderIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    String? tooltip,
+    int badgeCount = 0,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.4),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withOpacity(0.18), width: 1),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 19),
+            if (badgeCount > 0)
+              Positioned(
+                top: 2,
+                right: 2,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: const BoxDecoration(
+                    color: Color(0xffFF5722),
+                    shape: BoxShape.circle,
+                  ),
+                  constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                  child: Center(
+                    child: Text(
+                      badgeCount > 9 ? '9+' : '$badgeCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.bold,
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
-    ],
-  ),
-);
+    );
   }
 }
 
