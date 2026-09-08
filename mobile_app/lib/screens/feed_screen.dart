@@ -169,14 +169,18 @@ class _FeedScreenState extends State<FeedScreen> {
 
           // Sticky Overlay Header: Search, Notifications, Category, Stories, Flash Sale Banner
           Positioned(
-            top: 48,
-            left: 16,
-            right: 16,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Search Bar + Logo + Notification
-                Row(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Search Bar + Logo + Notification
+                    Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
@@ -519,9 +523,11 @@ class _FeedScreenState extends State<FeedScreen> {
               ],
             ),
           ),
-        ],
+        ),
       ),
-    );
+    ],
+  ),
+);
   }
 }
 

@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter_new/return_code.dart';
-import 'dart:convert';
 import 'dart:ui';
 import '../../../services/api_service.dart';
-import '../../../providers/cart_provider.dart';
-import '../../../screens/checkout_screen.dart';
 import '../../../screens/seller_profile_screen.dart';
 import '../services/feed_dialog_service.dart';
-import '../services/video_export_service.dart';
 
 class VideoPlayerItem extends StatefulWidget {
   final Map<String, dynamic> productData;
@@ -274,13 +269,15 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
             ),
           ),
 
-        // Overlay Shadow
-        Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.black54, Colors.transparent, Colors.black54],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+        // Overlay Shadow (IgnorePointer so touches pass through to video player GestureDetector)
+        IgnorePointer(
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.black54, Colors.transparent, Colors.black54],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
             ),
           ),
         ),

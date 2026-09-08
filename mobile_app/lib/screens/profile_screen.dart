@@ -136,6 +136,44 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     }
   }
 
+  Future<void> _confirmDeletePitchVideo(String productId, String productName) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xff1e1e1e),
+        title: const Text('Delete Pitch Video?', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: Text('Are you sure you want to delete "$productName"? This will permanently remove it from your store.', style: const TextStyle(color: Colors.grey)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        final res = await ApiService.deleteProduct(productId);
+        if (res.statusCode == 200 && mounted) {
+          setState(() {
+            _myProducts.removeWhere((p) => p['id'] == productId);
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Pitch video deleted successfully!'), backgroundColor: Colors.green),
+          );
+        }
+      } catch (e) {
+        debugPrint('Delete error: $e');
+      }
+    }
+  }
+
   void _showOnboardingSheet(AuthProvider auth) {
     final nameController = TextEditingController();
     final categoryController = TextEditingController(text: 'Electronics');
@@ -722,6 +760,21 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                                       children: [
                                         const Center(child: Icon(Icons.play_arrow_rounded, color: Colors.white, size: 28)),
                                         Positioned(
+                                          top: 4,
+                                          right: 4,
+                                          child: GestureDetector(
+                                            onTap: () => _confirmDeletePitchVideo(product['id'], product['name'] ?? 'Product'),
+                                            child: Container(
+                                              padding: const EdgeInsets.all(4),
+                                              decoration: BoxDecoration(
+                                                color: Colors.black.withOpacity(0.7),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 14),
+                                            ),
+                                          ),
+                                        ),
+                                        Positioned(
                                           bottom: 4,
                                           left: 4,
                                           right: 4,
@@ -738,49 +791,192 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                                 },
                               ),
                   ] else ...[
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xff1e1e1e),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white10),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            auth.hasBusinessProfile
-                                ? 'You own a seller shop (${user['businessProfile']?['name'] ?? 'Store'}).'
-                                : 'Sell your own products on Pitch and Sell!',
-                            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            auth.hasBusinessProfile
-                                ? 'Switch to Seller Mode above or below to upload pitches and manage orders.'
-                                : 'Create your business profile to start uploading video pitches and selling to customers.',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.grey, fontSize: 12),
-                          ),
-                          const SizedBox(height: 14),
-                          ElevatedButton.icon(
-                            icon: const Icon(Icons.storefront, size: 16),
-                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722)),
-                            onPressed: () async {
-                              if (auth.hasBusinessProfile) {
-                                await auth.switchMode(UserMode.seller);
-                              } else {
-                                _showOnboardingSheet(auth);
-                              }
-                            },
-                            label: Text(
-                              auth.hasBusinessProfile ? 'Switch to Seller Mode' : 'Create Business Profile',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      // Customer Mode: Dedicated Saved for Later Section
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.bookmark_rounded, color: Color(0xffFF5722), size: 18),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Saved for Later',
+                                  style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
+                            if (_wishlist.isNotEmpty)
+                              GestureDetector(
+                                onTap: () => _tabController.animateTo(2),
+                                child: const Text(
+                                  'View all',
+                                  style: TextStyle(color: Color(0xffFF5722), fontSize: 12, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      _loadingWishlist
+                          ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
+                          : _wishlist.isEmpty
+                              ? Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xff1e1e1e),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.white10),
+                                  ),
+                                  child: const Column(
+                                    children: [
+                                      Icon(Icons.bookmark_border_rounded, color: Colors.grey, size: 36),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        'No videos saved for later yet.',
+                                        style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        'Tap the bookmark icon on any pitch video to save it here.',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(color: Colors.grey, fontSize: 11),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : SizedBox(
+                                  height: 150,
+                                  child: ListView.separated(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: _wishlist.length,
+                                    separatorBuilder: (context, index) => const SizedBox(width: 10),
+                                    itemBuilder: (context, index) {
+                                      final item = _wishlist[index];
+                                      return Container(
+                                        width: 110,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xff1e1e1e),
+                                          borderRadius: BorderRadius.circular(10),
+                                          border: Border.all(color: Colors.white12),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Expanded(
+                                              child: Stack(
+                                                children: [
+                                                  Container(
+                                                    decoration: BoxDecoration(
+                                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                                                      gradient: const LinearGradient(
+                                                        colors: [Colors.black54, Colors.black87],
+                                                        begin: Alignment.topCenter,
+                                                        end: Alignment.bottomCenter,
+                                                      ),
+                                                    ),
+                                                    child: const Center(
+                                                      child: Icon(Icons.play_circle_outline, color: Colors.white70, size: 28),
+                                                    ),
+                                                  ),
+                                                  Positioned(
+                                                    right: 4,
+                                                    top: 4,
+                                                    child: GestureDetector(
+                                                      onTap: () async {
+                                                        final res = await ApiService.toggleSaveVideo(item['id']);
+                                                        if (res.statusCode == 200) {
+                                                          setState(() {
+                                                            _wishlist.removeAt(index);
+                                                          });
+                                                        }
+                                                      },
+                                                      child: Container(
+                                                        padding: const EdgeInsets.all(3),
+                                                        decoration: const BoxDecoration(
+                                                          color: Colors.black54,
+                                                          shape: BoxShape.circle,
+                                                        ),
+                                                        child: const Icon(Icons.close, size: 12, color: Colors.white),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.all(6.0),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    item['name'] ?? '',
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                                                  ),
+                                                  const SizedBox(height: 2),
+                                                  Text(
+                                                    '₨ ${item['price'] ?? ''}',
+                                                    style: const TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold, fontSize: 11),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                      const SizedBox(height: 20),
+
+                      // Become Seller Card
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xff1e1e1e),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white10),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              auth.hasBusinessProfile
+                                  ? 'You own a seller shop (${user['businessProfile']?['name'] ?? 'Store'}).'
+                                  : 'Sell your own products on Pitch and Sell!',
+                              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              auth.hasBusinessProfile
+                                  ? 'Switch to Seller Mode above or below to upload pitches and manage orders.'
+                                  : 'Create your business profile to start uploading video pitches and selling to customers.',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.grey, fontSize: 12),
+                            ),
+                            const SizedBox(height: 14),
+                            ElevatedButton.icon(
+                              icon: const Icon(Icons.storefront, size: 16),
+                              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722)),
+                              onPressed: () async {
+                                if (auth.hasBusinessProfile) {
+                                  await auth.switchMode(UserMode.seller);
+                                } else {
+                                  _showOnboardingSheet(auth);
+                                }
+                              },
+                              label: Text(
+                                auth.hasBusinessProfile ? 'Switch to Seller Mode' : 'Create Business Profile',
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                 ],
               ),
             ),

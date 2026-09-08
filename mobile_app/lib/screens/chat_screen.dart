@@ -314,33 +314,38 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           
           // Chat input field
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            color: const Color(0xff1e1e1e),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: 'Type message...',
-                      hintStyle: const TextStyle(color: Colors.grey),
-                      fillColor: const Color(0xff121212),
-                      filled: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: BorderSide.none,
+          SafeArea(
+            top: false,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              color: const Color(0xff1e1e1e),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _messageController,
+                      style: const TextStyle(color: Colors.white, fontSize: 15),
+                      cursorColor: const Color(0xffFF5722),
+                      decoration: InputDecoration(
+                        hintText: 'Type a message...',
+                        hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
+                        fillColor: const Color(0xff121212),
+                        filled: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send, color: Color(0xffFF5722)),
-                  onPressed: _sendMessage,
-                ),
-              ],
+                  const SizedBox(width: 6),
+                  IconButton(
+                    icon: const Icon(Icons.send_rounded, color: Color(0xffFF5722), size: 24),
+                    onPressed: _sendMessage,
+                  ),
+                ],
+              ),
             ),
           ),
         ],

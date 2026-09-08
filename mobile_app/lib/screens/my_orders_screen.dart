@@ -66,13 +66,23 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                     }),
                   ),
                   const SizedBox(height: 12),
-                  TextField(
-                    controller: commentController,
-                    style: const TextStyle(color: Color(0xff2d2d2d)),
-                    decoration: const InputDecoration(
-                      hintText: 'Share your experience...',
-                      hintStyle: TextStyle(color: Colors.grey),
-                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xff2a2a2a),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: TextField(
+                      controller: commentController,
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      maxLines: 3,
+                      cursorColor: const Color(0xffFF5722),
+                      decoration: const InputDecoration(
+                        hintText: 'Share your genuine experience with this seller and product...',
+                        hintStyle: TextStyle(color: Colors.white38, fontSize: 13),
+                        border: InputBorder.none,
+                      ),
                     ),
                   ),
                 ],

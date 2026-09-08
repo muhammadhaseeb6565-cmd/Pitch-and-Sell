@@ -133,6 +133,24 @@ class ApiService {
     }
   }
 
+  // Delete product (seller only)
+  static Future<http.Response> deleteProduct(String productId) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return http.Response('Unauthorized', 401);
+
+      await _supabase
+          .from('products')
+          .delete()
+          .eq('id', productId)
+          .eq('seller_id', user.id);
+
+      return http.Response(jsonEncode({'success': true}), 200);
+    } catch (e) {
+      return http.Response(jsonEncode({'error': e.toString()}), 500);
+    }
+  }
+
   // Likes
   static Future<http.Response> toggleLike(String videoId) async {
     try {
@@ -620,7 +638,7 @@ class ApiService {
     }
   }
   
-  // Get follower/following counts for a user
+  // Get follower/following counts and profile stats for a user
   static Future<http.Response> getProfileStats(String userId) async {
     try {
       final products = await _supabase.from('products').select('id').eq('seller_id', userId);
@@ -631,15 +649,91 @@ class ApiService {
       if (reviews.isNotEmpty) {
         avgRating = reviews.fold(0.0, (sum, r) => sum + (r['rating'] as num)) / reviews.length;
       }
+
+      int followersCount = 0;
+      int followingCount = 0;
+      try {
+        final followersRes = await _supabase.from('follows').select('id').eq('seller_id', userId);
+        followersCount = followersRes.length;
+        final followingRes = await _supabase.from('follows').select('id').eq('follower_id', userId);
+        followingCount = followingRes.length;
+      } catch (_) {}
       
       return http.Response(jsonEncode({
         'totalProducts': products.length,
         'totalOrders': orders.length,
         'avgRating': avgRating,
         'reviewCount': reviews.length,
+        'followersCount': followersCount,
+        'followingCount': followingCount,
       }), 200);
     } catch (e) {
-      return http.Response(jsonEncode({'totalProducts': 0, 'totalOrders': 0, 'avgRating': 0, 'reviewCount': 0}), 200);
+      return http.Response(jsonEncode({'totalProducts': 0, 'totalOrders': 0, 'avgRating': 0, 'reviewCount': 0, 'followersCount': 0, 'followingCount': 0}), 200);
+    }
+  }
+
+  // Follow / Unfollow System
+  static Future<http.Response> toggleFollow(String sellerId) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return http.Response('Unauthorized', 401);
+      if (user.id == sellerId) {
+        return http.Response(jsonEncode({'error': 'You cannot follow yourself'}), 400);
+      }
+
+      final existing = await _supabase
+          .from('follows')
+          .select('id')
+          .eq('follower_id', user.id)
+          .eq('seller_id', sellerId)
+          .maybeSingle();
+
+      if (existing != null) {
+        await _supabase
+            .from('follows')
+            .delete()
+            .eq('follower_id', user.id)
+            .eq('seller_id', sellerId);
+        return http.Response(jsonEncode({'isFollowing': false}), 200);
+      } else {
+        await _supabase.from('follows').insert({
+          'follower_id': user.id,
+          'seller_id': sellerId,
+        });
+        return http.Response(jsonEncode({'isFollowing': true}), 200);
+      }
+    } catch (e) {
+      return http.Response(jsonEncode({'error': e.toString()}), 500);
+    }
+  }
+
+  static Future<bool> isFollowing(String sellerId) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return false;
+
+      final existing = await _supabase
+          .from('follows')
+          .select('id')
+          .eq('follower_id', user.id)
+          .eq('seller_id', sellerId)
+          .maybeSingle();
+
+      return existing != null;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static Future<int> getFollowerCount(String sellerId) async {
+    try {
+      final res = await _supabase
+          .from('follows')
+          .select('id')
+          .eq('seller_id', sellerId);
+      return res.length;
+    } catch (e) {
+      return 0;
     }
   }
 

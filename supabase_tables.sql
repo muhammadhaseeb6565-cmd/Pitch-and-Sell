@@ -281,7 +281,20 @@ CREATE TABLE IF NOT EXISTS public.payouts (
 
 
 -- ============================================================================
--- 15. NOTIFICATIONS
+-- 15. FOLLOWS
+-- Buyers can follow seller profiles.
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.follows (
+    id              UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    follower_id     UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    seller_id       UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(follower_id, seller_id)
+);
+
+
+-- ============================================================================
+-- 16. NOTIFICATIONS
 -- Stores in-app notifications for users (order updates, offers, etc.)
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.notifications (
@@ -530,6 +543,23 @@ CREATE POLICY "Notifications: owner update"
     USING (auth.uid() = user_id);
 
 
+-- ── Follows ─────────────────────────────────────────────────────────────────
+ALTER TABLE public.follows ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Follows: public read"           ON public.follows;
+DROP POLICY IF EXISTS "Follows: follower insert"       ON public.follows;
+DROP POLICY IF EXISTS "Follows: follower delete"       ON public.follows;
+
+CREATE POLICY "Follows: public read"
+    ON public.follows FOR SELECT
+    USING (true);
+CREATE POLICY "Follows: follower insert"
+    ON public.follows FOR INSERT
+    WITH CHECK (auth.uid() = follower_id);
+CREATE POLICY "Follows: follower delete"
+    ON public.follows FOR DELETE
+    USING (auth.uid() = follower_id);
+
+
 -- ============================================================================
 -- PERFORMANCE INDEXES
 -- ============================================================================
@@ -561,6 +591,8 @@ CREATE INDEX IF NOT EXISTS idx_promotions_status        ON public.promotions(sta
 
 CREATE INDEX IF NOT EXISTS idx_notifications_user       ON public.notifications(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_payouts_user             ON public.payouts(user_id);
+CREATE INDEX IF NOT EXISTS idx_follows_follower         ON public.follows(follower_id);
+CREATE INDEX IF NOT EXISTS idx_follows_seller           ON public.follows(seller_id);
 
 
 -- ============================================================================

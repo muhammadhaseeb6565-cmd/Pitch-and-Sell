@@ -320,34 +320,43 @@ static void showOrderCheckoutSheet(BuildContext context, Map<String, dynamic> pr
                                 ),
                     ),
                     const Divider(color: Colors.white24),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: commentController,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: const InputDecoration(
-                              hintText: 'Add a review...',
-                              hintStyle: TextStyle(color: Colors.grey),
-                              border: InputBorder.none,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xff2a2a2a),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: commentController,
+                              style: const TextStyle(color: Colors.white, fontSize: 14),
+                              cursorColor: const Color(0xffFF5722),
+                              decoration: const InputDecoration(
+                                hintText: 'Write a review or question...',
+                                hintStyle: TextStyle(color: Colors.white54, fontSize: 13),
+                                border: InputBorder.none,
+                              ),
                             ),
                           ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.send, color: Color(0xffFF5722)),
-                          onPressed: () async {
-                            if (commentController.text.trim().isEmpty) return;
-                            final txt = commentController.text.trim();
-                            commentController.clear();
-                            final res = await ApiService.addComment(videoId, txt);
-                            if (res.statusCode == 200) {
-                              setStateSheet(() {
-                                loading = true; // refresh
-                              });
-                            }
-                          },
-                        ),
-                      ],
+                          IconButton(
+                            icon: const Icon(Icons.send_rounded, color: Color(0xffFF5722)),
+                            onPressed: () async {
+                              if (commentController.text.trim().isEmpty) return;
+                              final txt = commentController.text.trim();
+                              commentController.clear();
+                              final res = await ApiService.addComment(videoId, txt);
+                              if (res.statusCode == 200) {
+                                setStateSheet(() {
+                                  loading = true; // refresh
+                                });
+                              }
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 16),
                   ],
