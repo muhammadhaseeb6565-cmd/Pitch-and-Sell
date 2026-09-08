@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +8,7 @@ import '../services/api_service.dart';
 import 'chat_screen.dart';
 import 'live_stream_screen.dart';
 import 'explore_screen.dart';
+import 'deals_screen.dart';
 import 'cart_screen.dart';
 import 'notifications_screen.dart';
 import '../features/feed/widgets/video_player_item.dart';
@@ -39,6 +41,10 @@ class _FeedScreenState extends State<FeedScreen> {
   int _currentIndex = 0;
   String _searchQuery = '';
   bool _showBillboard = true;
+  PageController? _billboardController;
+  Timer? _billboardTimer;
+  int _billboardIndex = 0;
+  List<Map<String, dynamic>> _billboardItems = [];
 
   @override
   void initState() {
@@ -46,7 +52,16 @@ class _FeedScreenState extends State<FeedScreen> {
     _pageController = PageController();
     if (widget.initialCategory != null) _selectedCategory = widget.initialCategory!;
     if (widget.initialSearch != null) _searchQuery = widget.initialSearch!;
+    _initBillboard();
     _fetchFeed();
+  }
+
+  @override
+  void dispose() {
+    _pageController?.dispose();
+    _billboardTimer?.cancel();
+    _billboardController?.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchFeed() async {
@@ -111,12 +126,6 @@ class _FeedScreenState extends State<FeedScreen> {
       ];
       _isLoading = false;
     });
-  }
-
-  @override
-  void dispose() {
-    _pageController?.dispose();
-    super.dispose();
   }
 
   @override
@@ -415,68 +424,8 @@ class _FeedScreenState extends State<FeedScreen> {
                         ),
                       ),
 
-                      // Billboard - visible only on the first feed video and if not dismissed
-                      if (_currentIndex == 0 && _showBillboard) ...[
-                        const SizedBox(height: 8),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const ExploreScreen()),
-                            );
-                          },
-                          child: Container(
-                            width: double.infinity,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.65),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: const Color(0xFFFF6B35).withOpacity(0.5),
-                                width: 1,
-                              ),
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(5),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFF6B35),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.local_fire_department_rounded,
-                                    color: Colors.white,
-                                    size: 15,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                const Expanded(
-                                  child: Text(
-                                    "Featured Pitches • Tap to explore trending deals",
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.close, color: Colors.white54, size: 16),
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                  onPressed: () {
-                                    setState(() => _showBillboard = false);
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                      // Rotating Billboard Carousel (visible only on first video and if not dismissed)
+                      _buildBillboardCarousel(),
                     ],
                   ),
                 ),
@@ -484,6 +433,277 @@ class _FeedScreenState extends State<FeedScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _initBillboard() {
+    _billboardItems = [
+      {
+        'tag': 'TRENDING',
+        'tagColor': const Color(0xFFFF5722),
+        'icon': Icons.local_fire_department_rounded,
+        'iconBg': const Color(0xFFFF5722),
+        'title': 'Top Trending Pitches',
+        'subtitle': 'Explore hottest products & video reviews',
+        'type': 'explore',
+      },
+      {
+        'tag': 'FLASH SALE',
+        'tagColor': Colors.amber,
+        'icon': Icons.flash_on_rounded,
+        'iconBg': Colors.amber.shade800,
+        'title': 'Up to 50% OFF Limited Deals',
+        'subtitle': 'Tap to unlock exclusive vouchers & discounts',
+        'type': 'deals',
+      },
+      {
+        'tag': 'TOP SELLERS',
+        'tagColor': Colors.tealAccent,
+        'icon': Icons.verified_rounded,
+        'iconBg': Colors.teal.shade700,
+        'title': 'Verified Creator Showcase',
+        'subtitle': 'Shop directly from top-rated sellers',
+        'type': 'sellers',
+      },
+    ];
+
+    _billboardController = PageController();
+    _startBillboardTimer();
+    _loadPaidPromotions();
+  }
+
+  void _startBillboardTimer() {
+    _billboardTimer?.cancel();
+    _billboardTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (!mounted || !_showBillboard || _billboardItems.isEmpty) return;
+      if (_billboardController != null && _billboardController!.hasClients) {
+        final nextIndex = (_billboardIndex + 1) % _billboardItems.length;
+        _billboardController!.animateToPage(
+          nextIndex,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  Future<void> _loadPaidPromotions() async {
+    try {
+      final res = await ApiService.getPromotions();
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final list = (data['promotions'] as List<dynamic>?) ?? [];
+        if (list.isNotEmpty && mounted) {
+          final List<Map<String, dynamic>> promoSlides = [];
+          for (final p in list) {
+            final product = p['products'];
+            if (product != null) {
+              promoSlides.add({
+                'tag': 'SPONSORED',
+                'tagColor': Colors.orangeAccent,
+                'icon': Icons.campaign_rounded,
+                'iconBg': const Color(0xFFFF5722),
+                'title': product['name'] ?? 'Featured Product',
+                'subtitle': 'Special spotlight • Rs. ${product['price'] ?? ''}',
+                'type': 'product',
+                'productId': product['id'],
+                'productData': product,
+              });
+            }
+          }
+          if (promoSlides.isNotEmpty) {
+            setState(() {
+              _billboardItems.insertAll(1, promoSlides);
+            });
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  void _handleBillboardTap(Map<String, dynamic> item) {
+    final type = item['type'];
+    if (type == 'deals') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const DealsScreen()));
+    } else {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const ExploreScreen()));
+    }
+  }
+
+  Widget _buildBillboardCarousel() {
+    if (_currentIndex != 0 || !_showBillboard || _billboardItems.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      height: 48,
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.72),
+        borderRadius: BorderRadius.circular(13),
+        border: Border.all(
+          color: const Color(0xFFFF6B35).withOpacity(0.45),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.4),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Stack(
+          children: [
+            PageView.builder(
+              controller: _billboardController,
+              itemCount: _billboardItems.length,
+              onPageChanged: (idx) {
+                setState(() => _billboardIndex = idx);
+              },
+              itemBuilder: (context, index) {
+                final item = _billboardItems[index];
+                return GestureDetector(
+                  onTap: () => _handleBillboardTap(item),
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8, right: 34),
+                    child: Row(
+                      children: [
+                        // Left Icon
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: item['iconBg'] as Color? ?? const Color(0xFFFF6B35),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            item['icon'] as IconData? ?? Icons.local_fire_department_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Middle Info
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                    decoration: BoxDecoration(
+                                      color: (item['tagColor'] as Color? ?? const Color(0xFFFF5722)).withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      item['tag'] ?? 'FEATURED',
+                                      style: TextStyle(
+                                        color: item['tagColor'] as Color? ?? const Color(0xFFFF5722),
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      item['title'] ?? '',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                item['subtitle'] ?? '',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.7),
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Arrow
+                        Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 11,
+                          color: Colors.white.withOpacity(0.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            // Top-right Dismiss Button (✕)
+            Positioned(
+              top: 0,
+              bottom: 0,
+              right: 6,
+              child: Center(
+                child: GestureDetector(
+                  onTap: () {
+                    _billboardTimer?.cancel();
+                    setState(() => _showBillboard = false);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.3),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.close,
+                      color: Colors.white.withOpacity(0.6),
+                      size: 15,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Bottom Carousel Dot Indicators
+            Positioned(
+              bottom: 2,
+              left: 0,
+              right: 36,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(_billboardItems.length, (idx) {
+                  final isCurrent = idx == _billboardIndex;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    width: isCurrent ? 12 : 4,
+                    height: 2.5,
+                    decoration: BoxDecoration(
+                      color: isCurrent ? const Color(0xFFFF6B35) : Colors.white24,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  );
+                }),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
