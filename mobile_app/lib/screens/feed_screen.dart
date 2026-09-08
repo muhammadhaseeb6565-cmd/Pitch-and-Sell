@@ -8,7 +8,6 @@ import '../services/api_service.dart';
 import 'chat_screen.dart';
 import 'live_stream_screen.dart';
 import 'explore_screen.dart';
-import 'deals_screen.dart';
 import 'cart_screen.dart';
 import 'notifications_screen.dart';
 import '../features/feed/widgets/video_player_item.dart';
@@ -439,31 +438,13 @@ class _FeedScreenState extends State<FeedScreen> {
   void _initBillboard() {
     _billboardItems = [
       {
-        'tag': 'TRENDING',
+        'tag': 'BILLBOARD SPOT',
         'tagColor': const Color(0xFFFF5722),
-        'icon': Icons.local_fire_department_rounded,
+        'icon': Icons.campaign_rounded,
         'iconBg': const Color(0xFFFF5722),
-        'title': 'Top Trending Pitches',
-        'subtitle': 'Explore hottest products & video reviews',
-        'type': 'explore',
-      },
-      {
-        'tag': 'FLASH SALE',
-        'tagColor': Colors.amber,
-        'icon': Icons.flash_on_rounded,
-        'iconBg': Colors.amber.shade800,
-        'title': 'Up to 50% OFF Limited Deals',
-        'subtitle': 'Tap to unlock exclusive vouchers & discounts',
-        'type': 'deals',
-      },
-      {
-        'tag': 'TOP SELLERS',
-        'tagColor': Colors.tealAccent,
-        'icon': Icons.verified_rounded,
-        'iconBg': Colors.teal.shade700,
-        'title': 'Verified Creator Showcase',
-        'subtitle': 'Shop directly from top-rated sellers',
-        'type': 'sellers',
+        'title': 'Showcase Your Product Here',
+        'subtitle': 'Promote your pitch on this billboard • Tap to learn more',
+        'type': 'promote_info',
       },
     ];
 
@@ -490,43 +471,82 @@ class _FeedScreenState extends State<FeedScreen> {
   Future<void> _loadPaidPromotions() async {
     try {
       final res = await ApiService.getPromotions();
-      if (res.statusCode == 200) {
+      if (res.statusCode == 200 && mounted) {
         final data = jsonDecode(res.body);
         final list = (data['promotions'] as List<dynamic>?) ?? [];
-        if (list.isNotEmpty && mounted) {
-          final List<Map<String, dynamic>> promoSlides = [];
-          for (final p in list) {
-            final product = p['products'];
-            if (product != null) {
-              promoSlides.add({
-                'tag': 'SPONSORED',
-                'tagColor': Colors.orangeAccent,
-                'icon': Icons.campaign_rounded,
-                'iconBg': const Color(0xFFFF5722),
-                'title': product['name'] ?? 'Featured Product',
-                'subtitle': 'Special spotlight • Rs. ${product['price'] ?? ''}',
-                'type': 'product',
-                'productId': product['id'],
-                'productData': product,
-              });
-            }
-          }
-          if (promoSlides.isNotEmpty) {
-            setState(() {
-              _billboardItems.insertAll(1, promoSlides);
+        final List<Map<String, dynamic>> promoSlides = [];
+        for (final p in list) {
+          final product = p['products'];
+          if (product != null) {
+            promoSlides.add({
+              'tag': 'PAID PROMOTION',
+              'tagColor': const Color(0xFFFF5722),
+              'icon': Icons.campaign_rounded,
+              'iconBg': const Color(0xFFFF5722),
+              'title': product['name'] ?? 'Featured Product',
+              'subtitle': '₨ ${product['price'] ?? ''} • Promoted Seller Pitch',
+              'type': 'product',
+              'productId': product['id'],
+              'productData': product,
             });
           }
+        }
+
+        if (mounted) {
+          setState(() {
+            if (promoSlides.isNotEmpty) {
+              _billboardItems = promoSlides;
+            } else {
+              _billboardItems = [
+                {
+                  'tag': 'BILLBOARD SPOT',
+                  'tagColor': const Color(0xFFFF5722),
+                  'icon': Icons.campaign_rounded,
+                  'iconBg': const Color(0xFFFF5722),
+                  'title': 'Showcase Your Product Here',
+                  'subtitle': 'Promote your pitch on this billboard • Tap to learn more',
+                  'type': 'promote_info',
+                },
+              ];
+            }
+          });
         }
       }
     } catch (_) {}
   }
 
   void _handleBillboardTap(Map<String, dynamic> item) {
-    final type = item['type'];
-    if (type == 'deals') {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const DealsScreen()));
+    if (item['type'] == 'product' && item['productId'] != null) {
+      final targetId = item['productId'].toString();
+      final index = _products.indexWhere((p) => p['id']?.toString() == targetId);
+      if (index != -1 && _pageController != null && _pageController!.hasClients) {
+        _pageController!.animateToPage(
+          index,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+        );
+        return;
+      }
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ExploreScreen()),
+      );
     } else {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const ExploreScreen()));
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      if (auth.isSellerMode) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Go to Profile tab to activate the Billboard Promotion Plan for your product!'),
+            backgroundColor: Color(0xffFF5722),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ExploreScreen()),
+        );
+      }
     }
   }
 
