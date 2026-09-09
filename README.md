@@ -1,73 +1,37 @@
 <div align="center">
-  <h1>🛒 PITCH & SELL</h1>
-  <p><strong>A Modern Social Commerce & Live Shopping Platform</strong></p>
-  
-  [![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev/)
-  [![Dart](https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev/)
-  [![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)](https://github.com/features/actions)
+  <h1>🚀 Pitch & Sell</h1>
+  <p><strong>The Ultimate Video-First Social Commerce Platform</strong></p>
 </div>
 
-<br/>
+---
 
-Welcome to **Pitch & Sell** — a cutting-edge social commerce application built with Flutter. 
+Pitch & Sell is a revolutionary, dual-mode (Buyer/Seller) mobile commerce application built with **Flutter** and powered by **Supabase**. It merges the highly engaging, infinite-scroll video experience of TikTok with a fully functional, real-time e-commerce engine. 
 
-Pitch & Sell bridges the gap between entertainment and e-commerce by combining the addictive experience of short-form video feeds (like TikTok and Instagram Reels) with a fully-fledged storefront. It allows users to browse a dynamic feed of product video pitches, watch live sales streams, and purchase items seamlessly.
+Buyers can endlessly discover products via engaging video pitches, while sellers have a comprehensive dashboard to track analytics, manage inventory, schedule billboard promotions, and interact with customers in real-time.
 
 ---
 
-## 📑 Table of Contents
+## 🌟 Key Features
 
-1. [Key Features](#-key-features)
-2. [Dual-Mode Architecture](#-dual-mode-architecture)
-3. [Screens & User Flow](#-screens--user-flow)
-4. [Technology Stack](#-technology-stack)
-5. [Project Architecture & Structure](#-project-architecture--structure)
-6. [Local Setup & Installation](#-local-setup--installation)
-7. [CI/CD & Automated APKs](#-cicd--automated-apks)
-8. [Future Roadmap](#-future-roadmap)
-
----
-
-## 🚀 Key Features
-
+### 🛍️ Customer Experience
 - **TikTok-Style Video Feed:** Infinite vertical scrolling feed featuring auto-playing product pitches, demos, and reviews.
-- **Live Streaming Commerce:** Real-time live stream viewer where sellers can interact with buyers and pin products for instant purchase.
-- **Session Persistence:** Secure, automatic login functionality utilizing local device storage (`SharedPreferences`).
-- **Rich Profile Management:** Set up both Personal and Business profiles. Includes native gallery image selection for profile avatars using `image_picker`.
-- **Dynamic Theming:** Custom dark UI optimized for video consumption with vibrant orange (`#FF5722`) accents.
-- **Cart & Order System:** Add products to cart, increment/decrement quantities, proceed through a mock checkout, and track past orders.
-- **Real-Time Chat:** A direct messaging interface for buyers and sellers to negotiate and communicate.
+- **Save for Later (Watchlist):** Instantly bookmark favorite pitch videos to your profile with a single tap.
+- **Real-Time Notifications:** Instant alerts for social interactions (likes, follows, comments, and orders).
+- **Seamless Checkout:** Full shopping cart system directly integrated with **Stripe** via secure Supabase Edge Functions.
+- **Deep Linking:** Shareable links that instantly route users directly to a specific product or pitch video within the app.
+- **Dynamic Theming:** Seamlessly toggle between a custom Dark UI (optimized for video viewing) and a crisp Light Mode.
 
----
+### 💼 Seller Experience
+- **Dual-Mode Architecture:** Switch from Buyer to Seller mode instantly with a single toggle—no separate app required.
+- **Seller Dashboard:** Interactive KPI cards displaying Total Views, Engagement Rate, Revenue, and Follower growth.
+- **Pitch Management:** Upload real pitch videos, generate AI-assisted scripts, and permanently delete/manage active pitches from your storefront.
+- **Billboard Promotions:** Schedule paid, premium promotional slots for your products to boost visibility.
+- **Wallet & Payouts:** Track accumulated earnings, pending clearances, and manage withdrawals.
+- **Real-Time Chat:** A direct messaging interface to negotiate and communicate with buyers.
 
-## 🎭 Dual-Mode Architecture
-
-Pitch & Sell introduces a **Single-App Dual-Mode** philosophy. Instead of building separate apps for buyers and sellers, users can instantly swap contexts via a toggle on the home screen.
-
-### 🛍️ Customer Mode
-- **Feed & Explore:** Discover new products via an algorithm-driven vertical video feed or search by categories (Tech, Fashion, Food, Handmade).
-- **Shopping Cart:** Review selected items, see total prices, and checkout.
-- **Order Tracking:** Monitor the status of pending shipments.
-
-### 🏬 Seller Mode (Dashboard)
-- **Analytics:** View interactive KPI cards showing Total Views, Engagement Rate, Revenue, and Follower growth.
-- **Funnel Visualization:** Analyze the conversion funnel from Video Views ➔ Cart Adds ➔ Purchases.
-- **Pitch Generator:** An AI-assisted tool where sellers can generate high-converting video scripts by simply inputting a product name and key selling points.
-- **Wallet:** Track accumulated earnings, pending clearances, and request withdrawals.
-
----
-
-## 📱 Screens & User Flow
-
-| Screen | Description |
-|--------|-------------|
-| **Splash Screen** | Handles initialization, checks local storage for an active session, and dynamically routes the user to the Feed or Welcome screen. |
-| **Welcome/Auth** | Features a professional login/signup UI. Users can create an account, select a role (Buyer/Seller), and pick a gallery avatar. |
-| **Feed Screen** | The core landing page. Features a full-screen vertical video pager. Includes floating action buttons for liking, commenting, and adding items to the cart. |
-| **Explore Screen** | A staggered grid view for discovering new shops, trending categories, and top-rated products. |
-| **Profile Screen** | Displays the user's details, uploaded videos, and saved items. Includes a bottom-sheet modal to edit profile details locally. |
-| **Dashboard** | The Seller's command center. Displays financial metrics, recent orders, and quick actions (Add Product, Go Live). |
-| **Live Stream** | A simulated RTMP live streaming UI with floating hearts, real-time chat overlays, and a sticky "Buy Now" product card. |
+### 🛡️ Admin & Security
+- **Admin Portal:** Secure portal for moderating platform activity.
+- **Legal Enforcement:** Built-in Terms & Conditions enforcement layer for legacy and new users.
 
 ---
 
@@ -76,39 +40,38 @@ Pitch & Sell introduces a **Single-App Dual-Mode** philosophy. Instead of buildi
 ### Frontend Framework
 - **[Flutter](https://flutter.dev/):** UI toolkit for building natively compiled applications from a single codebase.
 - **[Dart](https://dart.dev/):** The programming language underlying Flutter.
+- **State Management:** `provider` and `shared_preferences`.
+- **Media Handling:** `video_player` and `image_picker`.
 
-### Core Packages & Plugins
-- **`provider`:** For reactive state management and dependency injection (e.g., `AuthProvider`).
-- **`shared_preferences`:** For persistent, asynchronous, key-value local storage (session caching).
-- **`image_picker`:** For accessing the native iOS/Android photo gallery to upload avatars.
-- **`video_player`:** For rendering and controlling the auto-playing video feed.
-
-### Backend (Currently Mocked)
-- **Node.js / Express:** A backend directory (`backend/`) is initialized and ready for deployment.
-- **API Service:** The app uses an `ApiService` class that simulates network latency and returns mock JSON data to ensure UI responsiveness testing.
+### Backend & Infrastructure
+- **[Supabase](https://supabase.com/):** Full Open-Source Firebase alternative handling Postgres Database, Auth, Real-time WebSockets, and Storage.
+- **Supabase Edge Functions:** Deno-based edge computing used for secure Stripe payment webhooks and push notifications.
+- **Stripe:** Fully integrated payment gateway for processing credit card transactions.
+- **PostgreSQL:** Relational database with advanced Row Level Security (RLS) policies and triggers.
 
 ---
 
 ## 🏗️ Project Architecture & Structure
 
-The codebase strictly follows a feature-first, separation-of-concerns pattern.
+The codebase strictly follows a feature-first, separation-of-concerns pattern to maintain enterprise-level scalability.
 
 ```text
-pitch-and-sell/
-│
-├── .github/workflows/       # CI/CD pipelines (APK automated builds)
-├── backend/                 # Node.js backend environment (WIP)
+Pitch and Sell/
+├── .github/workflows/       # CI/CD pipelines (Automated APK builds)
+├── docs/                    # PRDs, Feature Specs, Legal Drafts
+├── supabase/                # Database migrations & Edge Functions
 ├── mobile_app/              # Main Flutter Application
-│   ├── android/             # Android native configuration (minSdk: 21)
+│   ├── android/             # Android native configuration
 │   ├── ios/                 # iOS native configuration
-│   ├── lib/
-│   │   ├── models/          # Dart classes representing business logic (User, Product)
-│   │   ├── providers/       # State Management classes (AuthProvider)
-│   │   ├── screens/         # Individual UI pages
-│   │   ├── services/        # HTTP API integrations & WebSocket logic
-│   │   ├── widgets/         # Reusable UI components (Buttons, VideoPlayers)
-│   │   └── main.dart        # Application entry point & Provider initialization
-│   └── pubspec.yaml         # Package dependencies & asset declarations
+│   └── lib/
+│       ├── constants/       # App-wide constants and color schemes
+│       ├── models/          # Business logic data models
+│       ├── providers/       # State management classes
+│       ├── screens/         # Individual UI pages & flows
+│       ├── services/        # Supabase API integrations & business logic
+│       ├── widgets/         # Reusable UI components
+│       └── main.dart        # Application entry point
+├── render.yaml              # Hosting configuration
 └── README.md                # Project documentation
 ```
 
@@ -120,16 +83,16 @@ Follow these steps to run the project locally on your machine.
 
 ### 1. Prerequisites
 - Install **Flutter** (version 3.10+ recommended). [Installation Guide](https://docs.flutter.dev/get-started/install).
-- Install **Android Studio** (for the Android SDK and Emulator).
-- Verify your environment by running:
+- Install **Android Studio** (for the Android SDK and Emulator) or **Xcode** (for iOS).
+- Verify your environment:
   ```bash
   flutter doctor
   ```
 
 ### 2. Clone the Repository
 ```bash
-git clone https://github.com/TAHIR-PITAFI/pitch-and-sell.git
-cd "pitch-and-sell/mobile_app"
+git clone https://github.com/muhammadhaseeb6565-cmd/Pitch-and-Sell.git
+cd "Pitch and Sell/mobile_app"
 ```
 
 ### 3. Install Dependencies
@@ -137,7 +100,10 @@ cd "pitch-and-sell/mobile_app"
 flutter pub get
 ```
 
-### 4. Run the App
+### 4. Configure Environment Variables
+You will need your Supabase and Stripe API keys to connect to the backend. Ensure you configure your `.env` or constant files as directed in the developer documentation.
+
+### 5. Run the App
 Launch an Android/iOS emulator or connect a physical device, then run:
 ```bash
 flutter run
@@ -145,33 +111,14 @@ flutter run
 
 ---
 
-## ⚙️ CI/CD & Automated APKs
+## 🤖 CI/CD & Automated Builds
 
-We use **GitHub Actions** to automate the build and distribution process. You never have to build the APK manually if you don't want to!
+We use **GitHub Actions** to automate the build and distribution process.
 
-Every time code is pushed to the `main` branch, our workflow will:
-1. Setup an Ubuntu runner.
-2. Install the Java JDK and Flutter SDK.
-3. Fetch dependencies and run static analysis (`flutter analyze`).
-4. Build a signed, release-ready Android application.
-
-### How to download the latest APK:
 1. Navigate to the **[Actions](../../actions)** tab in this repository.
-2. Click on the latest successful workflow run (marked with a green ✅).
-3. Scroll to the bottom of the page to the **Artifacts** section.
-4. Download the `app-release.apk` zip file.
-5. Extract the `.apk` file, transfer it to your Android device, and install it.
-
----
-
-## 🗺️ Future Roadmap
-
-While the UI and core mock logic are fully functional, the following integrations are planned for upcoming releases:
-- [ ] **Firebase Authentication:** Replace mock logins with real Google/Email sign-ins.
-- [ ] **Stripe Payment Gateway:** Process real credit card transactions during checkout.
-- [ ] **AWS S3 / Cloudinary:** Handle real video uploads and image hosting instead of local paths.
-- [ ] **WebSockets (Socket.io):** Enable real-time, low-latency chat and live stream commenting.
-- [ ] **Mux/Agora:** Integrate true RTMP live video broadcasting for sellers.
+2. Select the **Build APK** workflow.
+3. Click **Run workflow** (Manual trigger to save resources).
+4. Once completed, scroll to the bottom of the run to the **Artifacts** section and download the `app-release.apk` zip file.
 
 ---
 
