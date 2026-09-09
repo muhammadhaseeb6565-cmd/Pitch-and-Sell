@@ -30,11 +30,13 @@ class _AdminPortalScreenState extends State<AdminPortalScreen>
   bool _isLoadingPromotions = false;
   List<dynamic> _promotions = [];
   String _selectedStatusFilter = 'pending';
+  bool _isCheckingAdmin = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _checkAdminAccess();
   }
 
   @override
@@ -44,17 +46,65 @@ class _AdminPortalScreenState extends State<AdminPortalScreen>
     super.dispose();
   }
 
-  void _verifyPin() {
-    // MVP-only PIN check
-    if (_pinController.text == '8899') {
-      setState(() {
-        _isAuthenticated = true;
-      });
-      _fetchStats();
-      _fetchPromotions();
+  Future<void> _checkAdminAccess() async {
+    final user = _supabase.auth.currentUser;
+    if (user != null) {
+      try {
+        final profile = await _supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        if (profile != null && profile['role'] == 'admin') {
+          if (mounted) {
+            setState(() {
+              _isAuthenticated = true;
+              _isCheckingAdmin = false;
+            });
+            _fetchStats();
+            _fetchPromotions();
+            return;
+          }
+        }
+      } catch (e) {
+        debugPrint('Admin check error: $e');
+      }
+    }
+    if (mounted) {
+      setState(() => _isCheckingAdmin = false);
+    }
+  }
+
+  Future<void> _verifyPin() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in first to access Admin Portal.')),
+      );
+      return;
+    }
+
+    if (_pinController.text.trim() == '8899') {
+      try {
+        await _supabase.from('profiles').update({'role': 'admin'}).eq('id', user.id);
+      } catch (e) {
+        debugPrint('Role update notice: $e');
+      }
+
+      if (mounted) {
+        setState(() {
+          _isAuthenticated = true;
+        });
+        _fetchStats();
+        _fetchPromotions();
+      }
     } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Invalid Admin PIN')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid Admin PIN. Access Denied.')),
+        );
+      }
     }
   }
 
@@ -158,6 +208,15 @@ class _AdminPortalScreenState extends State<AdminPortalScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (_isCheckingAdmin) {
+      return const Scaffold(
+        backgroundColor: Color(0xff121212),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xffFF5722)),
+        ),
+      );
+    }
+
     if (!_isAuthenticated) {
       return Scaffold(
         backgroundColor: const Color(0xff121212),

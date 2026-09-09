@@ -11,6 +11,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../services/api_service.dart';
 import '../../../screens/seller_profile_screen.dart';
 import '../services/feed_dialog_service.dart';
+import '../services/video_export_service.dart';
 
 class VideoPlayerItem extends StatefulWidget {
   final Map<String, dynamic> productData;
@@ -658,6 +659,26 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                   ],
                 ),
               ),
+              if (widget.productData['allowDownload'] == true ||
+                  widget.productData['allow_download'] == true) ...[
+                const SizedBox(height: 18),
+                GestureDetector(
+                  onTap: () => VideoExportService.downloadVideo(
+                      context, widget.productData),
+                  child: const Column(
+                    children: [
+                      Icon(Icons.download_rounded,
+                          color: Colors.white, size: 26),
+                      SizedBox(height: 2),
+                      Text('Save',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ),
+              ],
               if (Supabase.instance.client.auth.currentUser?.id != null &&
                   Supabase.instance.client.auth.currentUser?.id == widget.productData['seller_id']) ...[
                 const SizedBox(height: 18),

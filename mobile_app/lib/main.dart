@@ -10,6 +10,7 @@ import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
 import 'screens/splash_screen.dart';
+import 'screens/checkout_screen.dart';
 import 'services/notification_service.dart';
 
 import 'features/feed/providers/feed_provider.dart';
@@ -119,13 +120,46 @@ class _PitchAndSellAppState extends State<PitchAndSellApp> {
     debugPrint('Received Deep Link: $uri');
     // Handle product deep links: /product/{id}
     if (uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'product') {
-      // Navigate to feed/product detail
-      // Could push to a product detail screen in future
-      debugPrint('Product deep link: ${uri.pathSegments.last}');
+      final productId = uri.pathSegments.length > 1 ? uri.pathSegments[1] : uri.pathSegments.last;
+      debugPrint('Navigating to product deep link: $productId');
+      _navigateToProduct(productId);
     }
     // Handle auth callback from Supabase
     if (uri.scheme == 'io.supabase.pitchandsell') {
       debugPrint('Auth callback received');
+    }
+  }
+
+  void _navigateToProduct(String productId) async {
+    try {
+      final res = await Supabase.instance.client
+          .from('products')
+          .select('*, profiles:seller_id(*), reviews(rating)')
+          .eq('id', productId)
+          .maybeSingle();
+
+      if (res != null && navigatorKey.currentState != null) {
+        final productData = Map<String, dynamic>.from(res);
+        if (productData['video'] == null) {
+          productData['video'] = {
+            'id': productData['id'],
+            'url': productData['video_url'],
+            'allowDownload': productData['allow_download'] ?? false,
+          };
+        }
+        if (productData['business'] == null) {
+          productData['business'] = {
+            'name': productData['profiles']?['business_name'] ?? productData['profiles']?['name'] ?? 'Seller',
+          };
+        }
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            builder: (_) => CheckoutScreen(product: productData),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error navigating to deep link product: $e');
     }
   }
 
