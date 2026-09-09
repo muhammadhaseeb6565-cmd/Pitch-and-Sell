@@ -293,7 +293,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   ),
                   const SizedBox(height: 16),
                   // Title
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     child: Row(
                       children: [
@@ -997,7 +997,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
                         Icon(Icons.store, color: Color(0xffFF5722), size: 18),
                         SizedBox(width: 8),

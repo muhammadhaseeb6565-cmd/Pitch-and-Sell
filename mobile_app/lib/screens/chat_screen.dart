@@ -425,7 +425,7 @@ class OfferBubbleCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
+              Row(
                 children: [
                   Icon(Icons.assignment, color: Color(0xffFF5722), size: 20),
                   SizedBox(width: 8),

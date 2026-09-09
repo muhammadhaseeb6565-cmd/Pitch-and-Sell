@@ -86,7 +86,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                           fontSize: 14),
                       maxLines: 3,
                       cursorColor: const Color(0xffFF5722),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText:
                             'Share your genuine experience with this seller and product...',
                         hintStyle: TextStyle(

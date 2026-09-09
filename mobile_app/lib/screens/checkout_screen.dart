@@ -253,7 +253,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
               // Delivery Form Section
               Row(
-                children: const [
+                children: [
                   Icon(Icons.local_shipping_outlined,
                       color: Color(0xffFF5722), size: 20),
                   SizedBox(width: 8),
@@ -622,7 +622,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               : Colors.white,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Row(
+          title: Row(
             children: [
               Icon(Icons.check_circle, color: Colors.green, size: 28),
               SizedBox(width: 10),

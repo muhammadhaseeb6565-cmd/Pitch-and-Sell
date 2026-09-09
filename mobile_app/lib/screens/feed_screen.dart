@@ -471,7 +471,7 @@ class _FeedScreenState extends State<FeedScreen> {
                                       color: Colors.white.withOpacity(0.18),
                                       width: 1),
                                 ),
-                                child: const Row(
+                                child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Icon(Icons.tune,

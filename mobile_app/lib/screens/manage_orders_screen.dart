@@ -66,7 +66,7 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
                   : Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14)),
-              title: const Row(
+              title: Row(
                 children: [
                   Icon(Icons.local_shipping,
                       color: Color(0xffFF5722), size: 24),
@@ -245,7 +245,7 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Icon(Icons.inbox_outlined, color: Colors.grey, size: 54),
                       SizedBox(height: 12),
                       Text('No customer orders yet.',

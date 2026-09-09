@@ -20,7 +20,7 @@ class NotificationService {
     const InitializationSettings initSettings = InitializationSettings(android: androidSettings, iOS: iosSettings);
 
     await _notificationsPlugin.initialize(
-      settings: initSettings,
+      initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse details) {},
     );
 
@@ -95,10 +95,10 @@ class NotificationService {
     const NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
 
     await _notificationsPlugin.show(
-      id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
-      title: title,
-      body: body,
-      notificationDetails: platformDetails,
+      DateTime.now().millisecondsSinceEpoch.remainder(100000),
+      title,
+      body,
+      platformDetails,
     );
   }
 }
