@@ -188,17 +188,125 @@ class ApiService {
   static Future<http.Response> deleteProduct(String productId) async {
     try {
       final user = _supabase.auth.currentUser;
-      if (user == null) return http.Response('Unauthorized', 401);
+      if (user == null) return http.Response(jsonEncode({'error': 'Unauthorized'}), 401);
 
+      // 1. Fetch the product to get video_url and verify seller_id
+      final product = await _supabase
+          .from('products')
+          .select('id, seller_id, video_url')
+          .eq('id', productId)
+          .maybeSingle();
+
+      if (product == null) {
+        return http.Response(jsonEncode({'error': 'Product not found'}), 404);
+      }
+
+      if (product['seller_id'] != user.id) {
+        return http.Response(jsonEncode({'error': 'You can only delete your own pitch videos.'}), 403);
+      }
+
+      final String? videoUrl = product['video_url'] as String?;
+
+      // 2. Pre-clean dependent rows in child tables so deletion never fails due to FK constraints
+      try { await _supabase.from('likes').delete().eq('product_id', productId); } catch (_) {}
+      try { await _supabase.from('saved_videos').delete().eq('product_id', productId); } catch (_) {}
+      try { await _supabase.from('comments').delete().eq('product_id', productId); } catch (_) {}
+      try { await _supabase.from('reviews').delete().eq('product_id', productId); } catch (_) {}
+      try { await _supabase.from('promotions').delete().eq('product_id', productId); } catch (_) {}
+      try { await _supabase.from('offers').delete().eq('product_id', productId); } catch (_) {}
+
+      // Handle orders: if orders exist, unlink or delete them so FK constraint won't block
+      try {
+        await _supabase.from('orders').delete().eq('product_id', productId);
+      } catch (_) {
+        try {
+          await _supabase.from('orders').update({'product_id': null}).eq('product_id', productId);
+        } catch (_) {}
+      }
+
+      // 3. Delete the product row
       await _supabase
           .from('products')
           .delete()
           .eq('id', productId)
           .eq('seller_id', user.id);
 
-      return http.Response(jsonEncode({'success': true}), 200);
+      // 4. Remove video from Supabase Storage bucket if it was uploaded to 'videos'
+      if (videoUrl != null && videoUrl.isNotEmpty) {
+        try {
+          final uri = Uri.tryParse(videoUrl);
+          if (uri != null && uri.pathSegments.isNotEmpty) {
+            final fileName = uri.pathSegments.last;
+            if (fileName.isNotEmpty && fileName.contains('.')) {
+              await _supabase.storage.from('videos').remove([fileName]);
+              debugPrint('Removed video file from storage: $fileName');
+            }
+          }
+        } catch (e) {
+          debugPrint('Storage video removal warning: $e');
+        }
+      }
+
+      return http.Response(jsonEncode({'success': true, 'message': 'Pitch video deleted successfully'}), 200);
     } catch (e) {
+      debugPrint('Delete product error: $e');
       return http.Response(jsonEncode({'error': e.toString()}), 500);
+    }
+  }
+
+  // Get seller's own uploaded products / pitches
+  static Future<http.Response> getMyProducts() async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return http.Response(jsonEncode({'products': []}), 200);
+
+      final data = await _supabase
+          .from('products')
+          .select('*, profiles:seller_id(*), reviews(rating)')
+          .eq('seller_id', user.id)
+          .order('created_at', ascending: false);
+
+      // Batch fetch like counts
+      final allLikes = await _supabase.from('likes').select('product_id');
+      final likesMap = <String, int>{};
+      for (final l in allLikes) {
+        final pid = l['product_id'] as String;
+        likesMap[pid] = (likesMap[pid] ?? 0) + 1;
+      }
+
+      final productsList = data.map((item) {
+        final reviews = item['reviews'] as List<dynamic>? ?? [];
+        double avgRating = 0;
+        if (reviews.isNotEmpty) {
+          final total = reviews.fold(0.0, (sum, r) => sum + (r['rating'] as num));
+          avgRating = total / reviews.length;
+        }
+
+        return {
+          'id': item['id'],
+          'name': item['name'],
+          'description': item['description'] ?? '',
+          'price': item['price'],
+          'seller_id': item['seller_id'],
+          'category': item['category'] ?? 'General',
+          'stock': item['stock'] ?? 0,
+          'sizes': item['sizes'] ?? [],
+          'colors': item['colors'] ?? [],
+          'avgRating': avgRating,
+          'reviewCount': reviews.length,
+          'business': {'name': item['profiles']?['business_name'] ?? item['profiles']?['name'] ?? 'My Store'},
+          'video': {
+            'url': item['video_url'],
+            'likesCount': likesMap[item['id']] ?? 0,
+            'allowDownload': item['allow_download'] ?? false,
+          }
+        };
+      }).toList();
+
+      return http.Response(jsonEncode({'products': productsList}), 200);
+    } catch (e) {
+      debugPrint('getMyProducts error: $e');
+      return http.Response(jsonEncode({'error': e.toString(), 'products': []}), 500);
     }
   }
 

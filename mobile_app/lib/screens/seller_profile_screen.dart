@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'chat_screen.dart';
+import '../features/feed/widgets/video_player_item.dart';
 
 class SellerProfileScreen extends StatefulWidget {
   final String sellerId;
@@ -93,15 +94,41 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xff1e1e1e),
-        title: const Text('Delete Pitch Video?', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        content: Text('Are you sure you want to delete "$productName"? This action cannot be undone.', style: const TextStyle(color: Colors.grey)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.delete_forever_rounded, color: Colors.redAccent, size: 22),
+            ),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'Delete Pitch Video?',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 17),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to delete "$productName"? This will permanently remove it from your store and the feed.',
+          style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+        ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
@@ -110,20 +137,141 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     );
 
     if (confirmed == true) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+              SizedBox(width: 12),
+              Text('Deleting pitch video...'),
+            ],
+          ),
+          duration: Duration(seconds: 15),
+        ),
+      );
+
       try {
         final res = await ApiService.deleteProduct(productId);
-        if (res.statusCode == 200 && mounted) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+        if (res.statusCode == 200) {
           setState(() {
             _products.removeWhere((p) => p['id'] == productId);
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Pitch video deleted successfully!'), backgroundColor: Colors.green),
+            const SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                  SizedBox(width: 8),
+                  Text('Pitch video deleted successfully! 🗑️'),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+          _fetchSellerProducts();
+        } else {
+          String errMsg = 'Failed to delete video';
+          try {
+            final data = jsonDecode(res.body);
+            if (data['error'] != null) errMsg = data['error'];
+          } catch (_) {}
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.white, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(errMsg)),
+                ],
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+            ),
           );
         }
       } catch (e) {
         debugPrint('Delete error: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          );
+        }
       }
     }
+  }
+
+  void _openPitchVideoModal(dynamic rawProduct) {
+    final product = {
+      'id': rawProduct['id'],
+      'name': rawProduct['name'] ?? '',
+      'description': rawProduct['description'] ?? '',
+      'price': rawProduct['price'] ?? 0,
+      'seller_id': rawProduct['seller_id'] ?? widget.sellerId,
+      'sizes': rawProduct['sizes'] ?? [],
+      'colors': rawProduct['colors'] ?? [],
+      'business': {'name': widget.businessName},
+      'video': {
+        'url': rawProduct['video_url'],
+        'likesCount': 0,
+        'allowDownload': rawProduct['allow_download'] ?? false,
+      }
+    };
+
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final isOwner = currentUserId != null && currentUserId == widget.sellerId;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.black,
+      builder: (ctx) => Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          leading: IconButton(
+            icon: const Icon(Icons.close, color: Colors.white),
+            onPressed: () => Navigator.pop(ctx),
+          ),
+          title: Text(
+            rawProduct['name'] ?? 'Pitch Video',
+            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          actions: [
+            if (isOwner)
+              IconButton(
+                icon: const Icon(Icons.delete_forever_rounded, color: Colors.redAccent),
+                tooltip: 'Delete Video',
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  await _confirmDeleteProduct(rawProduct['id'], rawProduct['name'] ?? 'Product');
+                },
+              ),
+          ],
+        ),
+        body: SafeArea(
+          child: VideoPlayerItem(
+            productData: product,
+            isVisible: true,
+            isFocused: true,
+            onChatPressed: (chatId, title) {
+              Navigator.pop(ctx);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChatScreen(chatId: chatId, chatTitle: title),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _fetchSellerProducts() async {
@@ -382,70 +530,90 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                           final user = Supabase.instance.client.auth.currentUser;
                           final isOwner = user != null && user.id == widget.sellerId;
 
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: const Color(0xff1e1e1e),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white12),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Stack(
-                                    children: [
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.black26,
-                                          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                          image: DecorationImage(
-                                            image: product['thumbnailUrl'] != null 
-                                              ? NetworkImage(product['thumbnailUrl']) as ImageProvider
-                                              : const AssetImage('assets/images/placeholder.png'),
-                                            fit: BoxFit.cover,
+                          return GestureDetector(
+                            onTap: () => _openPitchVideoModal(product),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xff1e1e1e),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.white12),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Stack(
+                                      children: [
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.black26,
+                                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                            gradient: const LinearGradient(
+                                              begin: Alignment.topCenter,
+                                              end: Alignment.bottomCenter,
+                                              colors: [Color(0xff2d2d2d), Color(0xff181818)],
+                                            ),
+                                            image: (product['thumbnailUrl'] != null && (product['thumbnailUrl'] as String).isNotEmpty)
+                                                ? DecorationImage(
+                                                    image: NetworkImage(product['thumbnailUrl']),
+                                                    fit: BoxFit.cover,
+                                                    colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.5), BlendMode.darken),
+                                                  )
+                                                : null,
                                           ),
-                                        ),
-                                        child: const Center(child: Icon(Icons.play_circle_outline, color: Colors.white70, size: 36)),
-                                      ),
-                                      if (isOwner)
-                                        Positioned(
-                                          top: 6,
-                                          right: 6,
-                                          child: GestureDetector(
-                                            onTap: () => _confirmDeleteProduct(product['id'], product['name'] ?? 'Product'),
-                                            child: Container(
-                                              padding: const EdgeInsets.all(5),
-                                              decoration: BoxDecoration(
-                                                color: Colors.black.withOpacity(0.7),
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 18),
+                                          child: const Center(
+                                            child: CircleAvatar(
+                                              radius: 20,
+                                              backgroundColor: Colors.black45,
+                                              child: Icon(Icons.play_circle_outline, color: Colors.white70, size: 30),
                                             ),
                                           ),
                                         ),
-                                    ],
+                                        if (isOwner)
+                                          Positioned(
+                                            top: 6,
+                                            right: 6,
+                                            child: Material(
+                                              color: Colors.transparent,
+                                              child: InkWell(
+                                                borderRadius: BorderRadius.circular(20),
+                                                onTap: () => _confirmDeleteProduct(product['id'], product['name'] ?? 'Product'),
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(6),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.black.withOpacity(0.75),
+                                                    shape: BoxShape.circle,
+                                                    border: Border.all(color: Colors.redAccent.withOpacity(0.4), width: 1),
+                                                  ),
+                                                  child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 18),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        product['name'] ?? '',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'PKR ${product['price'] ?? 0}',
-                                        style: const TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold, fontSize: 13),
-                                      ),
-                                    ],
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          product['name'] ?? '',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'PKR ${product['price'] ?? 0}',
+                                          style: const TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold, fontSize: 13),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           );
                         },

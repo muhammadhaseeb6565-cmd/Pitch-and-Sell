@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import '../constants/legal_content.dart';
@@ -195,33 +196,46 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.black,
-      builder: (ctx) => Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(
+      builder: (ctx) {
+        final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+        final isOwner = currentUserId != null && currentUserId == product['seller_id'];
+
+        return Scaffold(
           backgroundColor: Colors.black,
-          leading: IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
-            onPressed: () => Navigator.pop(ctx),
-          ),
-          title: Text(
-            product['name'] ?? 'Pitch Video',
-            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(
-                product['isSaved'] == true ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                color: const Color(0xffFF5722),
-              ),
-              tooltip: 'Save / Unsave',
-              onPressed: () async {
-                await ApiService.toggleSaveVideo(product['id']);
-                _fetchWishlist();
-                if (ctx.mounted) Navigator.pop(ctx);
-              },
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            leading: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: () => Navigator.pop(ctx),
             ),
-          ],
-        ),
+            title: Text(
+              product['name'] ?? 'Pitch Video',
+              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            actions: [
+              if (isOwner)
+                IconButton(
+                  icon: const Icon(Icons.delete_forever_rounded, color: Colors.redAccent),
+                  tooltip: 'Delete Video',
+                  onPressed: () async {
+                    Navigator.pop(ctx);
+                    await _confirmDeletePitchVideo(product['id'], product['name'] ?? 'Product');
+                  },
+                ),
+              IconButton(
+                icon: Icon(
+                  product['isSaved'] == true ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                  color: const Color(0xffFF5722),
+                ),
+                tooltip: 'Save / Unsave',
+                onPressed: () async {
+                  await ApiService.toggleSaveVideo(product['id']);
+                  _fetchWishlist();
+                  if (ctx.mounted) Navigator.pop(ctx);
+                },
+              ),
+            ],
+          ),
         body: SafeArea(
           child: VideoPlayerItem(
             productData: product,
@@ -238,8 +252,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             },
           ),
         ),
-      ),
-    ).then((_) {
+      );
+    },
+  ).then((_) {
       _fetchWishlist();
       _fetchLiked();
     });
@@ -253,22 +268,21 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
 
   Future<void> _fetchMyVideos() async {
     try {
-      final auth = Provider.of<AuthProvider>(context, listen: false);
-      final response = await ApiService.getFeed();
+      final response = await ApiService.getMyProducts();
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final allProducts = data['products'] as List;
-        final businessId = auth.user?['businessProfile']?['id'];
-        setState(() {
-          _myProducts = allProducts.where((p) => p['businessId'] == businessId).toList();
-          _loadingVideos = false;
-        });
+        if (mounted) {
+          setState(() {
+            _myProducts = (data['products'] as List?) ?? [];
+            _loadingVideos = false;
+          });
+        }
       } else {
-        setState(() => _loadingVideos = false);
+        if (mounted) setState(() => _loadingVideos = false);
       }
     } catch (e) {
       debugPrint('Error fetching user profile videos: $e');
-      setState(() => _loadingVideos = false);
+      if (mounted) setState(() => _loadingVideos = false);
     }
   }
 
@@ -277,15 +291,41 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xff1e1e1e),
-        title: const Text('Delete Pitch Video?', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        content: Text('Are you sure you want to delete "$productName"? This will permanently remove it from your store.', style: const TextStyle(color: Colors.grey)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.delete_forever_rounded, color: Colors.redAccent, size: 22),
+            ),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'Delete Pitch Video?',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 17),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to delete "$productName"? This will permanently remove the video and product from your store and the feed.',
+          style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+        ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
@@ -294,18 +334,75 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     );
 
     if (confirmed == true) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+              SizedBox(width: 12),
+              Text('Deleting pitch video...'),
+            ],
+          ),
+          duration: Duration(seconds: 15),
+        ),
+      );
+
       try {
         final res = await ApiService.deleteProduct(productId);
-        if (res.statusCode == 200 && mounted) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+        if (res.statusCode == 200) {
           setState(() {
             _myProducts.removeWhere((p) => p['id'] == productId);
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Pitch video deleted successfully!'), backgroundColor: Colors.green),
+            const SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                  SizedBox(width: 8),
+                  Text('Pitch video deleted successfully! 🗑️'),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+          _fetchMyVideos();
+          _refreshAllProfileData();
+        } else {
+          String errMsg = 'Failed to delete video';
+          try {
+            final data = jsonDecode(res.body);
+            if (data['error'] != null) errMsg = data['error'];
+          } catch (_) {}
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.white, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(errMsg)),
+                ],
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+            ),
           );
         }
       } catch (e) {
         debugPrint('Delete error: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error deleting pitch: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -1763,48 +1860,79 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                                 itemCount: _myProducts.length,
                                 itemBuilder: (context, index) {
                                   final product = _myProducts[index];
-                                  return Container(
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xff1e1e1e),
-                                      borderRadius: BorderRadius.circular(8),
-                                      image: DecorationImage(
-                                        image: product['thumbnailUrl'] != null 
-                                            ? NetworkImage(product['thumbnailUrl']) as ImageProvider
-                                            : const AssetImage('assets/images/placeholder.png'),
-                                        fit: BoxFit.cover,
-                                        colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.65), BlendMode.darken),
+                                  return GestureDetector(
+                                    onTap: () => _openPitchVideoModal(product),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xff1e1e1e),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(color: Colors.white12),
+                                        gradient: const LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [Color(0xff2d2d2d), Color(0xff1a1a1a)],
+                                        ),
+                                        image: (product['thumbnailUrl'] != null && (product['thumbnailUrl'] as String).isNotEmpty)
+                                            ? DecorationImage(
+                                                image: NetworkImage(product['thumbnailUrl']),
+                                                fit: BoxFit.cover,
+                                                colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.55), BlendMode.darken),
+                                              )
+                                            : null,
                                       ),
-                                    ),
-                                    child: Stack(
-                                      children: [
-                                        const Center(child: Icon(Icons.play_arrow_rounded, color: Colors.white, size: 28)),
-                                        Positioned(
-                                          top: 4,
-                                          right: 4,
-                                          child: GestureDetector(
-                                            onTap: () => _confirmDeletePitchVideo(product['id'], product['name'] ?? 'Product'),
-                                            child: Container(
-                                              padding: const EdgeInsets.all(4),
-                                              decoration: BoxDecoration(
-                                                color: Colors.black.withOpacity(0.7),
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 14),
+                                      child: Stack(
+                                        children: [
+                                          const Center(
+                                            child: CircleAvatar(
+                                              radius: 18,
+                                              backgroundColor: Colors.black45,
+                                              child: Icon(Icons.play_arrow_rounded, color: Colors.white, size: 24),
                                             ),
                                           ),
-                                        ),
-                                        Positioned(
-                                          bottom: 4,
-                                          left: 4,
-                                          right: 4,
-                                          child: Text(
-                                            product['name'],
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                          Positioned(
+                                            top: 4,
+                                            right: 4,
+                                            child: Material(
+                                              color: Colors.transparent,
+                                              child: InkWell(
+                                                borderRadius: BorderRadius.circular(20),
+                                                onTap: () => _confirmDeletePitchVideo(product['id'], product['name'] ?? 'Product'),
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(6),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.black.withOpacity(0.75),
+                                                    shape: BoxShape.circle,
+                                                    border: Border.all(color: Colors.redAccent.withOpacity(0.4), width: 1),
+                                                  ),
+                                                  child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 16),
+                                                ),
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                          Positioned(
+                                            bottom: 0,
+                                            left: 0,
+                                            right: 0,
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.topCenter,
+                                                  end: Alignment.bottomCenter,
+                                                  colors: [Colors.transparent, Colors.black.withOpacity(0.85)],
+                                                ),
+                                                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(10)),
+                                              ),
+                                              child: Text(
+                                                product['name'] ?? '',
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   );
                                 },

@@ -118,6 +118,29 @@ ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS city TEXT;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS delivery_instructions TEXT;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT 'pending';
 
+-- Safe foreign-key migrations to enable clean product / pitch video deletion
+ALTER TABLE public.orders ALTER COLUMN product_id DROP NOT NULL;
+ALTER TABLE public.orders DROP CONSTRAINT IF EXISTS orders_product_id_fkey;
+ALTER TABLE public.orders ADD CONSTRAINT orders_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE SET NULL;
+
+ALTER TABLE public.reviews DROP CONSTRAINT IF EXISTS reviews_product_id_fkey;
+ALTER TABLE public.reviews ADD CONSTRAINT reviews_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE CASCADE;
+
+ALTER TABLE public.comments DROP CONSTRAINT IF EXISTS comments_product_id_fkey;
+ALTER TABLE public.comments ADD CONSTRAINT comments_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE CASCADE;
+
+ALTER TABLE public.likes DROP CONSTRAINT IF EXISTS likes_product_id_fkey;
+ALTER TABLE public.likes ADD CONSTRAINT likes_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE CASCADE;
+
+ALTER TABLE public.saved_videos DROP CONSTRAINT IF EXISTS saved_videos_product_id_fkey;
+ALTER TABLE public.saved_videos ADD CONSTRAINT saved_videos_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE CASCADE;
+
+ALTER TABLE public.promotions DROP CONSTRAINT IF EXISTS promotions_product_id_fkey;
+ALTER TABLE public.promotions ADD CONSTRAINT promotions_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE CASCADE;
+
+ALTER TABLE public.offers DROP CONSTRAINT IF EXISTS offers_product_id_fkey;
+ALTER TABLE public.offers ADD CONSTRAINT offers_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE CASCADE;
+
 DROP TRIGGER IF EXISTS trg_orders_updated_at ON public.orders;
 CREATE TRIGGER trg_orders_updated_at
     BEFORE UPDATE ON public.orders

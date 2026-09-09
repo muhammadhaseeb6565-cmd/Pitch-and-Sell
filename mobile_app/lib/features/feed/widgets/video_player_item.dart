@@ -232,11 +232,118 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     }
   }
 
-  
+  void _handleDeleteProduct() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xff1e1e1e),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.delete_forever_rounded, color: Colors.redAccent, size: 22),
+            ),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'Delete Pitch Video?',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 17),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to delete "${widget.productData['name']}"? This will permanently remove it from your store and the feed.',
+          style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+        ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
 
-  
+    if (confirmed == true) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+              SizedBox(width: 12),
+              Text('Deleting pitch video...'),
+            ],
+          ),
+          duration: Duration(seconds: 15),
+        ),
+      );
 
-  
+      try {
+        final res = await ApiService.deleteProduct(widget.productData['id']);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+        if (res.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                  SizedBox(width: 8),
+                  Text('Pitch video deleted successfully! 🗑️'),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        } else {
+          String errMsg = 'Failed to delete video';
+          try {
+            final data = jsonDecode(res.body);
+            if (data['error'] != null) errMsg = data['error'];
+          } catch (_) {}
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.white, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(errMsg)),
+                ],
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+      } catch (e) {
+        debugPrint('Delete error: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    }
+  }
 
   void _handleShareProduct() async {
     final videoUrl = widget.productData['video']?['url'];
@@ -551,6 +658,20 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                   ],
                 ),
               ),
+              if (Supabase.instance.client.auth.currentUser?.id != null &&
+                  Supabase.instance.client.auth.currentUser?.id == widget.productData['seller_id']) ...[
+                const SizedBox(height: 18),
+                GestureDetector(
+                  onTap: _handleDeleteProduct,
+                  child: const Column(
+                    children: [
+                      Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 28),
+                      SizedBox(height: 2),
+                      Text('Delete', style: TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 18),
 
               // Order Now Action Button (Cart)
