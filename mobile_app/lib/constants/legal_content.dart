@@ -143,7 +143,7 @@ We may update these Terms from time to time. Your continued use of the Platform 
 
 Emulgic Private Limited
 Platform: Pitch & Sell
-Legal/Support Email: support@emulgic.com
+Legal/Support Email: contact@emulgic.com
 ''';
 
 const String kPrivacyPolicy = '''
@@ -217,7 +217,7 @@ We use reasonable technical and organizational measures designed to protect info
 
 13. USER RIGHTS
 
-Depending on applicable law, you may have rights relating to your personal information, including access, correction, deletion, restriction, objection, withdrawal of consent, and data portability. To exercise your rights, contact us at: support@emulgic.com
+Depending on applicable law, you may have rights relating to your personal information, including access, correction, deletion, restriction, objection, withdrawal of consent, and data portability. To exercise your rights, contact us at: contact@emulgic.com
 
 14. ACCOUNT DELETION
 
@@ -235,7 +235,7 @@ We may update this Privacy Policy from time to time. The "Last Updated" date wil
 
 Emulgic Private Limited
 Product: Pitch & Sell
-Privacy Contact: support@emulgic.com
+Privacy Contact: contact@emulgic.com
 ''';
 
 const String kHelpCentre = '''
@@ -399,7 +399,7 @@ Pitch & Sell is continuously evolving. Some features may be under development, t
 
 If your question is not answered here, contact Pitch & Sell support:
 
-Email: support@emulgic.com
+Email: contact@emulgic.com
 
 When contacting support, include:
 • Your account email
