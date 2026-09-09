@@ -795,9 +795,129 @@ CREATE TRIGGER trg_notify_buyer_on_order_update
 
 
 -- ============================================================================
+-- TRIGGER: Notify seller when followed
+-- ============================================================================
+CREATE OR REPLACE FUNCTION public.notify_seller_on_follow()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    follower_name TEXT;
+BEGIN
+    SELECT COALESCE(name, 'Someone') INTO follower_name
+    FROM public.profiles
+    WHERE id = NEW.follower_id;
+
+    INSERT INTO public.notifications (user_id, title, body, type, metadata)
+    VALUES (
+        NEW.seller_id,
+        'New Follower! 👤',
+        follower_name || ' started following your store.',
+        'follow',
+        jsonb_build_object('follower_id', NEW.follower_id)
+    );
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_notify_seller_on_follow ON public.follows;
+CREATE TRIGGER trg_notify_seller_on_follow
+    AFTER INSERT ON public.follows
+    FOR EACH ROW EXECUTE FUNCTION public.notify_seller_on_follow();
+
+
+-- ============================================================================
+-- TRIGGER: Notify seller when video is liked
+-- ============================================================================
+CREATE OR REPLACE FUNCTION public.notify_seller_on_like()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    liker_name   TEXT;
+    prod_name    TEXT;
+    target_seller UUID;
+BEGIN
+    SELECT name, seller_id INTO prod_name, target_seller
+    FROM public.products
+    WHERE id = NEW.product_id;
+
+    IF target_seller IS NOT NULL AND target_seller <> NEW.user_id THEN
+        SELECT COALESCE(name, 'Someone') INTO liker_name
+        FROM public.profiles
+        WHERE id = NEW.user_id;
+
+        INSERT INTO public.notifications (user_id, title, body, type, metadata)
+        VALUES (
+            target_seller,
+            'New Like! ❤️',
+            liker_name || ' liked your video "' || COALESCE(prod_name, 'product') || '".',
+            'like',
+            jsonb_build_object('product_id', NEW.product_id, 'user_id', NEW.user_id)
+        );
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_notify_seller_on_like ON public.likes;
+CREATE TRIGGER trg_notify_seller_on_like
+    AFTER INSERT ON public.likes
+    FOR EACH ROW EXECUTE FUNCTION public.notify_seller_on_like();
+
+
+-- ============================================================================
+-- TRIGGER: Notify seller when video is saved
+-- ============================================================================
+CREATE OR REPLACE FUNCTION public.notify_seller_on_save()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    saver_name   TEXT;
+    prod_name    TEXT;
+    target_seller UUID;
+BEGIN
+    SELECT name, seller_id INTO prod_name, target_seller
+    FROM public.products
+    WHERE id = NEW.product_id;
+
+    IF target_seller IS NOT NULL AND target_seller <> NEW.user_id THEN
+        SELECT COALESCE(name, 'Someone') INTO saver_name
+        FROM public.profiles
+        WHERE id = NEW.user_id;
+
+        INSERT INTO public.notifications (user_id, title, body, type, metadata)
+        VALUES (
+            target_seller,
+            'Video Saved! 📌',
+            saver_name || ' saved your video "' || COALESCE(prod_name, 'product') || '" for later.',
+            'save',
+            jsonb_build_object('product_id', NEW.product_id, 'user_id', NEW.user_id)
+        );
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_notify_seller_on_save ON public.saved_videos;
+CREATE TRIGGER trg_notify_seller_on_save
+    AFTER INSERT ON public.saved_videos
+    FOR EACH ROW EXECUTE FUNCTION public.notify_seller_on_save();
+
+
+-- ============================================================================
 -- STORAGE BUCKETS
 -- Create the 'videos' bucket for product pitch videos.
--- NOTE: Run this section only once. If it errors with "already exists", skip it.
 -- ============================================================================
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES (
@@ -828,13 +948,56 @@ CREATE POLICY "Videos: owner delete"
 
 
 -- ============================================================================
--- REALTIME
--- Enable Supabase Realtime for tables that need live updates.
+-- REALTIME (Collision-Free / Idempotent)
+-- Safely add tables to supabase_realtime publication only if not already added.
 -- ============================================================================
-ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.orders;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.chats;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' 
+          AND schemaname = 'public' 
+          AND tablename = 'messages'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' 
+          AND schemaname = 'public' 
+          AND tablename = 'orders'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.orders;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' 
+          AND schemaname = 'public' 
+          AND tablename = 'notifications'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' 
+          AND schemaname = 'public' 
+          AND tablename = 'chats'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.chats;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' 
+          AND schemaname = 'public' 
+          AND tablename = 'follows'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.follows;
+    END IF;
+END $$;
 
 
 -- ============================================================================
