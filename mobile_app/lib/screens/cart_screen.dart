@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
+import '../providers/auth_provider.dart';
 import 'checkout_screen.dart';
 
 class CartScreen extends StatelessWidget {
@@ -163,6 +164,17 @@ class CartScreen extends StatelessWidget {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                           onPressed: () {
+                            final auth = Provider.of<AuthProvider>(context, listen: false);
+                            if (auth.currentMode == UserMode.seller) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('In Seller Mode you cannot place orders. Please switch to Customer Mode.'),
+                                  backgroundColor: Color(0xffFF5722),
+                                ),
+                              );
+                              return;
+                            }
+
                             Navigator.push(
                               context,
                               MaterialPageRoute(

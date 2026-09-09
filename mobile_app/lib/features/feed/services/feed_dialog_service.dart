@@ -2,11 +2,45 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../services/api_service.dart';
 import '../../../providers/cart_provider.dart';
+import '../../../providers/auth_provider.dart';
 import '../../../screens/checkout_screen.dart';
 import 'dart:convert';
 
 class FeedDialogService {
-static void showOrderCheckoutSheet(BuildContext context, Map<String, dynamic> productData) {
+  static void showOrderCheckoutSheet(BuildContext context, Map<String, dynamic> productData) {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    if (auth.currentMode == UserMode.seller) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.storefront_rounded, color: Colors.white, size: 20),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'In Seller Mode you cannot place orders. Please switch to Customer Mode to buy products.',
+                  style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xffFF5722),
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          action: SnackBarAction(
+            label: 'SWITCH',
+            textColor: Colors.white,
+            onPressed: () {
+              auth.switchMode(UserMode.customer);
+            },
+          ),
+        ),
+      );
+      return;
+    }
+
     int qty = 1;
     final List<dynamic> rawColors = productData['colors'] ?? [];
     final List<dynamic> rawSizes = productData['sizes'] ?? [];
@@ -198,6 +232,18 @@ static void showOrderCheckoutSheet(BuildContext context, Map<String, dynamic> pr
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                             onPressed: () {
+                              final auth = Provider.of<AuthProvider>(context, listen: false);
+                              if (auth.currentMode == UserMode.seller) {
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('In Seller Mode you cannot place orders. Please switch to Customer Mode to buy products.'),
+                                    backgroundColor: Color(0xffFF5722),
+                                  ),
+                                );
+                                return;
+                              }
+
                               final cart = Provider.of<CartProvider>(context, listen: false);
                               cart.addItem(
                                 id: productData['id'],
@@ -231,6 +277,18 @@ static void showOrderCheckoutSheet(BuildContext context, Map<String, dynamic> pr
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                             onPressed: () {
+                              final auth = Provider.of<AuthProvider>(context, listen: false);
+                              if (auth.currentMode == UserMode.seller) {
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('In Seller Mode you cannot place orders. Please switch to Customer Mode to buy products.'),
+                                    backgroundColor: Color(0xffFF5722),
+                                  ),
+                                );
+                                return;
+                              }
+
                               Navigator.pop(context); // close sheet
                               Navigator.push(
                                 context,

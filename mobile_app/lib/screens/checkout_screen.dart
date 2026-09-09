@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -114,6 +116,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final sellerId = widget.product['seller_id'];
     final isOwnProduct = currentUserId != null && sellerId != null && currentUserId == sellerId;
 
+    final authProvider = Provider.of<AuthProvider>(context);
+    final isSellerMode = authProvider.currentMode == UserMode.seller;
+
     return Scaffold(
       backgroundColor: const Color(0xff121212),
       appBar: AppBar(
@@ -128,6 +133,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Seller mode warning if applicable
+              if (isSellerMode)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 20),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.amber),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 24),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'In Seller Mode you cannot place orders. Please switch to Customer Mode to buy products.',
+                          style: TextStyle(color: Colors.amber.shade200, fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
               // Self-order warning if applicable
               if (isOwnProduct)
                 Container(
@@ -390,11 +419,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 height: 52,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isOwnProduct ? Colors.grey : const Color(0xffFF5722),
+                    backgroundColor: (isOwnProduct || isSellerMode) ? Colors.grey : const Color(0xffFF5722),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: 2,
                   ),
-                  onPressed: (isOwnProduct || _isSubmitting)
+                  onPressed: (isOwnProduct || isSellerMode || _isSubmitting)
                       ? null
                       : () => _handlePlaceOrder(),
                   child: _isSubmitting
@@ -418,6 +447,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _handlePlaceOrder() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (authProvider.currentMode == UserMode.seller) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('In Seller Mode you cannot place orders. Please switch to Customer Mode to buy products.'),
+          backgroundColor: Colors.redAccent,
+          action: SnackBarAction(
+            label: 'SWITCH',
+            textColor: Colors.white,
+            onPressed: () {
+              authProvider.switchMode(UserMode.customer);
+              Navigator.pop(context);
+            },
+          ),
+        ),
+      );
+      return;
+    }
+
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

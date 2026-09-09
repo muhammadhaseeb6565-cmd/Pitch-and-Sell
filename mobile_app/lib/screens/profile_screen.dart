@@ -2225,6 +2225,20 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722), padding: EdgeInsets.zero),
                                   onPressed: () {
+                                    if (auth.currentMode == UserMode.seller) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: const Text('In Seller Mode you cannot place orders. Please switch to Customer Mode to buy products.'),
+                                          backgroundColor: Colors.redAccent,
+                                          action: SnackBarAction(
+                                            label: 'SWITCH',
+                                            textColor: Colors.white,
+                                            onPressed: () => auth.switchMode(UserMode.customer),
+                                          ),
+                                        ),
+                                      );
+                                      return;
+                                    }
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(builder: (_) => CheckoutScreen(product: item)),

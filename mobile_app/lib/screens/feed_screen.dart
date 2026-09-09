@@ -269,20 +269,22 @@ class _FeedScreenState extends State<FeedScreen> {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Consumer<CartProvider>(
-                                builder: (context, cart, _) {
-                                  return _buildHeaderIconButton(
-                                    icon: Icons.shopping_cart_outlined,
-                                    tooltip: 'Cart',
-                                    badgeCount: cart.items.length,
-                                    onTap: () => Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (_) => const CartScreen()),
-                                    ),
-                                  );
-                                },
-                              ),
-                              const SizedBox(width: 8),
+                              if (authProvider.currentMode != UserMode.seller) ...[
+                                Consumer<CartProvider>(
+                                  builder: (context, cart, _) {
+                                    return _buildHeaderIconButton(
+                                      icon: Icons.shopping_cart_outlined,
+                                      tooltip: 'Cart',
+                                      badgeCount: cart.items.length,
+                                      onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const CartScreen()),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                              ],
                               _buildHeaderIconButton(
                                 icon: Icons.notifications_none_outlined,
                                 tooltip: 'Notifications',
