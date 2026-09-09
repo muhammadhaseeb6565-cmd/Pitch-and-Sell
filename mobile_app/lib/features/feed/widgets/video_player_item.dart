@@ -5,7 +5,9 @@ import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter_new/return_code.dart';
+import 'dart:convert';
 import 'dart:ui';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../services/api_service.dart';
 import '../../../screens/seller_profile_screen.dart';
 import '../services/feed_dialog_service.dart';
@@ -32,6 +34,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
   VideoPlayerController? _controller;
   double _horizontalDrag = 0.0;
   bool _isLiked = false;
+  bool _isSaved = false;
   int _likesCount = 0;
   bool _showHeart = false;
 
@@ -42,6 +45,20 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     if (video != null && video['url'] != null) {
       _initVideoPlayer(video['url']);
       _likesCount = video['likesCount'] ?? 0;
+    }
+    _isLiked = widget.productData['isLiked'] ?? false;
+    if (widget.productData['isSaved'] != null) {
+      _isSaved = widget.productData['isSaved'] == true;
+    } else {
+      _checkInitialSavedState();
+    }
+  }
+
+  Future<void> _checkInitialSavedState() async {
+    final pid = widget.productData['id']?.toString();
+    if (pid != null && pid.isNotEmpty) {
+      final saved = await ApiService.isVideoSaved(pid);
+      if (mounted) setState(() => _isSaved = saved);
     }
   }
 
@@ -98,25 +115,120 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     } else if (!oldWidget.isVisible && widget.isVisible && widget.isFocused) {
       _controller?.play();
     }
+
+    if (widget.productData['isSaved'] != null && widget.productData['isSaved'] != _isSaved) {
+      _isSaved = widget.productData['isSaved'] == true;
+    }
+    if (widget.productData['isLiked'] != null && widget.productData['isLiked'] != _isLiked) {
+      _isLiked = widget.productData['isLiked'] == true;
+    }
   }
 
 
   void _handleLike() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please sign in to like videos.'),
+          backgroundColor: Colors.redAccent,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isLiked = !_isLiked;
       _likesCount += _isLiked ? 1 : -1;
+      if (_likesCount < 0) _likesCount = 0;
       _showHeart = true;
     });
     Future.delayed(const Duration(milliseconds: 800), () {
       if (mounted) setState(() => _showHeart = false);
     });
     try {
-      final video = widget.productData['video'];
-      if (video != null) {
-        await ApiService.likeVideo(video['id']);
+      final pid = widget.productData['id']?.toString() ?? widget.productData['video']?['id']?.toString() ?? '';
+      if (pid.isNotEmpty) {
+        await ApiService.likeVideo(pid);
       }
     } catch (e) {
       debugPrint('Like action error: $e');
+    }
+  }
+
+  void _handleSaveVideo() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.lock_outline, color: Colors.white, size: 20),
+              SizedBox(width: 8),
+              Text('Please sign in to save videos for later.'),
+            ],
+          ),
+          backgroundColor: Colors.redAccent,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    final previousState = _isSaved;
+    setState(() {
+      _isSaved = !_isSaved;
+    });
+
+    try {
+      final productId = widget.productData['id']?.toString() ?? '';
+      final res = await ApiService.toggleSaveVideo(productId);
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final bool isNowSaved = data['saved'] == true;
+        if (mounted) {
+          setState(() {
+            _isSaved = isNowSaved;
+          });
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(
+                    isNowSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(isNowSaved ? 'Video saved for later! 📌' : 'Removed from saved videos.'),
+                ],
+              ),
+              backgroundColor: isNowSaved ? const Color(0xffFF5722) : Colors.grey[800],
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _isSaved = previousState;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not update saved status. Please try again.')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Save error: $e');
+      if (mounted) {
+        setState(() {
+          _isSaved = previousState;
+        });
+      }
     }
   }
 
@@ -406,21 +518,23 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
 
               // Save for Later
               GestureDetector(
-                onTap: () async {
-                  try {
-                    await ApiService.toggleSaveVideo(widget.productData['id']);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved for later!')));
-                    }
-                  } catch (e) {
-                    debugPrint('Save error: $e');
-                  }
-                },
-                child: const Column(
+                onTap: _handleSaveVideo,
+                child: Column(
                   children: [
-                    Icon(Icons.bookmark_border_rounded, color: Colors.white, size: 28),
-                    SizedBox(height: 2),
-                    Text('Save', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                    Icon(
+                      _isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                      color: _isSaved ? const Color(0xffFF5722) : Colors.white,
+                      size: 28,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _isSaved ? 'Saved' : 'Save',
+                      style: TextStyle(
+                        color: _isSaved ? const Color(0xffFF5722) : Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                 ),
               ),

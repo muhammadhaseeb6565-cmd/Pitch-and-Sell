@@ -15,6 +15,9 @@ import 'admin_portal_screen.dart';
 import 'checkout_screen.dart';
 import 'wallet_screen.dart';
 import 'category_preferences_screen.dart';
+import 'seller_profile_screen.dart';
+import 'chat_screen.dart';
+import '../features/feed/widgets/video_player_item.dart';
 
 
 class ProfileScreen extends StatefulWidget {
@@ -33,6 +36,14 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
 
   List<dynamic> _wishlist = [];
   bool _loadingWishlist = true;
+
+  List<dynamic> _likedVideos = [];
+  bool _loadingLiked = true;
+
+  List<dynamic> _followingSellers = [];
+  bool _loadingFollowing = true;
+
+  int _selectedCustomerSection = 0; // 0: Following, 1: Liked, 2: Saved for Later
   
   Map<String, dynamic> _profileStats = {
     'totalProducts': 0,
@@ -56,8 +67,19 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        if (_tabController.index == 0 || _tabController.index == 2) {
+          _fetchWishlist();
+          _fetchLiked();
+          _fetchFollowing();
+        }
+      }
+    });
     _fetchMyVideos();
     _fetchWishlist();
+    _fetchLiked();
+    _fetchFollowing();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadStats();
     });
@@ -96,17 +118,131 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       final res = await ApiService.getSavedVideos();
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
-        setState(() {
-          _wishlist = data['saved'] ?? [];
-          _loadingWishlist = false;
-        });
+        if (mounted) {
+          setState(() {
+            _wishlist = data['saved'] ?? [];
+            _loadingWishlist = false;
+          });
+        }
       } else {
-        setState(() => _loadingWishlist = false);
+        if (mounted) setState(() => _loadingWishlist = false);
       }
     } catch (e) {
       debugPrint('Error fetching wishlist: $e');
-      setState(() => _loadingWishlist = false);
+      if (mounted) setState(() => _loadingWishlist = false);
     }
+  }
+
+  Future<void> _fetchLiked() async {
+    try {
+      final res = await ApiService.getLikedVideos();
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (mounted) {
+          setState(() {
+            _likedVideos = data['liked'] ?? [];
+            _loadingLiked = false;
+          });
+        }
+      } else {
+        if (mounted) setState(() => _loadingLiked = false);
+      }
+    } catch (e) {
+      debugPrint('Error fetching liked videos: $e');
+      if (mounted) setState(() => _loadingLiked = false);
+    }
+  }
+
+  Future<void> _fetchFollowing() async {
+    try {
+      final res = await ApiService.getFollowingSellers();
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (mounted) {
+          setState(() {
+            _followingSellers = data['sellers'] ?? [];
+            _loadingFollowing = false;
+          });
+        }
+      } else {
+        if (mounted) setState(() => _loadingFollowing = false);
+      }
+    } catch (e) {
+      debugPrint('Error fetching following sellers: $e');
+      if (mounted) setState(() => _loadingFollowing = false);
+    }
+  }
+
+  Future<void> _refreshAllProfileData() async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    if (auth.isSellerMode) {
+      await Future.wait([
+        _fetchMyVideos(),
+        _loadStats(),
+      ]);
+    } else {
+      await Future.wait([
+        _fetchFollowing(),
+        _fetchLiked(),
+        _fetchWishlist(),
+        _loadStats(),
+      ]);
+    }
+  }
+
+  void _openPitchVideoModal(Map<String, dynamic> product) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.black,
+      builder: (ctx) => Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          leading: IconButton(
+            icon: const Icon(Icons.close, color: Colors.white),
+            onPressed: () => Navigator.pop(ctx),
+          ),
+          title: Text(
+            product['name'] ?? 'Pitch Video',
+            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(
+                product['isSaved'] == true ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                color: const Color(0xffFF5722),
+              ),
+              tooltip: 'Save / Unsave',
+              onPressed: () async {
+                await ApiService.toggleSaveVideo(product['id']);
+                _fetchWishlist();
+                if (ctx.mounted) Navigator.pop(ctx);
+              },
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: VideoPlayerItem(
+            productData: product,
+            isVisible: true,
+            isFocused: true,
+            onChatPressed: (chatId, title) {
+              Navigator.pop(ctx);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChatScreen(chatId: chatId, chatTitle: title),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    ).then((_) {
+      _fetchWishlist();
+      _fetchLiked();
+    });
   }
 
   @override
@@ -846,6 +982,453 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     );
   }
 
+  Widget _buildCustomerSegment({
+    required int index,
+    required IconData icon,
+    required String label,
+    required int count,
+  }) {
+    final isSelected = _selectedCustomerSection == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedCustomerSection = index),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xffFF5722) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 14, color: isSelected ? Colors.white : Colors.grey),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : Colors.grey,
+                        fontSize: 11,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '($count)',
+                style: TextStyle(
+                  color: isSelected ? Colors.white.withOpacity(0.9) : Colors.grey[600],
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomerFollowingSection() {
+    if (_loadingFollowing) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 30),
+        child: Center(child: CircularProgressIndicator(color: Color(0xffFF5722))),
+      );
+    }
+    if (_followingSellers.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xff1e1e1e),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white10),
+        ),
+        child: const Column(
+          children: [
+            Icon(Icons.person_add_alt_1_rounded, color: Colors.grey, size: 36),
+            SizedBox(height: 8),
+            Text(
+              'Not following any sellers yet.',
+              style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Explore video pitches on the feed and follow your favorite sellers to stay updated!',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey, fontSize: 11),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _followingSellers.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (context, index) {
+        final seller = _followingSellers[index];
+        final sellerName = seller['business_name'] ?? seller['name'] ?? 'Seller';
+        final avatar = seller['avatar'];
+        final sellerId = seller['id'] ?? '';
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xff1e1e1e),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white10),
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: const Color(0xffFF5722).withOpacity(0.15),
+                backgroundImage: (avatar != null && avatar.toString().isNotEmpty)
+                    ? NetworkImage(avatar.toString()) as ImageProvider
+                    : null,
+                child: (avatar == null || avatar.toString().isEmpty)
+                    ? const Icon(Icons.storefront, color: Color(0xffFF5722), size: 20)
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      sellerName,
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      seller['email'] ?? 'Verified Seller',
+                      style: const TextStyle(color: Colors.grey, fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xffFF5722)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  minimumSize: const Size(60, 30),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                onPressed: () {
+                  if (sellerId.isNotEmpty) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => SellerProfileScreen(
+                          sellerId: sellerId,
+                          businessName: sellerName,
+                        ),
+                      ),
+                    ).then((_) => _fetchFollowing());
+                  }
+                },
+                child: const Text('Shop', style: TextStyle(color: Color(0xffFF5722), fontSize: 11, fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(width: 6),
+              IconButton(
+                icon: const Icon(Icons.person_remove_rounded, color: Colors.grey, size: 18),
+                tooltip: 'Unfollow',
+                onPressed: () async {
+                  if (sellerId.isNotEmpty) {
+                    final res = await ApiService.toggleFollow(sellerId);
+                    if (res.statusCode == 200) {
+                      setState(() {
+                        _followingSellers.removeAt(index);
+                      });
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Unfollowed $sellerName'), duration: const Duration(seconds: 1)),
+                        );
+                      }
+                    }
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCustomerLikedSection() {
+    if (_loadingLiked) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 30),
+        child: Center(child: CircularProgressIndicator(color: Color(0xffFF5722))),
+      );
+    }
+    if (_likedVideos.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xff1e1e1e),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white10),
+        ),
+        child: const Column(
+          children: [
+            Icon(Icons.favorite_border_rounded, color: Colors.grey, size: 36),
+            SizedBox(height: 8),
+            Text(
+              'No liked videos yet.',
+              style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Tap the heart icon or double tap any video pitch on the feed to like it!',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey, fontSize: 11),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.82,
+      ),
+      itemCount: _likedVideos.length,
+      itemBuilder: (context, index) {
+        final item = _likedVideos[index];
+        return GestureDetector(
+          onTap: () => _openPitchVideoModal(item),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xff1e1e1e),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          gradient: const LinearGradient(
+                            colors: [Colors.black54, Colors.black87],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                        ),
+                        child: const Center(
+                          child: Icon(Icons.play_circle_fill_rounded, color: Colors.white70, size: 34),
+                        ),
+                      ),
+                      Positioned(
+                        right: 4,
+                        top: 4,
+                        child: GestureDetector(
+                          onTap: () async {
+                            final res = await ApiService.toggleLike(item['id']);
+                            if (res.statusCode == 200) {
+                              setState(() {
+                                _likedVideos.removeAt(index);
+                              });
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.black54,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.favorite, size: 14, color: Color(0xffFF5722)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  item['name'] ?? 'Product',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '₨ ${item['price'] ?? ''}',
+                  style: const TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold, fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCustomerSavedSection() {
+    if (_loadingWishlist) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 30),
+        child: Center(child: CircularProgressIndicator(color: Color(0xffFF5722))),
+      );
+    }
+    if (_wishlist.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xff1e1e1e),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white10),
+        ),
+        child: const Column(
+          children: [
+            Icon(Icons.bookmark_border_rounded, color: Colors.grey, size: 36),
+            SizedBox(height: 8),
+            Text(
+              'No videos saved for later yet.',
+              style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Tap the bookmark icon on any pitch video to save it here for later!',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey, fontSize: 11),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.76,
+      ),
+      itemCount: _wishlist.length,
+      itemBuilder: (context, index) {
+        final item = _wishlist[index];
+        return GestureDetector(
+          onTap: () => _openPitchVideoModal(item),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xff1e1e1e),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          gradient: const LinearGradient(
+                            colors: [Colors.black54, Colors.black87],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                        ),
+                        child: const Center(
+                          child: Icon(Icons.play_circle_fill_rounded, color: Colors.white70, size: 34),
+                        ),
+                      ),
+                      Positioned(
+                        right: 4,
+                        top: 4,
+                        child: GestureDetector(
+                          onTap: () async {
+                            final res = await ApiService.toggleSaveVideo(item['id']);
+                            if (res.statusCode == 200) {
+                              setState(() {
+                                _wishlist.removeAt(index);
+                              });
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.black54,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.close, size: 14, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  item['name'] ?? 'Product',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '₨ ${item['price'] ?? ''}',
+                  style: const TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold, fontSize: 11),
+                ),
+                const SizedBox(height: 6),
+                SizedBox(
+                  width: double.infinity,
+                  height: 26,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xffFF5722),
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => CheckoutScreen(product: item)),
+                      );
+                    },
+                    child: const Text('Quick Buy', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
@@ -892,7 +1475,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         children: [
           // Tab 1: Profile View
           RefreshIndicator(
-            onRefresh: _fetchMyVideos,
+            onRefresh: _refreshAllProfileData,
             color: const Color(0xffFF5722),
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -1227,147 +1810,47 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                                 },
                               ),
                   ] else ...[
-                      // Customer Mode: Dedicated Saved for Later Section
-                      Align(
-                        alignment: Alignment.centerLeft,
+                      // Customer Mode: Dedicated 3 Sections (Following, Liked, Saved for Later)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xff222222),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white12),
+                        ),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Row(
-                              children: [
-                                Icon(Icons.bookmark_rounded, color: Color(0xffFF5722), size: 18),
-                                SizedBox(width: 6),
-                                Text(
-                                  'Saved for Later',
-                                  style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
-                                ),
-                              ],
+                            _buildCustomerSegment(
+                              index: 0,
+                              icon: Icons.people_alt_rounded,
+                              label: 'Following',
+                              count: _followingSellers.length,
                             ),
-                            if (_wishlist.isNotEmpty)
-                              GestureDetector(
-                                onTap: () => _tabController.animateTo(2),
-                                child: const Text(
-                                  'View all',
-                                  style: TextStyle(color: Color(0xffFF5722), fontSize: 12, fontWeight: FontWeight.bold),
-                                ),
-                              ),
+                            _buildCustomerSegment(
+                              index: 1,
+                              icon: Icons.favorite_rounded,
+                              label: 'Liked',
+                              count: _likedVideos.length,
+                            ),
+                            _buildCustomerSegment(
+                              index: 2,
+                              icon: Icons.bookmark_rounded,
+                              label: 'Saved for Later',
+                              count: _wishlist.length,
+                            ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      _loadingWishlist
-                          ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
-                          : _wishlist.isEmpty
-                              ? Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xff1e1e1e),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.white10),
-                                  ),
-                                  child: const Column(
-                                    children: [
-                                      Icon(Icons.bookmark_border_rounded, color: Colors.grey, size: 36),
-                                      SizedBox(height: 8),
-                                      Text(
-                                        'No videos saved for later yet.',
-                                        style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        'Tap the bookmark icon on any pitch video to save it here.',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(color: Colors.grey, fontSize: 11),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : SizedBox(
-                                  height: 150,
-                                  child: ListView.separated(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: _wishlist.length,
-                                    separatorBuilder: (context, index) => const SizedBox(width: 10),
-                                    itemBuilder: (context, index) {
-                                      final item = _wishlist[index];
-                                      return Container(
-                                        width: 110,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xff1e1e1e),
-                                          borderRadius: BorderRadius.circular(10),
-                                          border: Border.all(color: Colors.white12),
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Expanded(
-                                              child: Stack(
-                                                children: [
-                                                  Container(
-                                                    decoration: BoxDecoration(
-                                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                                                      gradient: const LinearGradient(
-                                                        colors: [Colors.black54, Colors.black87],
-                                                        begin: Alignment.topCenter,
-                                                        end: Alignment.bottomCenter,
-                                                      ),
-                                                    ),
-                                                    child: const Center(
-                                                      child: Icon(Icons.play_circle_outline, color: Colors.white70, size: 28),
-                                                    ),
-                                                  ),
-                                                  Positioned(
-                                                    right: 4,
-                                                    top: 4,
-                                                    child: GestureDetector(
-                                                      onTap: () async {
-                                                        final res = await ApiService.toggleSaveVideo(item['id']);
-                                                        if (res.statusCode == 200) {
-                                                          setState(() {
-                                                            _wishlist.removeAt(index);
-                                                          });
-                                                        }
-                                                      },
-                                                      child: Container(
-                                                        padding: const EdgeInsets.all(3),
-                                                        decoration: const BoxDecoration(
-                                                          color: Colors.black54,
-                                                          shape: BoxShape.circle,
-                                                        ),
-                                                        child: const Icon(Icons.close, size: 12, color: Colors.white),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding: const EdgeInsets.all(6.0),
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    item['name'] ?? '',
-                                                    maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
-                                                  ),
-                                                  const SizedBox(height: 2),
-                                                  Text(
-                                                    '₨ ${item['price'] ?? ''}',
-                                                    style: const TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold, fontSize: 11),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                      const SizedBox(height: 20),
+
+                      if (_selectedCustomerSection == 0)
+                        _buildCustomerFollowingSection()
+                      else if (_selectedCustomerSection == 1)
+                        _buildCustomerLikedSection()
+                      else
+                        _buildCustomerSavedSection(),
+
+                      const SizedBox(height: 24),
 
                       // Become Seller Card
                       Container(
@@ -1519,90 +2002,116 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           ),
 
           // Tab 3: Wishlist View
-          _loadingWishlist 
-            ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
-            : _wishlist.isEmpty
-              ? const Center(child: Text('Your wishlist is empty.', style: TextStyle(color: Colors.grey)))
-              : GridView.builder(
-                  padding: const EdgeInsets.all(20),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.8,
+          RefreshIndicator(
+            onRefresh: _fetchWishlist,
+            color: const Color(0xffFF5722),
+            child: _loadingWishlist 
+              ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
+              : _wishlist.isEmpty
+                ? const SingleChildScrollView(
+                    physics: AlwaysScrollableScrollPhysics(),
+                    child: SizedBox(
+                      height: 400,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.bookmark_border_rounded, color: Colors.grey, size: 48),
+                            SizedBox(height: 12),
+                            Text('Your wishlist is empty.', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                            SizedBox(height: 6),
+                            Text('Tap the bookmark icon on any pitch video to save it here.', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                : GridView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(20),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 0.78,
+                    ),
+                    itemCount: _wishlist.length,
+                    itemBuilder: (context, idx) {
+                      final item = _wishlist[idx];
+                      return GestureDetector(
+                        onTap: () => _openPitchVideoModal(item),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xff1e1e1e),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white10),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Stack(
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        gradient: const LinearGradient(
+                                          colors: [Colors.black54, Colors.black87],
+                                        ),
+                                      ),
+                                      child: const Center(
+                                        child: Icon(Icons.play_circle_fill_rounded, color: Colors.white70, size: 36),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      right: 4,
+                                      top: 4,
+                                      child: GestureDetector(
+                                        onTap: () async {
+                                          final res = await ApiService.toggleSaveVideo(item['id']);
+                                          if (res.statusCode == 200) {
+                                            setState(() {
+                                              _wishlist.removeAt(idx);
+                                            });
+                                          }
+                                        },
+                                        child: const CircleAvatar(
+                                          radius: 12,
+                                          backgroundColor: Colors.black54,
+                                          child: Icon(Icons.close, size: 14, color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(item['name'] ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                              const SizedBox(height: 4),
+                              Text('₨ ${item['price'] ?? ''}', style: const TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 28,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722), padding: EdgeInsets.zero),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (_) => CheckoutScreen(product: item)),
+                                    );
+                                  },
+                                  child: const Text('Quick Buy', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                  itemCount: _wishlist.length,
-                  itemBuilder: (context, idx) {
-                    final item = _wishlist[idx];
-                    return Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xff1e1e1e),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Stack(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    gradient: const LinearGradient(
-                                      colors: [Colors.black54, Colors.black87],
-                                    ),
-                                  ),
-                                  child: const Center(
-                                    child: Icon(Icons.video_library, color: Colors.grey, size: 32),
-                                  ),
-                                ),
-                                Positioned(
-                                  right: 4,
-                                  top: 4,
-                                  child: GestureDetector(
-                                    onTap: () async {
-                                      final res = await ApiService.toggleSaveVideo(item['id']);
-                                      if (res.statusCode == 200) {
-                                        setState(() {
-                                          _wishlist.removeAt(idx);
-                                        });
-                                      }
-                                    },
-                                    child: const CircleAvatar(
-                                      radius: 12,
-                                      backgroundColor: Colors.black54,
-                                      child: Icon(Icons.close, size: 14, color: Colors.white),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(item['name'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                          const SizedBox(height: 4),
-                          Text('₨ ${item['price']}', style: const TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 28,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722), padding: EdgeInsets.zero),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => CheckoutScreen(product: item)),
-                                );
-                              },
-                              child: const Text('Quick Buy', style: TextStyle(color: Colors.white, fontSize: 11)),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+          ),
 
           // Tab 4: Settings View
           ListView(

@@ -321,7 +321,7 @@ CREATE TABLE IF NOT EXISTS public.notifications (
     title           TEXT NOT NULL,
     body            TEXT,
     type            TEXT DEFAULT 'general'
-                        CHECK (type IN ('order', 'offer', 'message', 'promotion', 'general')),
+                        CHECK (type IN ('order', 'offer', 'message', 'promotion', 'general', 'follow', 'like', 'save')),
     is_read         BOOLEAN NOT NULL DEFAULT false,
     metadata        JSONB DEFAULT '{}',
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -550,16 +550,17 @@ CREATE POLICY "Payouts: owner insert"
 
 
 -- ── Notifications ───────────────────────────────────────────────────────────
-DROP POLICY IF EXISTS "Notifications: owner read"      ON public.notifications;
-DROP POLICY IF EXISTS "Notifications: owner insert"    ON public.notifications;
-DROP POLICY IF EXISTS "Notifications: owner update"    ON public.notifications;
+DROP POLICY IF EXISTS "Notifications: owner read"              ON public.notifications;
+DROP POLICY IF EXISTS "Notifications: owner insert"            ON public.notifications;
+DROP POLICY IF EXISTS "Notifications: authenticated insert"    ON public.notifications;
+DROP POLICY IF EXISTS "Notifications: owner update"            ON public.notifications;
 
 CREATE POLICY "Notifications: owner read"
     ON public.notifications FOR SELECT
     USING (auth.uid() = user_id);
-CREATE POLICY "Notifications: owner insert"
+CREATE POLICY "Notifications: authenticated insert"
     ON public.notifications FOR INSERT
-    WITH CHECK (auth.uid() = user_id);
+    WITH CHECK (auth.uid() IS NOT NULL);
 CREATE POLICY "Notifications: owner update"
     ON public.notifications FOR UPDATE
     USING (auth.uid() = user_id);

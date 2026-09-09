@@ -24,6 +24,30 @@ class ApiService {
     }
   }
 
+  // Notification Creation Helper
+  static Future<void> createNotification({
+    required String recipientUserId,
+    required String title,
+    required String body,
+    String type = 'general',
+    Map<String, dynamic>? metadata,
+  }) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null || recipientUserId.isEmpty || recipientUserId == user.id) return;
+      await _supabase.from('notifications').insert({
+        'user_id': recipientUserId,
+        'title': title,
+        'body': body,
+        'type': type,
+        'metadata': metadata ?? {},
+        'is_read': false,
+      });
+    } catch (e) {
+      debugPrint('Error inserting notification: $e');
+    }
+  }
+
   // Products & Feed API
   static Future<http.Response> getFeed({String? category, String? search}) async {
     try {
@@ -41,8 +65,30 @@ class ApiService {
         likesMap[pid] = (likesMap[pid] ?? 0) + 1;
       }
 
+      // Batch fetch saved and liked products for the authenticated user
+      final user = _supabase.auth.currentUser;
+      final Set<String> userSavedProductIds = {};
+      final Set<String> userLikedProductIds = {};
+
+      if (user != null) {
+        try {
+          final savedRes = await _supabase.from('saved_videos').select('product_id').eq('user_id', user.id);
+          for (final s in savedRes) {
+            final pid = s['product_id'] as String?;
+            if (pid != null) userSavedProductIds.add(pid);
+          }
+        } catch (_) {}
+
+        try {
+          final likedRes = await _supabase.from('likes').select('product_id').eq('user_id', user.id);
+          for (final l in likedRes) {
+            final pid = l['product_id'] as String?;
+            if (pid != null) userLikedProductIds.add(pid);
+          }
+        } catch (_) {}
+      }
+
       final productsList = data.map((item) {
-        
         // Calculate average rating
         final reviews = item['reviews'] as List<dynamic>? ?? [];
         double avgRating = 0;
@@ -50,6 +96,9 @@ class ApiService {
           final total = reviews.fold(0.0, (sum, r) => sum + (r['rating'] as num));
           avgRating = total / reviews.length;
         }
+
+        final isSaved = userSavedProductIds.contains(item['id']);
+        final isLiked = userLikedProductIds.contains(item['id']);
 
         return {
           'id': item['id'],
@@ -61,6 +110,8 @@ class ApiService {
           'colors': item['colors'] ?? [],
           'avgRating': avgRating,
           'reviewCount': reviews.length,
+          'isSaved': isSaved,
+          'isLiked': isLiked,
           'business': {'name': item['profiles']?['business_name'] ?? item['profiles']?['name'] ?? 'Seller'},
           'video': {
             'url': item['video_url'],
@@ -157,6 +208,19 @@ class ApiService {
       final user = _supabase.auth.currentUser;
       if (user == null) return http.Response('Unauthorized', 401);
       
+      // Ensure profile row exists to prevent FK violation
+      try {
+        final profile = await _supabase.from('profiles').select('id').eq('id', user.id).maybeSingle();
+        if (profile == null) {
+          await _supabase.from('profiles').upsert({
+            'id': user.id,
+            'email': user.email ?? '',
+            'name': user.userMetadata?['name'] ?? user.email?.split('@').first ?? 'Customer',
+            'role': 'customer',
+          });
+        }
+      } catch (_) {}
+
       // Check if already liked
       final existing = await _supabase
           .from('likes')
@@ -174,6 +238,26 @@ class ApiService {
       } else {
         // Like - insert
         await _supabase.from('likes').insert({'user_id': user.id, 'product_id': videoId});
+
+        // Notify seller about the like
+        try {
+          final prod = await _supabase.from('products').select('name, seller_id').eq('id', videoId).maybeSingle();
+          if (prod != null && prod['seller_id'] != null && prod['seller_id'] != user.id) {
+            final myProf = await _supabase.from('profiles').select('name, business_name').eq('id', user.id).maybeSingle();
+            final userName = myProf?['name'] ?? myProf?['business_name'] ?? 'A customer';
+            final prodName = prod['name'] ?? 'Product';
+            await createNotification(
+              recipientUserId: prod['seller_id'],
+              title: 'New Like ❤️',
+              body: '$userName liked your pitch for "$prodName"!',
+              type: 'like',
+              metadata: {'product_id': videoId, 'product_name': prodName},
+            );
+          }
+        } catch (notifErr) {
+          debugPrint('Error sending like notification: $notifErr');
+        }
+
         return http.Response(jsonEncode({'liked': true}), 200);
       }
     } catch (e) {
@@ -181,6 +265,46 @@ class ApiService {
     }
   }
   static Future<http.Response> likeVideo(String videoId) => toggleLike(videoId);
+
+  // Customer Mode: Get Liked Videos
+  static Future<http.Response> getLikedVideos() async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return http.Response(jsonEncode({'liked': []}), 401);
+      
+      final res = await _supabase
+          .from('likes')
+          .select('product_id, created_at, products(*, profiles:seller_id(*))')
+          .eq('user_id', user.id)
+          .order('created_at', ascending: false);
+
+      final List<Map<String, dynamic>> products = [];
+      for (final r in (res as List)) {
+        if (r['products'] != null && r['products'] is Map) {
+          final prod = Map<String, dynamic>.from(r['products'] as Map);
+          prod['liked_at'] = r['created_at'];
+          if (prod['video'] == null) {
+            prod['video'] = {
+              'url': prod['video_url'],
+              'allowDownload': prod['allow_download'] ?? false,
+              'likesCount': 0,
+            };
+          }
+          if (prod['business'] == null) {
+            prod['business'] = {
+              'name': prod['profiles']?['business_name'] ?? prod['profiles']?['name'] ?? 'Seller',
+            };
+          }
+          prod['isLiked'] = true;
+          products.add(prod);
+        }
+      }
+      return http.Response(jsonEncode({'liked': products}), 200);
+    } catch (e) {
+      debugPrint('Error getting liked videos: $e');
+      return http.Response(jsonEncode({'liked': [], 'error': e.toString()}), 500);
+    }
+  }
 
   // Comments
   static Future<http.Response> getComments(String videoId) async {
@@ -215,31 +339,130 @@ class ApiService {
   static Future<http.Response> toggleSaveVideo(String videoId) async {
     try {
       final user = _supabase.auth.currentUser;
-      if (user == null) return http.Response('Unauthorized', 401);
+      if (user == null) {
+        return http.Response(jsonEncode({'error': 'Unauthorized. Please sign in to save videos.'}), 401);
+      }
+      if (videoId.isEmpty) {
+        return http.Response(jsonEncode({'error': 'Invalid product ID'}), 400);
+      }
       
-      final existing = await _supabase.from('saved_videos').select('id').eq('user_id', user.id).eq('product_id', videoId).maybeSingle();
+      // Ensure user profile exists in public.profiles to satisfy FK
+      try {
+        final profile = await _supabase.from('profiles').select('id').eq('id', user.id).maybeSingle();
+        if (profile == null) {
+          await _supabase.from('profiles').upsert({
+            'id': user.id,
+            'email': user.email ?? '',
+            'name': user.userMetadata?['name'] ?? user.email?.split('@').first ?? 'Customer',
+            'role': 'customer',
+          });
+        }
+      } catch (profileErr) {
+        debugPrint('Profile check/upsert: $profileErr');
+      }
+
+      final existing = await _supabase
+          .from('saved_videos')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('product_id', videoId)
+          .maybeSingle();
+
       if (existing != null) {
-        await _supabase.from('saved_videos').delete().eq('user_id', user.id).eq('product_id', videoId);
-        return http.Response(jsonEncode({'saved': false}), 200);
+        await _supabase
+            .from('saved_videos')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('product_id', videoId);
+        return http.Response(jsonEncode({'saved': false, 'message': 'Removed from saved videos'}), 200);
       } else {
-        await _supabase.from('saved_videos').insert({'user_id': user.id, 'product_id': videoId});
-        return http.Response(jsonEncode({'saved': true}), 200);
+        await _supabase.from('saved_videos').insert({
+          'user_id': user.id,
+          'product_id': videoId,
+        });
+
+        // Notify seller about saved pitch video
+        try {
+          final prod = await _supabase.from('products').select('name, seller_id').eq('id', videoId).maybeSingle();
+          if (prod != null && prod['seller_id'] != null && prod['seller_id'] != user.id) {
+            final myProf = await _supabase.from('profiles').select('name, business_name').eq('id', user.id).maybeSingle();
+            final userName = myProf?['name'] ?? myProf?['business_name'] ?? 'A customer';
+            final prodName = prod['name'] ?? 'Product';
+            await createNotification(
+              recipientUserId: prod['seller_id'],
+              title: 'Video Saved 📌',
+              body: '$userName saved your pitch for "$prodName" for later!',
+              type: 'save',
+              metadata: {'product_id': videoId, 'product_name': prodName},
+            );
+          }
+        } catch (notifErr) {
+          debugPrint('Error sending save notification: $notifErr');
+        }
+
+        return http.Response(jsonEncode({'saved': true, 'message': 'Video saved for later!'}), 200);
       }
     } catch (e) {
+      debugPrint('Error in toggleSaveVideo: $e');
       return http.Response(jsonEncode({'error': e.toString()}), 500);
+    }
+  }
+
+  static Future<bool> isVideoSaved(String videoId) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null || videoId.isEmpty) return false;
+      final existing = await _supabase
+          .from('saved_videos')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('product_id', videoId)
+          .maybeSingle();
+      return existing != null;
+    } catch (e) {
+      debugPrint('Error checking isVideoSaved: $e');
+      return false;
     }
   }
 
   static Future<http.Response> getSavedVideos() async {
     try {
       final user = _supabase.auth.currentUser;
-      if (user == null) return http.Response('Unauthorized', 401);
+      if (user == null) {
+        return http.Response(jsonEncode({'saved': [], 'error': 'Unauthorized'}), 401);
+      }
       
-      final res = await _supabase.from('saved_videos').select('products(*)').eq('user_id', user.id);
-      final products = res.map((r) => r['products']).toList();
+      final res = await _supabase
+          .from('saved_videos')
+          .select('product_id, created_at, products(*, profiles:seller_id(*))')
+          .eq('user_id', user.id)
+          .order('created_at', ascending: false);
+
+      final List<Map<String, dynamic>> products = [];
+      for (final r in (res as List)) {
+        if (r['products'] != null && r['products'] is Map) {
+          final prod = Map<String, dynamic>.from(r['products'] as Map);
+          prod['saved_at'] = r['created_at'];
+          if (prod['video'] == null) {
+            prod['video'] = {
+              'url': prod['video_url'],
+              'allowDownload': prod['allow_download'] ?? false,
+              'likesCount': 0,
+            };
+          }
+          if (prod['business'] == null) {
+            prod['business'] = {
+              'name': prod['profiles']?['business_name'] ?? prod['profiles']?['name'] ?? 'Seller',
+            };
+          }
+          prod['isSaved'] = true;
+          products.add(prod);
+        }
+      }
       return http.Response(jsonEncode({'saved': products}), 200);
     } catch (e) {
-      return http.Response(jsonEncode({'error': e.toString()}), 500);
+      debugPrint('Error getting saved videos: $e');
+      return http.Response(jsonEncode({'saved': [], 'error': e.toString()}), 500);
     }
   }
 
@@ -758,6 +981,19 @@ class ApiService {
         return http.Response(jsonEncode({'error': 'You cannot follow yourself'}), 400);
       }
 
+      // Ensure profile row exists to prevent FK violation
+      try {
+        final profile = await _supabase.from('profiles').select('id').eq('id', user.id).maybeSingle();
+        if (profile == null) {
+          await _supabase.from('profiles').upsert({
+            'id': user.id,
+            'email': user.email ?? '',
+            'name': user.userMetadata?['name'] ?? user.email?.split('@').first ?? 'Customer',
+            'role': 'customer',
+          });
+        }
+      } catch (_) {}
+
       final existing = await _supabase
           .from('follows')
           .select('id')
@@ -771,15 +1007,32 @@ class ApiService {
             .delete()
             .eq('follower_id', user.id)
             .eq('seller_id', sellerId);
-        return http.Response(jsonEncode({'isFollowing': false}), 200);
+        return http.Response(jsonEncode({'isFollowing': false, 'message': 'Unfollowed'}), 200);
       } else {
         await _supabase.from('follows').insert({
           'follower_id': user.id,
           'seller_id': sellerId,
         });
-        return http.Response(jsonEncode({'isFollowing': true}), 200);
+
+        // Notify seller about new follower
+        try {
+          final myProf = await _supabase.from('profiles').select('name, business_name').eq('id', user.id).maybeSingle();
+          final userName = myProf?['name'] ?? myProf?['business_name'] ?? 'A customer';
+          await createNotification(
+            recipientUserId: sellerId,
+            title: 'New Follower 🎉',
+            body: '$userName started following your store!',
+            type: 'follow',
+            metadata: {'follower_id': user.id, 'follower_name': userName},
+          );
+        } catch (notifErr) {
+          debugPrint('Error sending follow notification: $notifErr');
+        }
+
+        return http.Response(jsonEncode({'isFollowing': true, 'message': 'Following'}), 200);
       }
     } catch (e) {
+      debugPrint('Error in toggleFollow: $e');
       return http.Response(jsonEncode({'error': e.toString()}), 500);
     }
   }
@@ -787,7 +1040,7 @@ class ApiService {
   static Future<bool> isFollowing(String sellerId) async {
     try {
       final user = _supabase.auth.currentUser;
-      if (user == null) return false;
+      if (user == null || sellerId.isEmpty) return false;
 
       final existing = await _supabase
           .from('follows')
@@ -814,7 +1067,34 @@ class ApiService {
     }
   }
 
-  // Get real notifications from order activity
+  // Customer Mode: Get list of followed sellers
+  static Future<http.Response> getFollowingSellers() async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return http.Response(jsonEncode({'sellers': []}), 401);
+
+      final res = await _supabase
+          .from('follows')
+          .select('seller_id, created_at, profiles:seller_id(*)')
+          .eq('follower_id', user.id)
+          .order('created_at', ascending: false);
+
+      final List<Map<String, dynamic>> sellers = [];
+      for (final r in (res as List)) {
+        if (r['profiles'] != null && r['profiles'] is Map) {
+          final seller = Map<String, dynamic>.from(r['profiles'] as Map);
+          seller['followed_at'] = r['created_at'];
+          sellers.add(seller);
+        }
+      }
+      return http.Response(jsonEncode({'sellers': sellers}), 200);
+    } catch (e) {
+      debugPrint('Error getting following sellers: $e');
+      return http.Response(jsonEncode({'sellers': [], 'error': e.toString()}), 500);
+    }
+  }
+
+  // Get real notifications from database & orders
   static Future<http.Response> getNotifications() async {
     try {
       final user = _supabase.auth.currentUser;
@@ -822,34 +1102,105 @@ class ApiService {
       
       List<Map<String, dynamic>> notifications = [];
       
-      // Orders as buyer
-      final buyerOrders = await _supabase.from('orders').select('id, status, created_at, products(name)').eq('buyer_id', user.id).order('created_at', ascending: false).limit(10);
-      for (final o in buyerOrders) {
-        final productName = o['products']?['name'] ?? 'Product';
-        String message;
-        String icon;
-        switch (o['status']) {
-          case 'pending': message = 'Your order for $productName is pending'; icon = '🕐'; break;
-          case 'processing': message = 'Your order for $productName is being processed'; icon = '📦'; break;
-          case 'shipped': message = 'Your order for $productName has been shipped!'; icon = '🚚'; break;
-          case 'delivered': message = 'Your order for $productName has been delivered!'; icon = '✅'; break;
-          case 'cancelled': message = 'Your order for $productName was cancelled'; icon = '❌'; break;
-          default: message = 'Order update for $productName'; icon = '📋';
+      // 1. Fetch from notifications table in Supabase
+      try {
+        final notifRows = await _supabase
+            .from('notifications')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', ascending: false)
+            .limit(30);
+
+        for (final n in notifRows) {
+          String icon;
+          switch (n['type']) {
+            case 'follow': icon = '👤'; break;
+            case 'like': icon = '❤️'; break;
+            case 'save': icon = '📌'; break;
+            case 'order': icon = '📦'; break;
+            case 'offer': icon = '🏷️'; break;
+            case 'promotion': icon = '📢'; break;
+            default: icon = '🔔';
+          }
+          notifications.add({
+            'id': n['id'],
+            'title': n['title'] ?? 'Notification',
+            'message': n['body'] ?? '',
+            'body': n['body'] ?? '',
+            'icon': icon,
+            'type': n['type'] ?? 'general',
+            'metadata': n['metadata'] ?? {},
+            'is_read': n['is_read'] ?? false,
+            'created_at': n['created_at'],
+            'date': n['created_at'],
+          });
         }
-        notifications.add({'message': message, 'icon': icon, 'date': o['created_at'], 'type': 'order'});
+      } catch (dbErr) {
+        debugPrint('Error querying notifications table: $dbErr');
       }
-      
-      // Orders as seller
-      final sellerOrders = await _supabase.from('orders').select('id, status, created_at, products(name)').eq('seller_id', user.id).order('created_at', ascending: false).limit(10);
-      for (final o in sellerOrders) {
-        final productName = o['products']?['name'] ?? 'Product';
-        if (o['status'] == 'pending') {
-          notifications.add({'message': 'New order received for $productName! 🎉', 'icon': '🛒', 'date': o['created_at'], 'type': 'order'});
+
+      // 2. Fetch order updates as buyer
+      try {
+        final buyerOrders = await _supabase
+            .from('orders')
+            .select('id, status, created_at, products(name)')
+            .eq('buyer_id', user.id)
+            .order('created_at', ascending: false)
+            .limit(10);
+        for (final o in buyerOrders) {
+          final productName = o['products']?['name'] ?? 'Product';
+          String message;
+          String icon;
+          switch (o['status']) {
+            case 'pending': message = 'Your order for $productName is pending'; icon = '🕐'; break;
+            case 'processing': message = 'Your order for $productName is being processed'; icon = '📦'; break;
+            case 'shipped': message = 'Your order for $productName has been shipped!'; icon = '🚚'; break;
+            case 'delivered': message = 'Your order for $productName has been delivered!'; icon = '✅'; break;
+            case 'cancelled': message = 'Your order for $productName was cancelled'; icon = '❌'; break;
+            default: message = 'Order update for $productName'; icon = '📋';
+          }
+          notifications.add({
+            'title': 'Order Update',
+            'message': message,
+            'body': message,
+            'icon': icon,
+            'date': o['created_at'],
+            'created_at': o['created_at'],
+            'type': 'order'
+          });
         }
-      }
+      } catch (_) {}
       
-      // Sort by date descending
-      notifications.sort((a, b) => (b['date'] as String).compareTo(a['date'] as String));
+      // 3. Fetch order updates as seller
+      try {
+        final sellerOrders = await _supabase
+            .from('orders')
+            .select('id, status, created_at, products(name)')
+            .eq('seller_id', user.id)
+            .order('created_at', ascending: false)
+            .limit(10);
+        for (final o in sellerOrders) {
+          final productName = o['products']?['name'] ?? 'Product';
+          if (o['status'] == 'pending') {
+            notifications.add({
+              'title': 'New Order Received! 🎉',
+              'message': 'New order received for $productName!',
+              'body': 'New order received for $productName!',
+              'icon': '🛒',
+              'date': o['created_at'],
+              'created_at': o['created_at'],
+              'type': 'order'
+            });
+          }
+        }
+      } catch (_) {}
+
+      // Deduplicate and sort by date descending
+      notifications.sort((a, b) {
+        final dateA = (a['date'] ?? a['created_at'] ?? '') as String;
+        final dateB = (b['date'] ?? b['created_at'] ?? '') as String;
+        return dateB.compareTo(dateA);
+      });
       
       return http.Response(jsonEncode({'notifications': notifications}), 200);
     } catch (e) {

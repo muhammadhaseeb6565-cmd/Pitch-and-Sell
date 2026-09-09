@@ -51,45 +51,49 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ),
         iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
-          : _notifications.isEmpty
-              ? const Center(
-                  child: Text('No notifications yet', style: TextStyle(color: Colors.grey)),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _notifications.length,
-                  itemBuilder: (context, idx) {
-                    final notif = _notifications[idx];
-                    final title = notif['title'] ?? 'Notification';
-                    final body = notif['body'] ?? '';
-                    final time = notif['created_at'] ?? 'Just now';
-                    
-                    return GestureDetector(
-                      onTap: () {
-                        if (notif['type'] == 'order') {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const ManageOrdersScreen()),
-                          );
-                        }
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xff1e1e1e) : Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CircleAvatar(
-                              backgroundColor: const Color(0xffFF5722).withOpacity(0.12),
-                              child: const Icon(Icons.notifications, color: Color(0xffFF5722), size: 20),
-                            ),
+      body: RefreshIndicator(
+        onRefresh: _fetchNotifications,
+        color: const Color(0xffFF5722),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
+            : _notifications.isEmpty
+                ? const Center(
+                    child: Text('No notifications yet', style: TextStyle(color: Colors.grey)),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _notifications.length,
+                    itemBuilder: (context, idx) {
+                      final notif = _notifications[idx];
+                      final title = notif['title'] ?? 'Notification';
+                      final body = notif['body'] ?? notif['message'] ?? '';
+                      final time = notif['date'] ?? notif['created_at'] ?? 'Just now';
+                      final iconStr = notif['icon'] as String? ?? '🔔';
+                      
+                      return GestureDetector(
+                        onTap: () {
+                          if (notif['type'] == 'order') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const ManageOrdersScreen()),
+                            );
+                          }
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xff1e1e1e) : Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: const Color(0xffFF5722).withOpacity(0.12),
+                                child: Text(iconStr, style: const TextStyle(fontSize: 18)),
+                              ),
                             const SizedBox(width: 14),
                             Expanded(
                               child: Column(
@@ -119,9 +123,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           ],
                         ),
                       ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  ),
+        ),
     );
   }
 }
