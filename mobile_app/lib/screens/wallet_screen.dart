@@ -51,23 +51,34 @@ class _WalletScreenState extends State<WalletScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xff1e1e1e),
-          title: const Text('Request Payout', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          content: Text('Are you sure you want to withdraw PKR ${_balance.toStringAsFixed(0)} to your linked account?', style: const TextStyle(color: Colors.grey)),
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? Color(0xff1e1e1e)
+              : Colors.white,
+          title: Text('Request Payout',
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.bold)),
+          content: Text(
+              'Are you sure you want to withdraw PKR ${_balance.toStringAsFixed(0)} to your linked account?',
+              style: const TextStyle(color: Colors.grey)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722)),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xffFF5722)),
               onPressed: () {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Payout requested successfully!')),
+                  const SnackBar(
+                      content: Text('Payout requested successfully!')),
                 );
               },
-              child: const Text('Confirm', style: TextStyle(color: Colors.white)),
+              child: Text('Confirm',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface)),
             ),
           ],
         );
@@ -80,163 +91,228 @@ class _WalletScreenState extends State<WalletScreen> {
     return Scaffold(
       backgroundColor: const Color(0xff121212),
       appBar: AppBar(
-        backgroundColor: const Color(0xff1e1e1e),
-        title: const Text('My Wallet', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Color(0xff1e1e1e)
+            : Colors.white,
+        title: Text('My Wallet',
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.bold)),
         elevation: 0,
       ),
-      body: _isLoading 
-        ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
-        : _hasError 
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
-                  const SizedBox(height: 16),
-                  const Text('Failed to load wallet data.', style: TextStyle(color: Colors.white, fontSize: 16)),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _fetchData,
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722)),
-                    child: const Text('Retry', style: TextStyle(color: Colors.white)),
-                  )
-                ],
-              ),
-            )
-          : SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Balance Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xffFF5722), Color(0xffE64A19)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xffFF5722).withOpacity(0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'PITCHANDSELL ESCROW BALANCE',
-                    style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    '₨ ${_balance.toStringAsFixed(0)}',
-                    style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.w900),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Last Updated: Just Now',
-                    style: TextStyle(color: Colors.white60, fontSize: 11),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Early Withdrawal Banner
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange.withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline, color: Colors.orange, size: 20),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Text(
-                      'Request a manual withdrawal of your available funds.',
-                      style: TextStyle(color: Colors.orange, fontSize: 11, fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: _showWithdrawDialog,
-                    child: const Text('Withdraw', style: TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold, fontSize: 12)),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Linked Accounts
-            const Text('Linked Accounts', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            const Text('Manage your linked payment accounts in Settings', style: TextStyle(color: Colors.grey, fontSize: 13)),
-            const SizedBox(height: 24),
-
-            // Quick actions
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildQuickAction(Icons.arrow_upward, 'Send'),
-                _buildQuickAction(Icons.arrow_downward, 'Add Money'),
-                _buildQuickAction(Icons.wallet, 'Withdraw'),
-                _buildQuickAction(Icons.qr_code_scanner, 'QR Pay'),
-              ],
-            ),
-            const SizedBox(height: 32),
-
-            // Transaction History
-            const Text('Transaction History', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            _transactions.isEmpty ? const Text('No transactions found.', style: TextStyle(color: Colors.grey)) : ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _transactions.length,
-              itemBuilder: (context, idx) {
-                final tx = _transactions[idx];
-                return Container(
-                  margin: const EdgeInsets.symmetric(vertical: 6),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xff1e1e1e),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xffFF5722)))
+          : _hasError
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(tx['title'] ?? 'Transaction', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
-                          const SizedBox(height: 4),
-                          Text(tx['date'] ?? '', style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                        ],
-                      ),
-                      Text(
-                        '${(tx['isCredit'] == true) ? '+' : ''}₨ ${(tx['amount'] as num?)?.abs() ?? 0}',
-                        style: TextStyle(
-                          color: (tx['isCredit'] == true) ? Colors.green : Colors.redAccent,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
+                      const Icon(Icons.error_outline,
+                          color: Colors.redAccent, size: 48),
+                      const SizedBox(height: 16),
+                      Text('Failed to load wallet data.',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 16)),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _fetchData,
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xffFF5722)),
+                        child: Text('Retry',
+                            style: TextStyle(
+                                color:
+                                    Theme.of(context).colorScheme.onSurface)),
+                      )
                     ],
                   ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+                )
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Balance Card
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xffFF5722), Color(0xffE64A19)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xffFF5722).withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'PITCHANDSELL ESCROW BALANCE',
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface70,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              '₨ ${_balance.toStringAsFixed(0)}',
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.w900),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Last Updated: Just Now',
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface60,
+                                  fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Early Withdrawal Banner
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(8),
+                          border:
+                              Border.all(color: Colors.orange.withOpacity(0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.info_outline,
+                                color: Colors.orange, size: 20),
+                            const SizedBox(width: 12),
+                            const Expanded(
+                              child: Text(
+                                'Request a manual withdrawal of your available funds.',
+                                style: TextStyle(
+                                    color: Colors.orange,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: _showWithdrawDialog,
+                              child: const Text('Withdraw',
+                                  style: TextStyle(
+                                      color: Color(0xffFF5722),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Linked Accounts
+                      Text('Linked Accounts',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 12),
+                      const Text(
+                          'Manage your linked payment accounts in Settings',
+                          style: TextStyle(color: Colors.grey, fontSize: 13)),
+                      const SizedBox(height: 24),
+
+                      // Quick actions
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildQuickAction(Icons.arrow_upward, 'Send'),
+                          _buildQuickAction(Icons.arrow_downward, 'Add Money'),
+                          _buildQuickAction(Icons.wallet, 'Withdraw'),
+                          _buildQuickAction(Icons.qr_code_scanner, 'QR Pay'),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Transaction History
+                      Text('Transaction History',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 12),
+                      _transactions.isEmpty
+                          ? const Text('No transactions found.',
+                              style: TextStyle(color: Colors.grey))
+                          : ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: _transactions.length,
+                              itemBuilder: (context, idx) {
+                                final tx = _transactions[idx];
+                                return Container(
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 6),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Color(0xff1e1e1e)
+                                        : Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(tx['title'] ?? 'Transaction',
+                                              style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurface,
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500)),
+                                          const SizedBox(height: 4),
+                                          Text(tx['date'] ?? '',
+                                              style: const TextStyle(
+                                                  color: Colors.grey,
+                                                  fontSize: 11)),
+                                        ],
+                                      ),
+                                      Text(
+                                        '${(tx['isCredit'] == true) ? '+' : ''}₨ ${(tx['amount'] as num?)?.abs() ?? 0}',
+                                        style: TextStyle(
+                                          color: (tx['isCredit'] == true)
+                                              ? Colors.green
+                                              : Colors.redAccent,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                    ],
+                  ),
+                ),
     );
   }
 
@@ -245,7 +321,9 @@ class _WalletScreenState extends State<WalletScreen> {
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xff1e1e1e),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Color(0xff1e1e1e)
+            : Colors.white,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -259,7 +337,10 @@ class _WalletScreenState extends State<WalletScreen> {
                 decoration: BoxDecoration(color: color, shape: BoxShape.circle),
               ),
               const SizedBox(width: 12),
-              Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              Text(name,
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.bold)),
             ],
           ),
           Text(value, style: const TextStyle(color: Colors.grey, fontSize: 13)),
@@ -282,4 +363,3 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 }
-

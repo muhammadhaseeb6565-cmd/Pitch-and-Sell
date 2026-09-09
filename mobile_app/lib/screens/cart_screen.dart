@@ -14,13 +14,19 @@ class CartScreen extends StatelessWidget {
     const deliveryFee = 200.0;
     final subtotal = cart.subtotal;
     final convenienceFee = subtotal > 5000 ? subtotal * 0.02 : 0.0;
-    final total = subtotal > 0 ? (subtotal + deliveryFee + convenienceFee) : 0.0;
+    final total =
+        subtotal > 0 ? (subtotal + deliveryFee + convenienceFee) : 0.0;
 
     return Scaffold(
       backgroundColor: const Color(0xff121212),
       appBar: AppBar(
-        backgroundColor: const Color(0xff1e1e1e),
-        title: const Text('Shopping Cart', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Color(0xff1e1e1e)
+            : Colors.white,
+        title: Text('Shopping Cart',
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.bold)),
         elevation: 0,
       ),
       body: items.isEmpty
@@ -28,14 +34,19 @@ class CartScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.shopping_cart_outlined, color: Colors.grey, size: 64),
+                  const Icon(Icons.shopping_cart_outlined,
+                      color: Colors.grey, size: 64),
                   const SizedBox(height: 16),
-                  const Text('Your cart is empty', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                  const Text('Your cart is empty',
+                      style: TextStyle(color: Colors.grey, fontSize: 16)),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffFF5722)),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xffFF5722)),
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Continue Shopping', style: TextStyle(color: Colors.white)),
+                    child: Text('Continue Shopping',
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface)),
                   ),
                 ],
               ),
@@ -52,7 +63,9 @@ class CartScreen extends StatelessWidget {
                         margin: const EdgeInsets.symmetric(vertical: 6),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xff1e1e1e),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Color(0xff1e1e1e)
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.white10),
                         ),
@@ -65,16 +78,27 @@ class CartScreen extends StatelessWidget {
                                 color: const Color(0xffFF5722).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Icon(Icons.shopping_bag, color: Color(0xffFF5722)),
+                              child: const Icon(Icons.shopping_bag,
+                                  color: Color(0xffFF5722)),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(item.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                  Text(item.name,
+                                      style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13)),
                                   const SizedBox(height: 4),
-                                  Text('₨ ${item.price.toStringAsFixed(0)}', style: const TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold, fontSize: 12)),
+                                  Text('₨ ${item.price.toStringAsFixed(0)}',
+                                      style: const TextStyle(
+                                          color: Color(0xffFF5722),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12)),
                                 ],
                               ),
                             ),
@@ -83,24 +107,33 @@ class CartScreen extends StatelessWidget {
                                 IconButton(
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(),
-                                  icon: const Icon(Icons.remove_circle_outline, color: Colors.white70, size: 20),
+                                  icon: const Icon(Icons.remove_circle_outline,
+                                      color: Colors.white70, size: 20),
                                   onPressed: () {
                                     if (item.quantity > 1) {
-                                      cart.updateQuantity(item.id, item.quantity - 1);
+                                      cart.updateQuantity(
+                                          item.id, item.quantity - 1);
                                     } else {
                                       cart.removeItem(item.id);
                                     }
                                   },
                                 ),
                                 const SizedBox(width: 8),
-                                Text('${item.quantity}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                Text('${item.quantity}',
+                                    style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
+                                        fontWeight: FontWeight.bold)),
                                 const SizedBox(width: 8),
                                 IconButton(
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(),
-                                  icon: const Icon(Icons.add_circle_outline, color: Colors.white70, size: 20),
+                                  icon: const Icon(Icons.add_circle_outline,
+                                      color: Colors.white70, size: 20),
                                   onPressed: () {
-                                    cart.updateQuantity(item.id, item.quantity + 1);
+                                    cart.updateQuantity(
+                                        item.id, item.quantity + 1);
                                   },
                                 ),
                               ],
@@ -115,7 +148,8 @@ class CartScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(24),
                   decoration: const BoxDecoration(
                     color: Color(0xff1e1e1e),
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(20)),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -123,16 +157,24 @@ class CartScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Subtotal', style: TextStyle(color: Colors.grey)),
-                          Text('₨ ${subtotal.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white)),
+                          const Text('Subtotal',
+                              style: TextStyle(color: Colors.grey)),
+                          Text('₨ ${subtotal.toStringAsFixed(0)}',
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface)),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Delivery Fee', style: TextStyle(color: Colors.grey)),
-                          const Text('₨ 200', style: TextStyle(color: Colors.white)),
+                          const Text('Delivery Fee',
+                              style: TextStyle(color: Colors.grey)),
+                          Text('₨ 200',
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface)),
                         ],
                       ),
                       if (convenienceFee > 0) ...[
@@ -140,8 +182,13 @@ class CartScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Buyer convenience fee (2%)', style: TextStyle(color: Colors.grey)),
-                            Text('₨ ${convenienceFee.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white)),
+                            const Text('Buyer convenience fee (2%)',
+                                style: TextStyle(color: Colors.grey)),
+                            Text('₨ ${convenienceFee.toStringAsFixed(0)}',
+                                style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface)),
                           ],
                         ),
                       ],
@@ -149,8 +196,17 @@ class CartScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Total Amount', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                          Text('₨ ${total.toStringAsFixed(0)}', style: const TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold, fontSize: 18)),
+                          Text('Total Amount',
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16)),
+                          Text('₨ ${total.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                  color: Color(0xffFF5722),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18)),
                         ],
                       ),
                       const SizedBox(height: 20),
@@ -160,7 +216,8 @@ class CartScreen extends StatelessWidget {
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xffFF5722),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
                           onPressed: () {
                             Navigator.push(
@@ -168,14 +225,18 @@ class CartScreen extends StatelessWidget {
                               MaterialPageRoute(
                                 builder: (_) => CheckoutScreen(
                                   product: {
-                                    'name': items.length == 1 ? items.first.name : '${items.length} items in Cart',
+                                    'name': items.length == 1
+                                        ? items.first.name
+                                        : '${items.length} items in Cart',
                                     'price': subtotal,
-                                    'items': items.map((i) => {
-                                      'id': i.id, 
-                                      'quantity': i.quantity,
-                                      'size': i.size,
-                                      'color': i.color
-                                    }).toList(),
+                                    'items': items
+                                        .map((i) => {
+                                              'id': i.id,
+                                              'quantity': i.quantity,
+                                              'size': i.size,
+                                              'color': i.color
+                                            })
+                                        .toList(),
                                   },
                                 ),
                               ),
@@ -186,7 +247,11 @@ class CartScreen extends StatelessWidget {
                               }
                             });
                           },
-                          child: const Text('Proceed to Checkout', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          child: Text('Proceed to Checkout',
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ],

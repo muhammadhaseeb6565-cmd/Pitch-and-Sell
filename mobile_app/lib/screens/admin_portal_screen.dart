@@ -10,12 +10,13 @@ class AdminPortalScreen extends StatefulWidget {
   State<AdminPortalScreen> createState() => _AdminPortalScreenState();
 }
 
-class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTickerProviderStateMixin {
+class _AdminPortalScreenState extends State<AdminPortalScreen>
+    with SingleTickerProviderStateMixin {
   final _supabase = Supabase.instance.client;
   bool _isAuthenticated = false;
   final _pinController = TextEditingController();
   TabController? _tabController;
-  
+
   Map<String, dynamic> _stats = {
     'totalUsers': 0,
     'totalOrders': 0,
@@ -23,7 +24,7 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
     'pendingPayouts': 0,
     'pendingPromos': 0,
   };
-  
+
   bool _isLoadingStats = false;
   bool _isLoadingPromotions = false;
   List<dynamic> _promotions = [];
@@ -51,21 +52,37 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
       _fetchStats();
       _fetchPromotions();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid Admin PIN')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Invalid Admin PIN')));
     }
   }
 
   Future<void> _fetchStats() async {
     setState(() => _isLoadingStats = true);
     try {
-      final profiles = await _supabase.from('profiles').select('id').count(CountOption.exact);
-      final orders = await _supabase.from('orders').select('id').count(CountOption.exact);
-      final payouts = await _supabase.from('payouts').select('id').eq('status', 'pending').count(CountOption.exact);
-      final deals = await _supabase.from('deal_transactions').select('id').count(CountOption.exact);
-      
+      final profiles = await _supabase
+          .from('profiles')
+          .select('id')
+          .count(CountOption.exact);
+      final orders =
+          await _supabase.from('orders').select('id').count(CountOption.exact);
+      final payouts = await _supabase
+          .from('payouts')
+          .select('id')
+          .eq('status', 'pending')
+          .count(CountOption.exact);
+      final deals = await _supabase
+          .from('deal_transactions')
+          .select('id')
+          .count(CountOption.exact);
+
       int pendingPromoCount = 0;
       try {
-        final promos = await _supabase.from('promotions').select('id').eq('status', 'pending').count(CountOption.exact);
+        final promos = await _supabase
+            .from('promotions')
+            .select('id')
+            .eq('status', 'pending')
+            .count(CountOption.exact);
         pendingPromoCount = promos.count;
       } catch (_) {}
 
@@ -82,7 +99,8 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
     } catch (e) {
       debugPrint('Error fetching stats: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading stats: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error loading stats: $e')));
       }
       setState(() => _isLoadingStats = false);
     }
@@ -91,7 +109,8 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
   Future<void> _fetchPromotions() async {
     setState(() => _isLoadingPromotions = true);
     try {
-      final res = await ApiService.getAllPromotionsForAdmin(statusFilter: _selectedStatusFilter);
+      final res = await ApiService.getAllPromotionsForAdmin(
+          statusFilter: _selectedStatusFilter);
       if (res.statusCode == 200 && mounted) {
         final data = jsonDecode(res.body);
         setState(() {
@@ -115,7 +134,9 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
       if (res.statusCode == 200 && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(approve ? 'Promotion approved & activated on Billboard! 🎉' : 'Promotion request rejected.'),
+            content: Text(approve
+                ? 'Promotion approved & activated on Billboard! 🎉'
+                : 'Promotion request rejected.'),
             backgroundColor: approve ? Colors.green : Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
@@ -140,8 +161,11 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
       return Scaffold(
         backgroundColor: const Color(0xff121212),
         appBar: AppBar(
-          backgroundColor: const Color(0xff1e1e1e),
-          title: const Text('Admin Portal', style: TextStyle(color: Colors.white)),
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? Color(0xff1e1e1e)
+              : Colors.white,
+          title: Text('Admin Portal',
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         ),
         body: Center(
           child: Padding(
@@ -149,16 +173,19 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.admin_panel_settings, color: Color(0xffFF5722), size: 64),
+                const Icon(Icons.admin_panel_settings,
+                    color: Color(0xffFF5722), size: 64),
                 const SizedBox(height: 24),
                 TextField(
                   controller: _pinController,
                   obscureText: true,
-                  style: const TextStyle(color: Colors.white),
+                  style:
+                      TextStyle(color: Theme.of(context).colorScheme.onSurface),
                   decoration: const InputDecoration(
                     labelText: 'Enter Admin PIN',
                     labelStyle: TextStyle(color: Colors.grey),
-                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                    enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white24)),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -168,7 +195,9 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
                     minimumSize: const Size(double.infinity, 48),
                   ),
                   onPressed: _verifyPin,
-                  child: const Text('Access Portal', style: TextStyle(color: Colors.white)),
+                  child: Text('Access Portal',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface)),
                 )
               ],
             ),
@@ -180,8 +209,11 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
     return Scaffold(
       backgroundColor: const Color(0xff121212),
       appBar: AppBar(
-        backgroundColor: const Color(0xff1e1e1e),
-        title: const Text('Admin Operations', style: TextStyle(color: Colors.white)),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Color(0xff1e1e1e)
+            : Colors.white,
+        title: Text('Admin Operations',
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
@@ -197,7 +229,8 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
           labelColor: const Color(0xffFF5722),
           unselectedLabelColor: Colors.white70,
           tabs: [
-            const Tab(icon: Icon(Icons.insights, size: 18), text: 'Platform Stats'),
+            const Tab(
+                icon: Icon(Icons.insights, size: 18), text: 'Platform Stats'),
             Tab(
               icon: const Icon(Icons.campaign, size: 18),
               text: _stats['pendingPromos'] > 0
@@ -222,7 +255,8 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
 
   Widget _buildStatsTab() {
     if (_isLoadingStats) {
-      return const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)));
+      return const Center(
+          child: CircularProgressIndicator(color: Color(0xffFF5722)));
     }
 
     return SingleChildScrollView(
@@ -230,27 +264,37 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Platform Statistics', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          Text('Platform Statistics',
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           Row(
             children: [
-              _buildStatCard('Users', _stats['totalUsers'].toString(), Icons.people),
+              _buildStatCard(
+                  'Users', _stats['totalUsers'].toString(), Icons.people),
               const SizedBox(width: 16),
-              _buildStatCard('Orders', _stats['totalOrders'].toString(), Icons.shopping_cart),
+              _buildStatCard('Orders', _stats['totalOrders'].toString(),
+                  Icons.shopping_cart),
             ],
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              _buildStatCard('Deals Used', _stats['totalDeals'].toString(), Icons.local_offer),
+              _buildStatCard('Deals Used', _stats['totalDeals'].toString(),
+                  Icons.local_offer),
               const SizedBox(width: 16),
-              _buildStatCard('Pending Payouts', _stats['pendingPayouts'].toString(), Icons.payments),
+              _buildStatCard('Pending Payouts',
+                  _stats['pendingPayouts'].toString(), Icons.payments),
             ],
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              _buildStatCard('Pending Promos', _stats['pendingPromos'].toString(), Icons.campaign, highlight: _stats['pendingPromos'] > 0),
+              _buildStatCard('Pending Promos',
+                  _stats['pendingPromos'].toString(), Icons.campaign,
+                  highlight: _stats['pendingPromos'] > 0),
               const SizedBox(width: 16),
               const Expanded(child: SizedBox()),
             ],
@@ -268,7 +312,11 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           child: Row(
             children: [
-              const Text('Filter:', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
+              Text('Filter:',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface70,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold)),
               const SizedBox(width: 10),
               _buildFilterChip('Pending', 'pending'),
               const SizedBox(width: 8),
@@ -284,17 +332,20 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
         // List
         Expanded(
           child: _isLoadingPromotions
-              ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
+              ? const Center(
+                  child: CircularProgressIndicator(color: Color(0xffFF5722)))
               : _promotions.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.check_circle_outline, size: 54, color: Colors.grey[700]),
+                          Icon(Icons.check_circle_outline,
+                              size: 54, color: Colors.grey[700]),
                           const SizedBox(height: 12),
                           Text(
                             'No ${_selectedStatusFilter.toLowerCase()} promotion requests',
-                            style: const TextStyle(color: Colors.grey, fontSize: 14),
+                            style: const TextStyle(
+                                color: Colors.grey, fontSize: 14),
                           ),
                         ],
                       ),
@@ -316,7 +367,8 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
   }
 
   Widget _buildFilterChip(String label, String value) {
-    final isSelected = _selectedStatusFilter.toLowerCase() == value.toLowerCase();
+    final isSelected =
+        _selectedStatusFilter.toLowerCase() == value.toLowerCase();
     return GestureDetector(
       onTap: () {
         setState(() => _selectedStatusFilter = value);
@@ -327,7 +379,8 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xffFF5722) : const Color(0xff222222),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: isSelected ? const Color(0xffFF5722) : Colors.white12),
+          border: Border.all(
+              color: isSelected ? const Color(0xffFF5722) : Colors.white12),
         ),
         child: Text(
           label,
@@ -359,10 +412,14 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xff1e1e1e),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Color(0xff1e1e1e)
+            : Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isPending ? const Color(0xffFF5722).withOpacity(0.4) : Colors.white12,
+          color: isPending
+              ? const Color(0xffFF5722).withOpacity(0.4)
+              : Colors.white12,
         ),
       ),
       child: Column(
@@ -380,12 +437,16 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
                       color: const Color(0xffFF5722).withOpacity(0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.campaign, color: Color(0xffFF5722), size: 18),
+                    child: const Icon(Icons.campaign,
+                        color: Color(0xffFF5722), size: 18),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'Plan: ${promo['plan_name'] ?? 'BILLBOARD'}',
-                    style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -398,7 +459,10 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
                 ),
                 child: Text(
                   status.toUpperCase(),
-                  style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: statusColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -409,12 +473,16 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.shopping_bag_outlined, color: Colors.white70, size: 16),
+              const Icon(Icons.shopping_bag_outlined,
+                  color: Colors.white70, size: 16),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   'Product: ${product['name'] ?? 'Unknown'} (₨ ${product['price'] ?? '0'})',
-                  style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -427,7 +495,9 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
               Expanded(
                 child: Text(
                   'Seller: ${profile['business_name'] ?? profile['name'] ?? 'Unknown'} (${profile['phone'] ?? profile['email'] ?? 'No contact'})',
-                  style: const TextStyle(color: Colors.white70, fontSize: 11.5),
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface70,
+                      fontSize: 11.5),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -447,8 +517,15 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Method: $paymentMethod', style: const TextStyle(color: Colors.white70, fontSize: 11.5)),
-                    Text('Fee: ₨ $amount', style: const TextStyle(color: Color(0xffFF5722), fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text('Method: $paymentMethod',
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface70,
+                            fontSize: 11.5)),
+                    Text('Fee: ₨ $amount',
+                        style: const TextStyle(
+                            color: Color(0xffFF5722),
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold)),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -458,11 +535,17 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
                     Expanded(
                       child: Text(
                         'TID / Ref: $transactionId',
-                        style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    Text('Duration: $durationDays Days', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                    Text('Duration: $durationDays Days',
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface54,
+                            fontSize: 11)),
                   ],
                 ),
               ],
@@ -479,12 +562,16 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.red,
                       side: const BorderSide(color: Colors.red),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       padding: const EdgeInsets.symmetric(vertical: 8),
                     ),
                     icon: const Icon(Icons.close, size: 16),
-                    label: const Text('Reject', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                    onPressed: () => _handlePromotionDecision(promo['id'].toString(), false),
+                    label: const Text('Reject',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold)),
+                    onPressed: () =>
+                        _handlePromotionDecision(promo['id'].toString(), false),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -492,12 +579,19 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       padding: const EdgeInsets.symmetric(vertical: 8),
                     ),
-                    icon: const Icon(Icons.check, size: 16, color: Colors.white),
-                    label: const Text('Approve & Activate', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                    onPressed: () => _handlePromotionDecision(promo['id'].toString(), true),
+                    icon:
+                        const Icon(Icons.check, size: 16, color: Colors.white),
+                    label: Text('Approve & Activate',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface)),
+                    onPressed: () =>
+                        _handlePromotionDecision(promo['id'].toString(), true),
                   ),
                 ),
               ],
@@ -508,12 +602,15 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, {bool highlight = false}) {
+  Widget _buildStatCard(String title, String value, IconData icon,
+      {bool highlight = false}) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xff1e1e1e),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Color(0xff1e1e1e)
+              : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: highlight ? const Color(0xffFF5722) : Colors.white12,
@@ -524,9 +621,16 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> with SingleTicker
           children: [
             Icon(icon, color: const Color(0xffFF5722), size: 32),
             const SizedBox(height: 12),
-            Text(value, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+            Text(value,
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            Text(title, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+            Text(title,
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface70,
+                    fontSize: 12)),
           ],
         ),
       ),

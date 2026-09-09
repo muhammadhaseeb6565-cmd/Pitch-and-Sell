@@ -30,7 +30,8 @@ class CategoryPreferencesScreen extends StatefulWidget {
   });
 
   @override
-  State<CategoryPreferencesScreen> createState() => _CategoryPreferencesScreenState();
+  State<CategoryPreferencesScreen> createState() =>
+      _CategoryPreferencesScreenState();
 }
 
 class _CategoryPreferencesScreenState extends State<CategoryPreferencesScreen> {
@@ -145,7 +146,9 @@ class _CategoryPreferencesScreenState extends State<CategoryPreferencesScreen> {
 
     try {
       final List<String> toSave = isSkipping
-          ? (_selectedCategories.isEmpty ? ['Clothing', 'Electronics', 'Foods'] : _selectedCategories.toList())
+          ? (_selectedCategories.isEmpty
+              ? ['Clothing', 'Electronics', 'Foods']
+              : _selectedCategories.toList())
           : _selectedCategories.toList();
 
       await auth.savePreferredCategories(toSave);
@@ -194,14 +197,16 @@ class _CategoryPreferencesScreenState extends State<CategoryPreferencesScreen> {
     final hasMinimum = _selectedCategories.isNotEmpty;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xff121212) : const Color(0xffF8F9FA),
+      backgroundColor:
+          isDark ? const Color(0xff121212) : const Color(0xffF8F9FA),
       appBar: AppBar(
         backgroundColor: isDark ? const Color(0xff1A1A1A) : Colors.white,
         elevation: 0,
         leading: widget.isFirstTime
             ? null
             : IconButton(
-                icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black87),
+                icon: Icon(Icons.arrow_back,
+                    color: isDark ? Colors.white : Colors.black87),
                 onPressed: () => Navigator.pop(context),
               ),
         title: Text(
@@ -215,7 +220,9 @@ class _CategoryPreferencesScreenState extends State<CategoryPreferencesScreen> {
         actions: [
           if (widget.isFirstTime)
             TextButton(
-              onPressed: _isSaving ? null : () => _handleSaveAndContinue(isSkipping: true),
+              onPressed: _isSaving
+                  ? null
+                  : () => _handleSaveAndContinue(isSkipping: true),
               child: Text(
                 'Skip',
                 style: TextStyle(
@@ -246,7 +253,8 @@ class _CategoryPreferencesScreenState extends State<CategoryPreferencesScreen> {
                           color: primaryColor.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(Icons.auto_awesome, color: Color(0xffFF5722), size: 20),
+                        child: const Icon(Icons.auto_awesome,
+                            color: Color(0xffFF5722), size: 20),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -280,21 +288,27 @@ class _CategoryPreferencesScreenState extends State<CategoryPreferencesScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: hasMinimum
                               ? primaryColor.withOpacity(0.15)
-                              : (isDark ? Colors.white10 : Colors.grey.shade200),
+                              : (isDark
+                                  ? Colors.white10
+                                  : Colors.grey.shade200),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: hasMinimum ? primaryColor : Colors.transparent,
+                            color:
+                                hasMinimum ? primaryColor : Colors.transparent,
                             width: 1,
                           ),
                         ),
                         child: Text(
                           '${_selectedCategories.length} selected',
                           style: TextStyle(
-                            color: hasMinimum ? primaryColor : (isDark ? Colors.white60 : Colors.black54),
+                            color: hasMinimum
+                                ? primaryColor
+                                : (isDark ? Colors.white60 : Colors.black54),
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
@@ -302,7 +316,8 @@ class _CategoryPreferencesScreenState extends State<CategoryPreferencesScreen> {
                       ),
                       if (_selectedCategories.isNotEmpty)
                         GestureDetector(
-                          onTap: () => setState(() => _selectedCategories.clear()),
+                          onTap: () =>
+                              setState(() => _selectedCategories.clear()),
                           child: const Text(
                             'Clear All',
                             style: TextStyle(
@@ -342,11 +357,17 @@ class _CategoryPreferencesScreenState extends State<CategoryPreferencesScreen> {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? (isDark ? const Color(0xff2A1E1A) : const Color(0xffFFF3E0))
+                            ? (isDark
+                                ? const Color(0xff2A1E1A)
+                                : const Color(0xffFFF3E0))
                             : (isDark ? const Color(0xff1E1E1E) : Colors.white),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: isSelected ? primaryColor : (isDark ? Colors.white12 : Colors.grey.shade300),
+                          color: isSelected
+                              ? primaryColor
+                              : (isDark
+                                  ? Colors.white12
+                                  : Colors.grey.shade300),
                           width: isSelected ? 2.0 : 1.0,
                         ),
                         boxShadow: [
@@ -365,7 +386,8 @@ class _CategoryPreferencesScreenState extends State<CategoryPreferencesScreen> {
                             children: [
                               // Emoji and Checkmark
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Container(
                                     padding: const EdgeInsets.all(8),
@@ -384,14 +406,21 @@ class _CategoryPreferencesScreenState extends State<CategoryPreferencesScreen> {
                                     height: 22,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: isSelected ? primaryColor : Colors.transparent,
+                                      color: isSelected
+                                          ? primaryColor
+                                          : Colors.transparent,
                                       border: Border.all(
-                                        color: isSelected ? primaryColor : (isDark ? Colors.white38 : Colors.grey),
+                                        color: isSelected
+                                            ? primaryColor
+                                            : (isDark
+                                                ? Colors.white38
+                                                : Colors.grey),
                                         width: 1.5,
                                       ),
                                     ),
                                     child: isSelected
-                                        ? const Icon(Icons.check, size: 14, color: Colors.white)
+                                        ? const Icon(Icons.check,
+                                            size: 14, color: Colors.white)
                                         : null,
                                   ),
                                 ],
@@ -404,7 +433,9 @@ class _CategoryPreferencesScreenState extends State<CategoryPreferencesScreen> {
                                 style: TextStyle(
                                   color: isDark ? Colors.white : Colors.black87,
                                   fontSize: 13,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.w600,
                                 ),
                               ),
                               const SizedBox(height: 3),
@@ -413,7 +444,8 @@ class _CategoryPreferencesScreenState extends State<CategoryPreferencesScreen> {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  color: isDark ? Colors.white54 : Colors.black54,
+                                  color:
+                                      isDark ? Colors.white54 : Colors.black54,
                                   fontSize: 10.5,
                                   height: 1.2,
                                 ),
@@ -448,10 +480,12 @@ class _CategoryPreferencesScreenState extends State<CategoryPreferencesScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor: isDark ? Colors.white12 : Colors.grey.shade300,
+                    disabledBackgroundColor:
+                        isDark ? Colors.white12 : Colors.grey.shade300,
                     disabledForegroundColor: Colors.grey,
                     elevation: hasMinimum ? 3 : 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                   ),
                   onPressed: (!hasMinimum || _isSaving)
                       ? null
@@ -460,13 +494,16 @@ class _CategoryPreferencesScreenState extends State<CategoryPreferencesScreen> {
                       ? const SizedBox(
                           width: 24,
                           height: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2.5),
                         )
                       : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              widget.isFirstTime ? 'Continue to Feed' : 'Save Preferences',
+                              widget.isFirstTime
+                                  ? 'Continue to Feed'
+                                  : 'Save Preferences',
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,

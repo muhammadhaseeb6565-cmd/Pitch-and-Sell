@@ -19,22 +19,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<Map<String, String>> _slides = [
     {
       'title': 'Pitch Your Business. Get Discovered.',
-      'desc': 'Showcase your items through premium short-form videos to customers all across Pakistan.',
+      'desc':
+          'Showcase your items through premium short-form videos to customers all across Pakistan.',
       'emoji': '🚀',
     },
     {
       'title': 'Upload Pitches in Minutes',
-      'desc': 'Publish demo videos, details, pricing, and stock status immediately to the public feed.',
+      'desc':
+          'Publish demo videos, details, pricing, and stock status immediately to the public feed.',
       'emoji': '📹',
     },
     {
       'title': 'Earn with Low Commission',
-      'desc': 'Keep up to 96% of your qualifying sales revenue directly into your linked mobile wallets.',
+      'desc':
+          'Keep up to 96% of your qualifying sales revenue directly into your linked mobile wallets.',
       'emoji': '💰',
     },
     {
       'title': 'Are You a Buyer or Seller?',
-      'desc': 'Choose your primary platform role to tailor your discoverability experience. You can change this anytime!',
+      'desc':
+          'Choose your primary platform role to tailor your discoverability experience. You can change this anytime!',
       'emoji': '✨',
     },
   ];
@@ -106,8 +110,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Text(
                           slide['title']!,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
@@ -125,22 +129,35 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         if (idx == _slides.length - 1) ...[
                           const SizedBox(height: 32),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 4),
                             decoration: BoxDecoration(
-                              color: const Color(0xff1e1e1e),
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Color(0xff1e1e1e)
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: Colors.white10),
                             ),
                             child: DropdownButton<String>(
-                              dropdownColor: const Color(0xff1e1e1e),
+                              dropdownColor: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Color(0xff1e1e1e)
+                                  : Colors.white,
                               value: _selectedRole,
                               underline: const SizedBox(),
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                              items: ['Customer (Buyer)', 'Shop (Seller)'].map((r) {
-                                return DropdownMenuItem(value: r, child: Text(r));
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold),
+                              items: ['Customer (Buyer)', 'Shop (Seller)']
+                                  .map((r) {
+                                return DropdownMenuItem(
+                                    value: r, child: Text(r));
                               }).toList(),
                               onChanged: (val) {
-                                if (val != null) setState(() => _selectedRole = val);
+                                if (val != null)
+                                  setState(() => _selectedRole = val);
                               },
                             ),
                           ),
@@ -160,7 +177,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   width: _currentPage == idx ? 16 : 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: _currentPage == idx ? const Color(0xffFF5722) : Colors.grey,
+                    color: _currentPage == idx
+                        ? const Color(0xffFF5722)
+                        : Colors.grey,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 );
@@ -168,14 +187,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             const SizedBox(height: 32),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24),
               child: SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xffFF5722),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () {
                     if (_currentPage < _slides.length - 1) {
@@ -189,7 +210,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   },
                   child: Text(
                     _currentPage == _slides.length - 1 ? 'Get Started' : 'Next',
-                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

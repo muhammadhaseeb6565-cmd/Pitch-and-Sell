@@ -51,11 +51,13 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
   Future<void> _toggleFollow() async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in to follow sellers.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please log in to follow sellers.')));
       return;
     }
     if (user.id == widget.sellerId) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('You cannot follow your own shop.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You cannot follow your own shop.')));
       return;
     }
 
@@ -74,7 +76,9 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(following ? 'Following ${widget.businessName}' : 'Unfollowed ${widget.businessName}'),
+              content: Text(following
+                  ? 'Following ${widget.businessName}'
+                  : 'Unfollowed ${widget.businessName}'),
               duration: const Duration(seconds: 1),
             ),
           );
@@ -88,22 +92,33 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     }
   }
 
-  Future<void> _confirmDeleteProduct(String productId, String productName) async {
+  Future<void> _confirmDeleteProduct(
+      String productId, String productName) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xff1e1e1e),
-        title: const Text('Delete Pitch Video?', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        content: Text('Are you sure you want to delete "$productName"? This action cannot be undone.', style: const TextStyle(color: Colors.grey)),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Color(0xff1e1e1e)
+            : Colors.white,
+        title: Text('Delete Pitch Video?',
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.bold)),
+        content: Text(
+            'Are you sure you want to delete "$productName"? This action cannot be undone.',
+            style: const TextStyle(color: Colors.grey)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            child: Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text('Delete',
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -117,7 +132,9 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             _products.removeWhere((p) => p['id'] == productId);
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Pitch video deleted successfully!'), backgroundColor: Colors.green),
+            const SnackBar(
+                content: Text('Pitch video deleted successfully!'),
+                backgroundColor: Colors.green),
           );
         }
       } catch (e) {
@@ -133,7 +150,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           .select('*, profiles:seller_id(*)')
           .eq('seller_id', widget.sellerId)
           .order('created_at', ascending: false);
-          
+
       // Fetch completed orders count for badges
       int count = 0;
       try {
@@ -146,7 +163,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
       } catch (e) {
         debugPrint('Error counting orders: $e');
       }
-      
+
       if (mounted) {
         setState(() {
           _products = res;
@@ -165,7 +182,8 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
   void _startChat() async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in to chat.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please log in to chat.')));
       return;
     }
 
@@ -181,10 +199,14 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
       if (existingChat != null) {
         chatId = existingChat['id'];
       } else {
-        final newChat = await Supabase.instance.client.from('chats').insert({
-          'user1_id': user.id,
-          'user2_id': widget.sellerId,
-        }).select('id').single();
+        final newChat = await Supabase.instance.client
+            .from('chats')
+            .insert({
+              'user1_id': user.id,
+              'user2_id': widget.sellerId,
+            })
+            .select('id')
+            .single();
         chatId = newChat['id'];
       }
 
@@ -202,19 +224,24 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     } catch (e) {
       debugPrint('Error starting chat: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to start chat.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to start chat.')));
       }
     }
   }
 
   Widget _buildTierBadge() {
     if (_completedOrders >= 500) {
-      return const Row(
+      return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.verified, color: Colors.blue, size: 18),
           SizedBox(width: 4),
-          Text('Top Rated Seller', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 13)),
+          Text('Top Rated Seller',
+              style: TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13)),
         ],
       );
     } else if (_completedOrders >= 400) {
@@ -228,19 +255,22 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     } else if (_completedOrders >= 5) {
       return _badgeUI('Bronze Seller 🥉', Colors.brown[300]!);
     }
-    return const Text('New Seller 🌱', style: TextStyle(color: Colors.grey, fontSize: 13));
+    return Text('New Seller 🌱',
+        style: TextStyle(color: Colors.grey, fontSize: 13));
   }
 
   Widget _badgeUI(String text, Color color) {
-     return Container(
-       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-       decoration: BoxDecoration(
-         color: color.withOpacity(0.15),
-         borderRadius: BorderRadius.circular(8),
-         border: Border.all(color: color.withOpacity(0.5)),
-       ),
-       child: Text(text, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
-     );
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.5)),
+      ),
+      child: Text(text,
+          style: TextStyle(
+              color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+    );
   }
 
   @override
@@ -248,9 +278,16 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     return Scaffold(
       backgroundColor: const Color(0xff121212),
       appBar: AppBar(
-        backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xff1e1e1e) : Colors.white,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Theme.of(context).brightness == Brightness.dark
+                ? Color(0xff1e1e1e)
+                : Colors.white
+            : Colors.white,
         elevation: 0,
-        title: Text(widget.businessName, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
+        title: Text(widget.businessName,
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.bold)),
       ),
       body: Column(
         children: [
@@ -269,12 +306,16 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                 CircleAvatar(
                   radius: 36,
                   backgroundColor: const Color(0xffFF5722).withOpacity(0.15),
-                  child: const Icon(Icons.storefront_rounded, color: Color(0xffFF5722), size: 38),
+                  child: const Icon(Icons.storefront_rounded,
+                      color: Color(0xffFF5722), size: 38),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   widget.businessName,
-                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 6),
@@ -283,10 +324,15 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   children: [
                     Text(
                       '$_followersCount Followers',
-                      style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface70,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(width: 8),
-                    const Text('•', style: TextStyle(color: Colors.white38)),
+                    Text('•',
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface38)),
                     const SizedBox(width: 8),
                     _buildTierBadge(),
                   ],
@@ -301,28 +347,40 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                         child: OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(
                             side: BorderSide(
-                              color: _isFollowing ? Colors.white38 : const Color(0xffFF5722),
+                              color: _isFollowing
+                                  ? Colors.white38
+                                  : const Color(0xffFF5722),
                               width: 1.5,
                             ),
-                            backgroundColor: _isFollowing ? Colors.white10 : const Color(0xffFF5722).withOpacity(0.15),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            backgroundColor: _isFollowing
+                                ? Colors.white10
+                                : const Color(0xffFF5722).withOpacity(0.15),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
                           onPressed: _isActionLoading ? null : _toggleFollow,
                           icon: _isActionLoading
                               ? const SizedBox(
                                   width: 16,
                                   height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xffFF5722)),
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: Color(0xffFF5722)),
                                 )
                               : Icon(
-                                  _isFollowing ? Icons.check : Icons.person_add_alt_1_rounded,
-                                  color: _isFollowing ? Colors.white70 : const Color(0xffFF5722),
+                                  _isFollowing
+                                      ? Icons.check
+                                      : Icons.person_add_alt_1_rounded,
+                                  color: _isFollowing
+                                      ? Colors.white70
+                                      : const Color(0xffFF5722),
                                   size: 18,
                                 ),
                           label: Text(
                             _isFollowing ? 'Following' : 'Follow',
                             style: TextStyle(
-                              color: _isFollowing ? Colors.white70 : const Color(0xffFF5722),
+                              color: _isFollowing
+                                  ? Colors.white70
+                                  : const Color(0xffFF5722),
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                             ),
@@ -338,13 +396,18 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                         child: ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xffFF5722),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
                           onPressed: _startChat,
-                          icon: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white, size: 18),
-                          label: const Text(
+                          icon: const Icon(Icons.chat_bubble_outline_rounded,
+                              color: Colors.white, size: 18),
+                          label: Text(
                             'Chat',
-                            style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -359,18 +422,26 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text('Products', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold)),
+              child: Text('Products',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold)),
             ),
           ),
           const SizedBox(height: 12),
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
+                ? const Center(
+                    child: CircularProgressIndicator(color: Color(0xffFF5722)))
                 : _products.isEmpty
-                    ? const Center(child: Text('No products available.', style: TextStyle(color: Colors.grey)))
+                    ? const Center(
+                        child: Text('No products available.',
+                            style: TextStyle(color: Colors.grey)))
                     : GridView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
@@ -379,12 +450,17 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                         itemCount: _products.length,
                         itemBuilder: (context, index) {
                           final product = _products[index];
-                          final user = Supabase.instance.client.auth.currentUser;
-                          final isOwner = user != null && user.id == widget.sellerId;
+                          final user =
+                              Supabase.instance.client.auth.currentUser;
+                          final isOwner =
+                              user != null && user.id == widget.sellerId;
 
                           return Container(
                             decoration: BoxDecoration(
-                              color: const Color(0xff1e1e1e),
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Color(0xff1e1e1e)
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: Colors.white12),
                             ),
@@ -397,29 +473,45 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                                       Container(
                                         decoration: BoxDecoration(
                                           color: Colors.black26,
-                                          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                          borderRadius:
+                                              const BorderRadius.vertical(
+                                                  top: Radius.circular(12)),
                                           image: DecorationImage(
-                                            image: product['thumbnailUrl'] != null 
-                                              ? NetworkImage(product['thumbnailUrl']) as ImageProvider
-                                              : const AssetImage('assets/images/placeholder.png'),
+                                            image: product['thumbnailUrl'] !=
+                                                    null
+                                                ? NetworkImage(
+                                                        product['thumbnailUrl'])
+                                                    as ImageProvider
+                                                : const AssetImage(
+                                                    'assets/images/placeholder.png'),
                                             fit: BoxFit.cover,
                                           ),
                                         ),
-                                        child: const Center(child: Icon(Icons.play_circle_outline, color: Colors.white70, size: 36)),
+                                        child: const Center(
+                                            child: Icon(
+                                                Icons.play_circle_outline,
+                                                color: Colors.white70,
+                                                size: 36)),
                                       ),
                                       if (isOwner)
                                         Positioned(
                                           top: 6,
                                           right: 6,
                                           child: GestureDetector(
-                                            onTap: () => _confirmDeleteProduct(product['id'], product['name'] ?? 'Product'),
+                                            onTap: () => _confirmDeleteProduct(
+                                                product['id'],
+                                                product['name'] ?? 'Product'),
                                             child: Container(
                                               padding: const EdgeInsets.all(5),
                                               decoration: BoxDecoration(
-                                                color: Colors.black.withOpacity(0.7),
+                                                color: Colors.black
+                                                    .withOpacity(0.7),
                                                 shape: BoxShape.circle,
                                               ),
-                                              child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 18),
+                                              child: const Icon(
+                                                  Icons.delete_outline_rounded,
+                                                  color: Colors.redAccent,
+                                                  size: 18),
                                             ),
                                           ),
                                         ),
@@ -429,18 +521,27 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         product['name'] ?? '',
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                        style: TextStyle(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13),
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
                                         'PKR ${product['price'] ?? 0}',
-                                        style: const TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold, fontSize: 13),
+                                        style: const TextStyle(
+                                            color: Color(0xffFF5722),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13),
                                       ),
                                     ],
                                   ),

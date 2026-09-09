@@ -10,12 +10,14 @@ import 'category_preferences_screen.dart';
 class WelcomeScreen extends StatefulWidget {
   final String initialMode;
   final bool forceTerms;
-  const WelcomeScreen({super.key, this.initialMode = 'customer', this.forceTerms = false});
+  const WelcomeScreen(
+      {super.key, this.initialMode = 'customer', this.forceTerms = false});
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProviderStateMixin {
+class _WelcomeScreenState extends State<WelcomeScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _signInEmailCtrl = TextEditingController();
   final _signInPassCtrl = TextEditingController();
@@ -68,16 +70,22 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   @override
   void dispose() {
     _tabController.dispose();
-    _signInEmailCtrl.dispose(); _signInPassCtrl.dispose();
-    _signUpFirstCtrl.dispose(); _signUpLastCtrl.dispose();
-    _signUpEmailCtrl.dispose(); _signUpPhoneCtrl.dispose();
-    _signUpPassCtrl.dispose(); _signUpConfirmPassCtrl.dispose();
-    _signUpShopNameCtrl.dispose(); _signUpShopDescCtrl.dispose();
+    _signInEmailCtrl.dispose();
+    _signInPassCtrl.dispose();
+    _signUpFirstCtrl.dispose();
+    _signUpLastCtrl.dispose();
+    _signUpEmailCtrl.dispose();
+    _signUpPhoneCtrl.dispose();
+    _signUpPassCtrl.dispose();
+    _signUpConfirmPassCtrl.dispose();
+    _signUpShopNameCtrl.dispose();
+    _signUpShopDescCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _pickImage() async {
-    final file = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 70);
+    final file = await ImagePicker()
+        .pickImage(source: ImageSource.gallery, imageQuality: 70);
     if (file != null && mounted) setState(() => _profileImagePath = file.path);
   }
 
@@ -88,7 +96,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
       content: Row(children: [
         const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
         const SizedBox(width: 10),
-        Expanded(child: Text(msg, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600))),
+        Expanded(
+            child: Text(msg,
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.w600))),
       ]),
       backgroundColor: const Color(0xff2e7d32),
       behavior: SnackBarBehavior.floating,
@@ -105,7 +117,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
       content: Row(children: [
         const Icon(Icons.error_rounded, color: Colors.white, size: 20),
         const SizedBox(width: 10),
-        Expanded(child: Text(msg, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600))),
+        Expanded(
+            child: Text(msg,
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.w600))),
       ]),
       backgroundColor: const Color(0xffc62828),
       behavior: SnackBarBehavior.floating,
@@ -121,7 +137,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     if (!auth.hasSetPreferredCategories) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const CategoryPreferencesScreen(isFirstTime: true)),
+        MaterialPageRoute(
+            builder: (_) => const CategoryPreferencesScreen(isFirstTime: true)),
       );
     } else {
       Navigator.pushReplacement(
@@ -134,7 +151,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   Future<void> _handleSignIn(AuthProvider auth) async {
     if (!_signInFormKey.currentState!.validate()) return;
     try {
-      final success = await auth.signInWithEmail(_signInEmailCtrl.text.trim(), _signInPassCtrl.text);
+      final success = await auth.signInWithEmail(
+          _signInEmailCtrl.text.trim(), _signInPassCtrl.text);
       if (success && mounted) {
         if (!auth.hasAcceptedTerms) {
           final agreed = await _showTermsAndConditionsModal();
@@ -156,7 +174,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
       }
     } catch (e) {
       final msg = e.toString().replaceAll('Exception:', '').trim();
-      if (msg.contains('Invalid login') || msg.contains('invalid_credentials')) {
+      if (msg.contains('Invalid login') ||
+          msg.contains('invalid_credentials')) {
         _showError('Incorrect email or password. Please try again.');
       } else if (msg.contains('Email not confirmed')) {
         _showError('Please verify your email first. Check your inbox.');
@@ -183,8 +202,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
         lastName: _signUpLastCtrl.text.trim(),
         phone: _signUpPhoneCtrl.text.trim(),
         role: _selectedMode,
-        shopName: _selectedMode == 'seller' ? _signUpShopNameCtrl.text.trim() : null,
-        shopDescription: _selectedMode == 'seller' ? _signUpShopDescCtrl.text.trim() : null,
+        shopName:
+            _selectedMode == 'seller' ? _signUpShopNameCtrl.text.trim() : null,
+        shopDescription:
+            _selectedMode == 'seller' ? _signUpShopDescCtrl.text.trim() : null,
       );
       if (success && mounted) {
         // Because we already showed the modal and they agreed, mark terms accepted.
@@ -195,7 +216,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
       }
     } catch (e) {
       final msg = e.toString().replaceAll('Exception:', '').trim();
-      if (msg.contains('already registered') || msg.contains('already exists')) {
+      if (msg.contains('already registered') ||
+          msg.contains('already exists')) {
         _showError('Email already registered. Try signing in instead.');
       } else if (msg.contains('check your email') || msg.contains('confirm')) {
         _showSuccess('Account created! Please verify your email to continue.');
@@ -262,7 +284,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                   // Handle bar
                   const SizedBox(height: 12),
                   Container(
-                    width: 40, height: 4,
+                    width: 40,
+                    height: 4,
                     decoration: BoxDecoration(
                       color: Colors.white24,
                       borderRadius: BorderRadius.circular(2),
@@ -274,12 +297,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     child: Row(
                       children: [
-                        Icon(Icons.gavel_rounded, color: Color(0xffFF5722), size: 22),
+                        Icon(Icons.gavel_rounded,
+                            color: Color(0xffFF5722), size: 22),
                         SizedBox(width: 10),
                         Text(
                           'Terms & Conditions',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -310,12 +334,20 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                           onTap: () => setModalState(() => _selectedTab = i),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
-                              color: selected ? const Color(0xffFF5722) : const Color(0xff1e1e1e),
+                              color: selected
+                                  ? Color(0xffFF5722)
+                                  : Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Color(0xff1e1e1e)
+                                      : Colors.white,
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: selected ? const Color(0xffFF5722) : Colors.white12,
+                                color: selected
+                                    ? const Color(0xffFF5722)
+                                    : Colors.white12,
                               ),
                             ),
                             child: Text(
@@ -323,7 +355,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                               style: TextStyle(
                                 color: selected ? Colors.white : Colors.grey,
                                 fontSize: 12,
-                                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                                fontWeight: selected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
                               ),
                             ),
                           ),
@@ -359,29 +393,37 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: GestureDetector(
-                      onTap: () => setModalState(() => _localAccepted = !_localAccepted),
+                      onTap: () =>
+                          setModalState(() => _localAccepted = !_localAccepted),
                       child: Row(
                         children: [
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
-                            width: 22, height: 22,
+                            width: 22,
+                            height: 22,
                             decoration: BoxDecoration(
-                              color: _localAccepted ? const Color(0xffFF5722) : Colors.transparent,
+                              color: _localAccepted
+                                  ? const Color(0xffFF5722)
+                                  : Colors.transparent,
                               border: Border.all(
-                                color: _localAccepted ? const Color(0xffFF5722) : Colors.white30,
+                                color: _localAccepted
+                                    ? const Color(0xffFF5722)
+                                    : Colors.white30,
                                 width: 2,
                               ),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: _localAccepted
-                                ? const Icon(Icons.check, color: Colors.white, size: 14)
+                                ? const Icon(Icons.check,
+                                    color: Colors.white, size: 14)
                                 : null,
                           ),
                           const SizedBox(width: 10),
                           const Expanded(
                             child: Text(
                               'I have read and agree to all Terms of Service, Privacy Policy, and Help Centre guidelines.',
-                              style: TextStyle(color: Colors.grey, fontSize: 12),
+                              style:
+                                  TextStyle(color: Colors.grey, fontSize: 12),
                             ),
                           ),
                         ],
@@ -404,7 +446,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('Decline', style: TextStyle(color: Colors.grey)),
+                            child: const Text('Decline',
+                                style: TextStyle(color: Colors.grey)),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -425,10 +468,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text(
+                            child: Text(
                               'I Agree & Continue',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -459,11 +502,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
       builder: (dialogCtx) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            backgroundColor: const Color(0xff1e1e1e),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: const Text(
+            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                ? Color(0xff1e1e1e)
+                : Colors.white,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Text(
               'Select Account Type',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18),
             ),
             content: SingleChildScrollView(
               child: Column(
@@ -479,23 +528,41 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                     children: [
                       Expanded(
                         child: GestureDetector(
-                          onTap: () => setDialogState(() => selectedRole = 'customer'),
+                          onTap: () =>
+                              setDialogState(() => selectedRole = 'customer'),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 8),
                             decoration: BoxDecoration(
-                              color: selectedRole == 'customer' ? const Color(0xffFF5722).withOpacity(0.15) : const Color(0xff2a2a2a),
+                              color: selectedRole == 'customer'
+                                  ? const Color(0xffFF5722).withOpacity(0.15)
+                                  : const Color(0xff2a2a2a),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: selectedRole == 'customer' ? const Color(0xffFF5722) : Colors.white12,
+                                color: selectedRole == 'customer'
+                                    ? const Color(0xffFF5722)
+                                    : Colors.white12,
                                 width: selectedRole == 'customer' ? 1.5 : 1,
                               ),
                             ),
                             child: Column(
                               children: [
-                                Icon(Icons.shopping_bag_outlined, color: selectedRole == 'customer' ? const Color(0xffFF5722) : Colors.grey, size: 24),
+                                Icon(Icons.shopping_bag_outlined,
+                                    color: selectedRole == 'customer'
+                                        ? const Color(0xffFF5722)
+                                        : Colors.grey,
+                                    size: 24),
                                 const SizedBox(height: 6),
-                                Text('Customer', style: TextStyle(color: selectedRole == 'customer' ? const Color(0xffFF5722) : Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                                const Text('Browse & Buy', style: TextStyle(color: Colors.grey, fontSize: 10)),
+                                Text('Customer',
+                                    style: TextStyle(
+                                        color: selectedRole == 'customer'
+                                            ? const Color(0xffFF5722)
+                                            : Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13)),
+                                const Text('Browse & Buy',
+                                    style: TextStyle(
+                                        color: Colors.grey, fontSize: 10)),
                               ],
                             ),
                           ),
@@ -504,23 +571,41 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                       const SizedBox(width: 10),
                       Expanded(
                         child: GestureDetector(
-                          onTap: () => setDialogState(() => selectedRole = 'seller'),
+                          onTap: () =>
+                              setDialogState(() => selectedRole = 'seller'),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 8),
                             decoration: BoxDecoration(
-                              color: selectedRole == 'seller' ? const Color(0xffFF5722).withOpacity(0.15) : const Color(0xff2a2a2a),
+                              color: selectedRole == 'seller'
+                                  ? const Color(0xffFF5722).withOpacity(0.15)
+                                  : const Color(0xff2a2a2a),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: selectedRole == 'seller' ? const Color(0xffFF5722) : Colors.white12,
+                                color: selectedRole == 'seller'
+                                    ? const Color(0xffFF5722)
+                                    : Colors.white12,
                                 width: selectedRole == 'seller' ? 1.5 : 1,
                               ),
                             ),
                             child: Column(
                               children: [
-                                Icon(Icons.storefront_outlined, color: selectedRole == 'seller' ? const Color(0xffFF5722) : Colors.grey, size: 24),
+                                Icon(Icons.storefront_outlined,
+                                    color: selectedRole == 'seller'
+                                        ? const Color(0xffFF5722)
+                                        : Colors.grey,
+                                    size: 24),
                                 const SizedBox(height: 6),
-                                Text('Shop / Seller', style: TextStyle(color: selectedRole == 'seller' ? const Color(0xffFF5722) : Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                                const Text('Pitch & Sell', style: TextStyle(color: Colors.grey, fontSize: 10)),
+                                Text('Shop / Seller',
+                                    style: TextStyle(
+                                        color: selectedRole == 'seller'
+                                            ? const Color(0xffFF5722)
+                                            : Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13)),
+                                const Text('Pitch & Sell',
+                                    style: TextStyle(
+                                        color: Colors.grey, fontSize: 10)),
                               ],
                             ),
                           ),
@@ -532,14 +617,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                     const SizedBox(height: 16),
                     TextField(
                       controller: shopNameCtrl,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 14),
                       decoration: InputDecoration(
                         labelText: 'Shop / Store Name *',
-                        labelStyle: const TextStyle(color: Colors.grey, fontSize: 12),
+                        labelStyle:
+                            const TextStyle(color: Colors.grey, fontSize: 12),
                         filled: true,
                         fillColor: const Color(0xff2a2a2a),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                        prefixIcon: const Icon(Icons.store, color: Color(0xffFF5722), size: 18),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        prefixIcon: const Icon(Icons.store,
+                            color: Color(0xffFF5722), size: 18),
                       ),
                     ),
                   ],
@@ -549,7 +639,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
             actions: [
               TextButton(
                 onPressed: () async {
-                  if (selectedRole == 'seller' && shopNameCtrl.text.trim().isEmpty) {
+                  if (selectedRole == 'seller' &&
+                      shopNameCtrl.text.trim().isEmpty) {
                     _showError('Please enter your Shop Name');
                     return;
                   }
@@ -557,7 +648,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                   try {
                     await auth.setAccountRole(
                       selectedRole,
-                      shopName: selectedRole == 'seller' ? shopNameCtrl.text.trim() : null,
+                      shopName: selectedRole == 'seller'
+                          ? shopNameCtrl.text.trim()
+                          : null,
                     );
                     _showSuccess('Welcome to Pitch & Sell!');
                     _goToMain();
@@ -565,7 +658,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                     _showError('Failed to set role. Please try again.');
                   }
                 },
-                child: const Text('Continue', style: TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold)),
+                child: const Text('Continue',
+                    style: TextStyle(
+                        color: Color(0xffFF5722), fontWeight: FontWeight.bold)),
               ),
             ],
           );
@@ -576,9 +671,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
 
   Future<void> _handleForgotPassword() async {
     final email = _signInEmailCtrl.text.trim();
-    if (email.isEmpty) { _showError('Enter your email address above first.'); return; }
+    if (email.isEmpty) {
+      _showError('Enter your email address above first.');
+      return;
+    }
     try {
-      await Provider.of<AuthProvider>(context, listen: false).resetPassword(email);
+      await Provider.of<AuthProvider>(context, listen: false)
+          .resetPassword(email);
       _showSuccess('Password reset link sent to $email!');
     } catch (e) {
       _showError('Could not send reset email. Try again.');
@@ -598,65 +697,98 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
             const SizedBox(height: 12),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Container(
-                width: 52, height: 52,
+                width: 52,
+                height: 52,
                 decoration: BoxDecoration(
                   color: const Color(0xffFF5722).withOpacity(0.12),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xffFF5722).withOpacity(0.3)),
+                  border: Border.all(
+                      color: const Color(0xffFF5722).withOpacity(0.3)),
                 ),
-                child: const Icon(Icons.smart_toy_outlined, size: 28, color: Color(0xffFF5722)),
+                child: const Icon(Icons.smart_toy_outlined,
+                    size: 28, color: Color(0xffFF5722)),
               ),
               const SizedBox(width: 14),
-              const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('PITCH & SELL', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
-                Text('Pitch It. Sell It. Grow It.', style: TextStyle(color: Color(0xffFF5722), fontSize: 11)),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('PITCH & SELL',
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2)),
+                Text('Pitch It. Sell It. Grow It.',
+                    style: TextStyle(color: Color(0xffFF5722), fontSize: 11)),
               ]),
             ]),
             const SizedBox(height: 36),
             Container(
-              decoration: BoxDecoration(color: const Color(0xff1a1a1a), borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(
+                  color: const Color(0xff1a1a1a),
+                  borderRadius: BorderRadius.circular(12)),
               child: TabBar(
                 controller: _tabController,
-                indicator: BoxDecoration(color: const Color(0xffFF5722), borderRadius: BorderRadius.circular(10)),
+                indicator: BoxDecoration(
+                    color: const Color(0xffFF5722),
+                    borderRadius: BorderRadius.circular(10)),
                 indicatorSize: TabBarIndicatorSize.tab,
                 labelColor: Colors.white,
                 unselectedLabelColor: Colors.grey,
-                labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                labelStyle:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                 tabs: const [Tab(text: 'Sign In'), Tab(text: 'Sign Up')],
               ),
             ),
             const SizedBox(height: 28),
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 250),
-              child: _tabController.index == 0 ? _buildSignInForm(auth, isLoading) : _buildSignUpForm(auth, isLoading),
+              child: _tabController.index == 0
+                  ? _buildSignInForm(auth, isLoading)
+                  : _buildSignUpForm(auth, isLoading),
             ),
             const SizedBox(height: 24),
             Row(children: [
               const Expanded(child: Divider(color: Colors.white12)),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: Text('OR', style: TextStyle(color: Colors.grey.shade600, fontSize: 12, letterSpacing: 1)),
+                child: Text('OR',
+                    style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 12,
+                        letterSpacing: 1)),
               ),
               const Expanded(child: Divider(color: Colors.white12)),
             ]),
             const SizedBox(height: 20),
             SizedBox(
-              width: double.infinity, height: 50,
+              width: double.infinity,
+              height: 50,
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.white,
                   side: const BorderSide(color: Colors.white12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: isLoading ? null : () => _handleGoogleSignIn(auth),
-                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                child:
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Container(
-                    width: 24, height: 24,
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
-                    child: const Center(child: Text('G', style: TextStyle(color: Color(0xffDB4437), fontWeight: FontWeight.w900, fontSize: 14))),
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4)),
+                    child: const Center(
+                        child: Text('G',
+                            style: TextStyle(
+                                color: Color(0xffDB4437),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 14))),
                   ),
                   const SizedBox(width: 12),
-                  const Text('Continue with Google', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                  const Text('Continue with Google',
+                      style:
+                          TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
                 ]),
               ),
             ),
@@ -670,385 +802,562 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   Widget _buildSignInForm(AuthProvider auth, bool isLoading) {
     return Form(
       key: _signInFormKey,
-      child: Column(key: const ValueKey('signin'), crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Welcome back', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        const Text('Sign in to your account', style: TextStyle(color: Colors.grey, fontSize: 13)),
-        const SizedBox(height: 20),
+      child: Column(
+          key: const ValueKey('signin'),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Welcome back',
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            const Text('Sign in to your account',
+                style: TextStyle(color: Colors.grey, fontSize: 13)),
+            const SizedBox(height: 20),
 
-        // Account Type Selection for Sign In
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: const Color(0xff161616),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xffFF5722).withOpacity(0.35), width: 1.2),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
+            // Account Type Selection for Sign In
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xff161616),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                    color: const Color(0xffFF5722).withOpacity(0.35),
+                    width: 1.2),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.how_to_reg_rounded, color: Color(0xffFF5722), size: 18),
-                  SizedBox(width: 8),
-                  Text(
-                    'SIGN IN AS',
-                    style: TextStyle(color: Color(0xffFF5722), fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                  const Row(
+                    children: [
+                      Icon(Icons.how_to_reg_rounded,
+                          color: Color(0xffFF5722), size: 18),
+                      SizedBox(width: 8),
+                      Text(
+                        'SIGN IN AS',
+                        style: TextStyle(
+                            color: Color(0xffFF5722),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.8),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      _signInModeCard(
+                        icon: Icons.shopping_bag_outlined,
+                        label: 'Customer',
+                        subtitle: 'Browse & Buy',
+                        value: 'customer',
+                      ),
+                      const SizedBox(width: 12),
+                      _signInModeCard(
+                        icon: Icons.storefront_outlined,
+                        label: 'Shop / Seller',
+                        subtitle: 'Pitch & Sell',
+                        value: 'seller',
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  _signInModeCard(
-                    icon: Icons.shopping_bag_outlined,
-                    label: 'Customer',
-                    subtitle: 'Browse & Buy',
-                    value: 'customer',
-                  ),
-                  const SizedBox(width: 12),
-                  _signInModeCard(
-                    icon: Icons.storefront_outlined,
-                    label: 'Shop / Seller',
-                    subtitle: 'Pitch & Sell',
-                    value: 'seller',
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
+            ),
+            const SizedBox(height: 20),
 
-        _field(controller: _signInEmailCtrl, label: 'Email Address', icon: Icons.email_outlined,
-          keyboardType: TextInputType.emailAddress,
-          validator: (v) { if (v == null || v.isEmpty) return 'Email is required';
-            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v.trim())) return 'Enter a valid email'; return null; }),
-        const SizedBox(height: 16),
-        _field(controller: _signInPassCtrl, label: 'Password', icon: Icons.lock_outlined,
-          obscure: _obscureSignIn, toggleObscure: () => setState(() => _obscureSignIn = !_obscureSignIn),
-          validator: (v) { if (v == null || v.isEmpty) return 'Password is required';
-            if (v.length < 6) return 'Minimum 6 characters'; return null; }),
-        Align(alignment: Alignment.centerRight,
-          child: TextButton(onPressed: isLoading ? null : _handleForgotPassword,
-            child: const Text('Forgot Password?', style: TextStyle(color: Color(0xffFF5722), fontSize: 12)))),
-        const SizedBox(height: 8),
-        _btn(
-          label: _signInSelectedMode == 'seller' ? 'Sign In as Seller' : 'Sign In as Customer',
-          icon: _signInSelectedMode == 'seller' ? Icons.storefront_rounded : Icons.login_rounded,
-          isLoading: isLoading,
-          onPressed: () => _handleSignIn(auth),
-        ),
-      ]),
+            _field(
+                controller: _signInEmailCtrl,
+                label: 'Email Address',
+                icon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Email is required';
+                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                      .hasMatch(v.trim())) return 'Enter a valid email';
+                  return null;
+                }),
+            const SizedBox(height: 16),
+            _field(
+                controller: _signInPassCtrl,
+                label: 'Password',
+                icon: Icons.lock_outlined,
+                obscure: _obscureSignIn,
+                toggleObscure: () =>
+                    setState(() => _obscureSignIn = !_obscureSignIn),
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Password is required';
+                  if (v.length < 6) return 'Minimum 6 characters';
+                  return null;
+                }),
+            Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                    onPressed: isLoading ? null : _handleForgotPassword,
+                    child: const Text('Forgot Password?',
+                        style: TextStyle(
+                            color: Color(0xffFF5722), fontSize: 12)))),
+            const SizedBox(height: 8),
+            _btn(
+              label: _signInSelectedMode == 'seller'
+                  ? 'Sign In as Seller'
+                  : 'Sign In as Customer',
+              icon: _signInSelectedMode == 'seller'
+                  ? Icons.storefront_rounded
+                  : Icons.login_rounded,
+              isLoading: isLoading,
+              onPressed: () => _handleSignIn(auth),
+            ),
+          ]),
     );
   }
 
   Widget _buildSignUpForm(AuthProvider auth, bool isLoading) {
     return Form(
       key: _signUpFormKey,
-      child: Column(key: const ValueKey('signup'), crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Create an Account', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        const Text('Select your account type to get started', style: TextStyle(color: Colors.grey, fontSize: 13)),
-        const SizedBox(height: 20),
+      child: Column(
+          key: const ValueKey('signup'),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Create an Account',
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            const Text('Select your account type to get started',
+                style: TextStyle(color: Colors.grey, fontSize: 13)),
+            const SizedBox(height: 20),
 
-        // 1. MANDATORY ACCOUNT TYPE SELECTION (TOP OF FORM)
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: const Color(0xff161616),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xffFF5722).withOpacity(0.35), width: 1.2),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
+            // 1. MANDATORY ACCOUNT TYPE SELECTION (TOP OF FORM)
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xff161616),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                    color: const Color(0xffFF5722).withOpacity(0.35),
+                    width: 1.2),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.how_to_reg_rounded, color: Color(0xffFF5722), size: 18),
-                  SizedBox(width: 8),
-                  Text(
-                    'STEP 1: SELECT YOUR ACCOUNT TYPE *',
-                    style: TextStyle(color: Color(0xffFF5722), fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                  const Row(
+                    children: [
+                      Icon(Icons.how_to_reg_rounded,
+                          color: Color(0xffFF5722), size: 18),
+                      SizedBox(width: 8),
+                      Text(
+                        'STEP 1: SELECT YOUR ACCOUNT TYPE *',
+                        style: TextStyle(
+                            color: Color(0xffFF5722),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.8),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      _modeCard(
+                        icon: Icons.shopping_bag_outlined,
+                        label: 'Customer',
+                        subtitle: 'Browse & Buy',
+                        value: 'customer',
+                      ),
+                      const SizedBox(width: 12),
+                      _modeCard(
+                        icon: Icons.storefront_outlined,
+                        label: 'Shop / Seller',
+                        subtitle: 'Pitch & Sell',
+                        value: 'seller',
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  _modeCard(
-                    icon: Icons.shopping_bag_outlined,
-                    label: 'Customer',
-                    subtitle: 'Browse & Buy',
-                    value: 'customer',
-                  ),
-                  const SizedBox(width: 12),
-                  _modeCard(
-                    icon: Icons.storefront_outlined,
-                    label: 'Shop / Seller',
-                    subtitle: 'Pitch & Sell',
-                    value: 'seller',
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-
-        // 2. CONDITIONAL SHOP INFORMATION (If Shop selected)
-        if (_selectedMode == 'seller') ...[
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xff1e1e1e),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xffFF5722).withOpacity(0.5), width: 1.5),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
+            const SizedBox(height: 20),
+
+            // 2. CONDITIONAL SHOP INFORMATION (If Shop selected)
+            if (_selectedMode == 'seller') ...[
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Color(0xff1e1e1e)
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                      color: const Color(0xffFF5722).withOpacity(0.5),
+                      width: 1.5),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.store, color: Color(0xffFF5722), size: 18),
-                    SizedBox(width: 8),
-                    Text(
-                      'SHOP / STORE DETAILS',
-                      style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                    const Row(
+                      children: [
+                        Icon(Icons.store, color: Color(0xffFF5722), size: 18),
+                        SizedBox(width: 8),
+                        Text(
+                          'SHOP / STORE DETAILS',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _field(
+                      controller: _signUpShopNameCtrl,
+                      label: 'Shop / Business Name *',
+                      icon: Icons.store_mall_directory_outlined,
+                      validator: (v) {
+                        if (_selectedMode == 'seller' &&
+                            (v == null || v.trim().isEmpty)) {
+                          return 'Shop Name is required';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _field(
+                      controller: _signUpShopDescCtrl,
+                      label: 'What does your shop sell? (e.g. Shoes, Watches)',
+                      icon: Icons.category_outlined,
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                _field(
-                  controller: _signUpShopNameCtrl,
-                  label: 'Shop / Business Name *',
-                  icon: Icons.store_mall_directory_outlined,
-                  validator: (v) {
-                    if (_selectedMode == 'seller' && (v == null || v.trim().isEmpty)) {
-                      return 'Shop Name is required';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                _field(
-                  controller: _signUpShopDescCtrl,
-                  label: 'What does your shop sell? (e.g. Shoes, Watches)',
-                  icon: Icons.category_outlined,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-        ],
-
-        // 3. PERSONAL & LOGIN DETAILS
-        Center(
-          child: GestureDetector(
-            onTap: _pickImage,
-            child: Stack(
-              children: [
-                CircleAvatar(
-                  radius: 38,
-                  backgroundColor: const Color(0xff1e1e1e),
-                  backgroundImage: _profileImagePath != null ? FileImage(File(_profileImagePath!)) : null,
-                  child: _profileImagePath == null ? const Icon(Icons.person, color: Colors.grey, size: 36) : null,
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(5),
-                    decoration: const BoxDecoration(color: Color(0xffFF5722), shape: BoxShape.circle),
-                    child: const Icon(Icons.camera_alt, color: Colors.white, size: 13),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(children: [
-          Expanded(child: _field(
-            controller: _signUpFirstCtrl,
-            label: _selectedMode == 'seller' ? 'Owner First Name' : 'First Name',
-            icon: Icons.person_outlined,
-            validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-          )),
-          const SizedBox(width: 12),
-          Expanded(child: _field(
-            controller: _signUpLastCtrl,
-            label: _selectedMode == 'seller' ? 'Owner Last Name' : 'Last Name',
-            icon: Icons.person_outlined,
-            validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-          )),
-        ]),
-        const SizedBox(height: 14),
-        _field(
-          controller: _signUpEmailCtrl,
-          label: 'Email Address',
-          icon: Icons.email_outlined,
-          keyboardType: TextInputType.emailAddress,
-          validator: (v) {
-            if (v == null || v.isEmpty) return 'Email is required';
-            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v.trim())) return 'Enter a valid email';
-            return null;
-          },
-        ),
-        const SizedBox(height: 14),
-        _field(
-          controller: _signUpPhoneCtrl,
-          label: 'Phone Number (e.g. 03001234567)',
-          icon: Icons.phone_outlined,
-          keyboardType: TextInputType.phone,
-          validator: (v) {
-            if (v == null || v.isEmpty) return 'Phone is required';
-            if (v.replaceAll(RegExp(r'\D'), '').length < 10) return 'Enter a valid phone number';
-            return null;
-          },
-        ),
-        const SizedBox(height: 14),
-        _field(
-          controller: _signUpPassCtrl,
-          label: 'Password',
-          icon: Icons.lock_outlined,
-          obscure: _obscureSignUp,
-          toggleObscure: () => setState(() => _obscureSignUp = !_obscureSignUp),
-          validator: (v) {
-            if (v == null || v.isEmpty) return 'Password is required';
-            if (v.length < 8) return 'Minimum 8 characters';
-            if (!RegExp(r'[A-Z]').hasMatch(v)) return 'Must include uppercase letter';
-            if (!RegExp(r'[0-9]').hasMatch(v)) return 'Must include a number';
-            return null;
-          },
-        ),
-        const SizedBox(height: 14),
-        _field(
-          controller: _signUpConfirmPassCtrl,
-          label: 'Confirm Password',
-          icon: Icons.lock_outlined,
-          obscure: _obscureConfirm,
-          toggleObscure: () => setState(() => _obscureConfirm = !_obscureConfirm),
-          validator: (v) {
-            if (v == null || v.isEmpty) return 'Please confirm password';
-            if (v != _signUpPassCtrl.text) return 'Passwords do not match';
-            return null;
-          },
-        ),
-        const SizedBox(height: 18),
-        GestureDetector(
-          onTap: () => setState(() => _acceptTerms = !_acceptTerms),
-          child: Row(children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 22, height: 22,
-              decoration: BoxDecoration(
-                color: _acceptTerms ? const Color(0xffFF5722) : Colors.transparent,
-                border: Border.all(color: _acceptTerms ? const Color(0xffFF5722) : Colors.white30, width: 2),
-                borderRadius: BorderRadius.circular(6),
               ),
-              child: _acceptTerms ? const Icon(Icons.check, color: Colors.white, size: 14) : null,
+              const SizedBox(height: 20),
+            ],
+
+            // 3. PERSONAL & LOGIN DETAILS
+            Center(
+              child: GestureDetector(
+                onTap: _pickImage,
+                child: Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 38,
+                      backgroundColor:
+                          Theme.of(context).brightness == Brightness.dark
+                              ? Color(0xff1e1e1e)
+                              : Colors.white,
+                      backgroundImage: _profileImagePath != null
+                          ? FileImage(File(_profileImagePath!))
+                          : null,
+                      child: _profileImagePath == null
+                          ? const Icon(Icons.person,
+                              color: Colors.grey, size: 36)
+                          : null,
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: const BoxDecoration(
+                            color: Color(0xffFF5722), shape: BoxShape.circle),
+                        child: const Icon(Icons.camera_alt,
+                            color: Colors.white, size: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(width: 10),
-            const Expanded(child: Text('I agree to the Terms of Service & Privacy Policy',
-              style: TextStyle(color: Colors.grey, fontSize: 12))),
+            const SizedBox(height: 16),
+            Row(children: [
+              Expanded(
+                  child: _field(
+                controller: _signUpFirstCtrl,
+                label: _selectedMode == 'seller'
+                    ? 'Owner First Name'
+                    : 'First Name',
+                icon: Icons.person_outlined,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+              )),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: _field(
+                controller: _signUpLastCtrl,
+                label:
+                    _selectedMode == 'seller' ? 'Owner Last Name' : 'Last Name',
+                icon: Icons.person_outlined,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+              )),
+            ]),
+            const SizedBox(height: 14),
+            _field(
+              controller: _signUpEmailCtrl,
+              label: 'Email Address',
+              icon: Icons.email_outlined,
+              keyboardType: TextInputType.emailAddress,
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Email is required';
+                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                    .hasMatch(v.trim())) return 'Enter a valid email';
+                return null;
+              },
+            ),
+            const SizedBox(height: 14),
+            _field(
+              controller: _signUpPhoneCtrl,
+              label: 'Phone Number (e.g. 03001234567)',
+              icon: Icons.phone_outlined,
+              keyboardType: TextInputType.phone,
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Phone is required';
+                if (v.replaceAll(RegExp(r'\D'), '').length < 10)
+                  return 'Enter a valid phone number';
+                return null;
+              },
+            ),
+            const SizedBox(height: 14),
+            _field(
+              controller: _signUpPassCtrl,
+              label: 'Password',
+              icon: Icons.lock_outlined,
+              obscure: _obscureSignUp,
+              toggleObscure: () =>
+                  setState(() => _obscureSignUp = !_obscureSignUp),
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Password is required';
+                if (v.length < 8) return 'Minimum 8 characters';
+                if (!RegExp(r'[A-Z]').hasMatch(v))
+                  return 'Must include uppercase letter';
+                if (!RegExp(r'[0-9]').hasMatch(v))
+                  return 'Must include a number';
+                return null;
+              },
+            ),
+            const SizedBox(height: 14),
+            _field(
+              controller: _signUpConfirmPassCtrl,
+              label: 'Confirm Password',
+              icon: Icons.lock_outlined,
+              obscure: _obscureConfirm,
+              toggleObscure: () =>
+                  setState(() => _obscureConfirm = !_obscureConfirm),
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Please confirm password';
+                if (v != _signUpPassCtrl.text) return 'Passwords do not match';
+                return null;
+              },
+            ),
+            const SizedBox(height: 18),
+            GestureDetector(
+              onTap: () => setState(() => _acceptTerms = !_acceptTerms),
+              child: Row(children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: _acceptTerms
+                        ? const Color(0xffFF5722)
+                        : Colors.transparent,
+                    border: Border.all(
+                        color: _acceptTerms
+                            ? const Color(0xffFF5722)
+                            : Colors.white30,
+                        width: 2),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: _acceptTerms
+                      ? const Icon(Icons.check, color: Colors.white, size: 14)
+                      : null,
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                    child: Text(
+                        'I agree to the Terms of Service & Privacy Policy',
+                        style: TextStyle(color: Colors.grey, fontSize: 12))),
+              ]),
+            ),
+            const SizedBox(height: 22),
+            _btn(
+              label: _selectedMode == 'seller'
+                  ? 'Register My Shop'
+                  : 'Create Customer Account',
+              icon: _selectedMode == 'seller'
+                  ? Icons.storefront_rounded
+                  : Icons.person_add_rounded,
+              isLoading: isLoading,
+              onPressed: () => _handleSignUp(auth),
+            ),
           ]),
-        ),
-        const SizedBox(height: 22),
-        _btn(
-          label: _selectedMode == 'seller' ? 'Register My Shop' : 'Create Customer Account',
-          icon: _selectedMode == 'seller' ? Icons.storefront_rounded : Icons.person_add_rounded,
-          isLoading: isLoading,
-          onPressed: () => _handleSignUp(auth),
-        ),
-      ]),
     );
   }
 
-  Widget _field({required TextEditingController controller, required String label, required IconData icon,
-    bool obscure = false, VoidCallback? toggleObscure, TextInputType? keyboardType, String? Function(String?)? validator}) {
+  Widget _field(
+      {required TextEditingController controller,
+      required String label,
+      required IconData icon,
+      bool obscure = false,
+      VoidCallback? toggleObscure,
+      TextInputType? keyboardType,
+      String? Function(String?)? validator}) {
     return TextFormField(
-      controller: controller, obscureText: obscure, keyboardType: keyboardType,
-      style: const TextStyle(color: Colors.white, fontSize: 15),
-      validator: validator, autovalidateMode: AutovalidateMode.onUserInteraction,
+      controller: controller,
+      obscureText: obscure,
+      keyboardType: keyboardType,
+      style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
+      validator: validator,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       decoration: InputDecoration(
-        labelText: label, labelStyle: const TextStyle(color: Colors.grey, fontSize: 13),
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.grey, fontSize: 13),
         prefixIcon: Icon(icon, color: Colors.grey, size: 20),
-        suffixIcon: toggleObscure != null ? IconButton(
-          icon: Icon(obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.grey, size: 20),
-          onPressed: toggleObscure) : null,
-        filled: true, fillColor: const Color(0xff1a1a1a),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white10)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white10)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xffFF5722), width: 1.5)),
-        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.redAccent)),
-        focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.redAccent, width: 1.5)),
+        suffixIcon: toggleObscure != null
+            ? IconButton(
+                icon: Icon(
+                    obscure
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    color: Colors.grey,
+                    size: 20),
+                onPressed: toggleObscure)
+            : null,
+        filled: true,
+        fillColor: const Color(0xff1a1a1a),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.white10)),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.white10)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xffFF5722), width: 1.5)),
+        errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.redAccent)),
+        focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.redAccent, width: 1.5)),
         errorStyle: const TextStyle(fontSize: 11),
-        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
       ),
     );
   }
 
-  Widget _modeCard({required IconData icon, required String label, required String subtitle, required String value}) {
+  Widget _modeCard(
+      {required IconData icon,
+      required String label,
+      required String subtitle,
+      required String value}) {
     final sel = _selectedMode == value;
-    return Expanded(child: GestureDetector(
+    return Expanded(
+        child: GestureDetector(
       onTap: () => setState(() => _selectedMode = value),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          color: sel ? const Color(0xffFF5722).withOpacity(0.12) : const Color(0xff1a1a1a),
+          color: sel
+              ? const Color(0xffFF5722).withOpacity(0.12)
+              : const Color(0xff1a1a1a),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: sel ? const Color(0xffFF5722) : Colors.white10, width: sel ? 1.5 : 1),
+          border: Border.all(
+              color: sel ? const Color(0xffFF5722) : Colors.white10,
+              width: sel ? 1.5 : 1),
         ),
         child: Column(children: [
-          Icon(icon, color: sel ? const Color(0xffFF5722) : Colors.grey, size: 28),
+          Icon(icon,
+              color: sel ? const Color(0xffFF5722) : Colors.grey, size: 28),
           const SizedBox(height: 8),
-          Text(label, style: TextStyle(color: sel ? const Color(0xffFF5722) : Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+          Text(label,
+              style: TextStyle(
+                  color: sel ? const Color(0xffFF5722) : Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14)),
           const SizedBox(height: 2),
-          Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 11), textAlign: TextAlign.center),
+          Text(subtitle,
+              style: const TextStyle(color: Colors.grey, fontSize: 11),
+              textAlign: TextAlign.center),
         ]),
       ),
     ));
   }
 
-  Widget _signInModeCard({required IconData icon, required String label, required String subtitle, required String value}) {
+  Widget _signInModeCard(
+      {required IconData icon,
+      required String label,
+      required String subtitle,
+      required String value}) {
     final sel = _signInSelectedMode == value;
-    return Expanded(child: GestureDetector(
+    return Expanded(
+        child: GestureDetector(
       onTap: () => setState(() => _signInSelectedMode = value),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          color: sel ? const Color(0xffFF5722).withOpacity(0.12) : const Color(0xff1a1a1a),
+          color: sel
+              ? const Color(0xffFF5722).withOpacity(0.12)
+              : const Color(0xff1a1a1a),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: sel ? const Color(0xffFF5722) : Colors.white10, width: sel ? 1.5 : 1),
+          border: Border.all(
+              color: sel ? const Color(0xffFF5722) : Colors.white10,
+              width: sel ? 1.5 : 1),
         ),
         child: Column(children: [
-          Icon(icon, color: sel ? const Color(0xffFF5722) : Colors.grey, size: 28),
+          Icon(icon,
+              color: sel ? const Color(0xffFF5722) : Colors.grey, size: 28),
           const SizedBox(height: 8),
-          Text(label, style: TextStyle(color: sel ? const Color(0xffFF5722) : Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+          Text(label,
+              style: TextStyle(
+                  color: sel ? const Color(0xffFF5722) : Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14)),
           const SizedBox(height: 2),
-          Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 11), textAlign: TextAlign.center),
+          Text(subtitle,
+              style: const TextStyle(color: Colors.grey, fontSize: 11),
+              textAlign: TextAlign.center),
         ]),
       ),
     ));
   }
 
-  Widget _btn({required String label, required IconData icon, required bool isLoading, required VoidCallback onPressed}) {
-    return SizedBox(width: double.infinity, height: 52,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xffFF5722), foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: 0),
-        onPressed: isLoading ? null : onPressed,
-        child: isLoading
-            ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-            : Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(icon, size: 20), const SizedBox(width: 8),
-                Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              ]),
-      ));
+  Widget _btn(
+      {required String label,
+      required IconData icon,
+      required bool isLoading,
+      required VoidCallback onPressed}) {
+    return SizedBox(
+        width: double.infinity,
+        height: 52,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xffFF5722),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14)),
+              elevation: 0),
+          onPressed: isLoading ? null : onPressed,
+          child: isLoading
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                      color: Colors.white, strokeWidth: 2.5))
+              : Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(icon, size: 20),
+                  const SizedBox(width: 8),
+                  Text(label,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold)),
+                ]),
+        ));
   }
 }
-

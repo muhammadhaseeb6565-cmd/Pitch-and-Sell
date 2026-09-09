@@ -20,9 +20,9 @@ class FeedScreen extends StatefulWidget {
   final bool isVisible;
   final String? initialCategory;
   final String? initialSearch;
-  
+
   const FeedScreen({
-    super.key, 
+    super.key,
     this.isVisible = true,
     this.initialCategory,
     this.initialSearch,
@@ -48,7 +48,8 @@ class _FeedScreenState extends State<FeedScreen> {
   void initState() {
     super.initState();
     _pageController = PageController();
-    if (widget.initialCategory != null) _selectedCategory = widget.initialCategory!;
+    if (widget.initialCategory != null)
+      _selectedCategory = widget.initialCategory!;
     if (widget.initialSearch != null) _searchQuery = widget.initialSearch!;
     _initBillboard();
     _fetchFeed();
@@ -90,7 +91,8 @@ class _FeedScreenState extends State<FeedScreen> {
         {
           'id': 'exp-demo-001',
           'name': 'Wireless Active Noise-Cancelling Headphones',
-          'description': 'Studio sound with 40mm drivers, active noise cancellation, 40-hour battery life, and ultra-fast charging. Cash on delivery available across Pakistan!',
+          'description':
+              'Studio sound with 40mm drivers, active noise cancellation, 40-hour battery life, and ultra-fast charging. Cash on delivery available across Pakistan!',
           'price': 4990.0,
           'seller_id': 'exp-seller-001',
           'sizes': ['Standard'],
@@ -99,7 +101,8 @@ class _FeedScreenState extends State<FeedScreen> {
           'reviewCount': 38,
           'business': {'name': 'SoundMaster Store'},
           'video': {
-            'url': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+            'url':
+                'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
             'likesCount': 420,
             'allowDownload': true,
           }
@@ -107,7 +110,8 @@ class _FeedScreenState extends State<FeedScreen> {
         {
           'id': 'exp-demo-002',
           'name': 'Ultra HD AMOLED Smart Watch Pro',
-          'description': 'Retina AMOLED curved display, calling via Bluetooth, blood oxygen & fitness tracking, IP68 waterproof rating.',
+          'description':
+              'Retina AMOLED curved display, calling via Bluetooth, blood oxygen & fitness tracking, IP68 waterproof rating.',
           'price': 3750.0,
           'seller_id': 'exp-seller-002',
           'sizes': ['45mm'],
@@ -116,7 +120,8 @@ class _FeedScreenState extends State<FeedScreen> {
           'reviewCount': 52,
           'business': {'name': 'GadgetHub Pakistan'},
           'video': {
-            'url': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
+            'url':
+                'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
             'likesCount': 635,
             'allowDownload': true,
           }
@@ -135,24 +140,30 @@ class _FeedScreenState extends State<FeedScreen> {
       body: Stack(
         children: [
           // Video Feed PageView
-          _isLoading 
+          _isLoading
               ? Shimmer.fromColors(
-                  baseColor: const Color(0xff1e1e1e),
+                  baseColor: Theme.of(context).brightness == Brightness.dark
+                      ? Color(0xff1e1e1e)
+                      : Colors.white,
                   highlightColor: const Color(0xff2a2a2a),
                   child: Container(color: Colors.black),
                 )
               : _products.isEmpty
-                  ? const Center(child: Text('No videos uploaded yet.', style: TextStyle(color: Colors.white)))
+                  ? Center(
+                      child: Text('No videos uploaded yet.',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface)))
                   : PageView.builder(
                       scrollDirection: Axis.vertical,
                       controller: _pageController,
                       itemCount: _products.length,
                       onPageChanged: (index) {
-                          setState(() => _currentIndex = index);
+                        setState(() => _currentIndex = index);
                         // Pre-load the next 2 videos into cache for zero buffering
                         for (int i = 1; i <= 2; i++) {
                           if (index + i < _products.length) {
-                            final nextUrl = _products[index + i]['video']?['url'];
+                            final nextUrl =
+                                _products[index + i]['video']?['url'];
                             if (nextUrl != null && nextUrl.startsWith('http')) {
                               DefaultCacheManager().downloadFile(nextUrl);
                             }
@@ -161,14 +172,15 @@ class _FeedScreenState extends State<FeedScreen> {
                       },
                       itemBuilder: (context, index) {
                         return VideoPlayerItem(
-                            productData: _products[index],
-                            isVisible: widget.isVisible,
-                            isFocused: index == _currentIndex,
+                          productData: _products[index],
+                          isVisible: widget.isVisible,
+                          isFocused: index == _currentIndex,
                           onChatPressed: (chatId, title) {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => ChatScreen(chatId: chatId, chatTitle: title),
+                                builder: (_) => ChatScreen(
+                                    chatId: chatId, chatTitle: title),
                               ),
                             );
                           },
@@ -196,7 +208,8 @@ class _FeedScreenState extends State<FeedScreen> {
               child: SafeArea(
                 bottom: false,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -209,7 +222,8 @@ class _FeedScreenState extends State<FeedScreen> {
                             onTap: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (_) => const LiveStreamScreen()),
+                                MaterialPageRoute(
+                                    builder: (_) => const LiveStreamScreen()),
                               );
                             },
                             child: Row(
@@ -222,24 +236,30 @@ class _FeedScreenState extends State<FeedScreen> {
                                     borderRadius: BorderRadius.circular(8),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(0xffFF5722).withOpacity(0.4),
+                                        color: const Color(0xffFF5722)
+                                            .withOpacity(0.4),
                                         blurRadius: 6,
                                         offset: const Offset(0, 2),
                                       ),
                                     ],
                                   ),
-                                  child: const Icon(Icons.bolt, color: Colors.white, size: 16),
+                                  child: const Icon(Icons.bolt,
+                                      color: Colors.white, size: 16),
                                 ),
                                 const SizedBox(width: 8),
-                                const Text(
+                                Text(
                                   'PITCH & SELL',
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                     fontSize: 15,
                                     fontWeight: FontWeight.w900,
                                     letterSpacing: 1.1,
                                     shadows: [
-                                      Shadow(color: Colors.black87, blurRadius: 4, offset: Offset(0, 1)),
+                                      Shadow(
+                                          color: Colors.black87,
+                                          blurRadius: 4,
+                                          offset: Offset(0, 1)),
                                     ],
                                   ),
                                 ),
@@ -256,7 +276,8 @@ class _FeedScreenState extends State<FeedScreen> {
                                 tooltip: 'Search',
                                 onTap: () => Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => const ExploreScreen()),
+                                  MaterialPageRoute(
+                                      builder: (_) => const ExploreScreen()),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -265,7 +286,8 @@ class _FeedScreenState extends State<FeedScreen> {
                                 tooltip: 'My Orders',
                                 onTap: () => Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => const MyOrdersScreen()),
+                                  MaterialPageRoute(
+                                      builder: (_) => const MyOrdersScreen()),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -277,7 +299,8 @@ class _FeedScreenState extends State<FeedScreen> {
                                     badgeCount: cart.items.length,
                                     onTap: () => Navigator.push(
                                       context,
-                                      MaterialPageRoute(builder: (_) => const CartScreen()),
+                                      MaterialPageRoute(
+                                          builder: (_) => const CartScreen()),
                                     ),
                                   );
                                 },
@@ -288,7 +311,9 @@ class _FeedScreenState extends State<FeedScreen> {
                                 tooltip: 'Notifications',
                                 onTap: () => Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          const NotificationsScreen()),
                                 ),
                               ),
                             ],
@@ -311,11 +336,13 @@ class _FeedScreenState extends State<FeedScreen> {
                               },
                               child: Container(
                                 margin: const EdgeInsets.only(right: 8),
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: Colors.black.withOpacity(0.4),
                                   borderRadius: BorderRadius.circular(17),
-                                  border: Border.all(color: Colors.white24, width: 1),
+                                  border: Border.all(
+                                      color: Colors.white24, width: 1),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -327,14 +354,28 @@ class _FeedScreenState extends State<FeedScreen> {
                                         color: Color(0xffFF5722),
                                         shape: BoxShape.circle,
                                       ),
-                                      child: const Icon(Icons.add, size: 12, color: Colors.white),
+                                      child: const Icon(Icons.add,
+                                          size: 12, color: Colors.white),
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
-                                      authProvider.user?['name'] != null && authProvider.user!['name'].toString().trim().isNotEmpty
-                                          ? authProvider.user!['name'].toString().trim().split(' ').first
+                                      authProvider.user?['name'] != null &&
+                                              authProvider.user!['name']
+                                                  .toString()
+                                                  .trim()
+                                                  .isNotEmpty
+                                          ? authProvider.user!['name']
+                                              .toString()
+                                              .trim()
+                                              .split(' ')
+                                              .first
                                           : 'Story',
-                                      style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w600),
+                                      style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w600),
                                     ),
                                   ],
                                 ),
@@ -342,10 +383,18 @@ class _FeedScreenState extends State<FeedScreen> {
                             ),
                             // Dynamic User-Selected Categories Bar
                             ...(() {
-                              final preferred = authProvider.preferredCategories;
-                              final visibleCategories = preferred.isNotEmpty 
+                              final preferred =
+                                  authProvider.preferredCategories;
+                              final visibleCategories = preferred.isNotEmpty
                                   ? ['All', ...preferred]
-                                  : ['All', 'Clothing', 'Foods', 'Electronics', 'Beauty', 'Footwear'];
+                                  : [
+                                      'All',
+                                      'Clothing',
+                                      'Foods',
+                                      'Electronics',
+                                      'Beauty',
+                                      'Footwear'
+                                    ];
 
                               return visibleCategories.map((cat) {
                                 final isSelected = _selectedCategory == cat;
@@ -357,18 +406,24 @@ class _FeedScreenState extends State<FeedScreen> {
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 180),
                                     margin: const EdgeInsets.only(right: 6),
-                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 6),
                                     decoration: BoxDecoration(
-                                      color: isSelected ? const Color(0xffFF5722) : Colors.black.withOpacity(0.4),
+                                      color: isSelected
+                                          ? const Color(0xffFF5722)
+                                          : Colors.black.withOpacity(0.4),
                                       borderRadius: BorderRadius.circular(17),
                                       border: Border.all(
-                                        color: isSelected ? const Color(0xffFF5722) : Colors.white.withOpacity(0.18),
+                                        color: isSelected
+                                            ? const Color(0xffFF5722)
+                                            : Colors.white.withOpacity(0.18),
                                         width: 1,
                                       ),
                                       boxShadow: isSelected
                                           ? [
                                               BoxShadow(
-                                                color: const Color(0xffFF5722).withOpacity(0.35),
+                                                color: const Color(0xffFF5722)
+                                                    .withOpacity(0.35),
                                                 blurRadius: 6,
                                                 offset: const Offset(0, 2),
                                               ),
@@ -379,9 +434,13 @@ class _FeedScreenState extends State<FeedScreen> {
                                       child: Text(
                                         cat,
                                         style: TextStyle(
-                                          color: isSelected ? Colors.white : Colors.white.withOpacity(0.85),
+                                          color: isSelected
+                                              ? Colors.white
+                                              : Colors.white.withOpacity(0.85),
                                           fontSize: 11.5,
-                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                          fontWeight: isSelected
+                                              ? FontWeight.bold
+                                              : FontWeight.w500,
                                         ),
                                       ),
                                     ),
@@ -394,25 +453,37 @@ class _FeedScreenState extends State<FeedScreen> {
                               onTap: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => const CategoryPreferencesScreen(isFirstTime: false)),
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          const CategoryPreferencesScreen(
+                                              isFirstTime: false)),
                                 ).then((_) => _fetchFeed());
                               },
                               child: Container(
                                 margin: const EdgeInsets.only(right: 6),
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 6),
                                 decoration: BoxDecoration(
                                   color: Colors.black.withOpacity(0.4),
                                   borderRadius: BorderRadius.circular(17),
-                                  border: Border.all(color: Colors.white.withOpacity(0.18), width: 1),
+                                  border: Border.all(
+                                      color: Colors.white.withOpacity(0.18),
+                                      width: 1),
                                 ),
                                 child: const Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(Icons.tune, size: 13, color: Colors.white70),
+                                    Icon(Icons.tune,
+                                        size: 13, color: Colors.white70),
                                     SizedBox(width: 4),
                                     Text(
                                       'Filter',
-                                      style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
+                                      style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface70,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600),
                                     ),
                                   ],
                                 ),
@@ -443,7 +514,8 @@ class _FeedScreenState extends State<FeedScreen> {
         'icon': Icons.bolt_rounded,
         'iconBg': const Color(0xFFFF5722),
         'title': 'Welcome to Pitch & Sell Pakistan! 🚀',
-        'subtitle': 'Watch short video pitches & shop genuine products directly from verified sellers!',
+        'subtitle':
+            'Watch short video pitches & shop genuine products directly from verified sellers!',
         'type': 'platform_intro',
       },
       {
@@ -452,7 +524,8 @@ class _FeedScreenState extends State<FeedScreen> {
         'icon': Icons.local_fire_department_rounded,
         'iconBg': const Color(0xFFFF8F00),
         'title': '⚡ Super Deals & Flash Discounts',
-        'subtitle': 'Explore top trending products with verified Cash On Delivery & Fast Shipping!',
+        'subtitle':
+            'Explore top trending products with verified Cash On Delivery & Fast Shipping!',
         'type': 'explore_deals',
       },
       {
@@ -461,7 +534,8 @@ class _FeedScreenState extends State<FeedScreen> {
         'icon': Icons.storefront_rounded,
         'iconBg': const Color(0xFF00C853),
         'title': 'Grow Your Business on Billboard 📢',
-        'subtitle': 'Promote your product to thousands of buyers for just ₨ 100 • Tap to subscribe',
+        'subtitle':
+            'Promote your product to thousands of buyers for just ₨ 100 • Tap to subscribe',
         'type': 'promote_info',
       },
     ];
@@ -517,7 +591,10 @@ class _FeedScreenState extends State<FeedScreen> {
           setState(() {
             if (promoSlides.isNotEmpty) {
               // Combine paid seller promotions with Pitch & Sell official promo experience
-              _billboardItems = [...promoSlides, ..._getPlatformPromotionSlides()];
+              _billboardItems = [
+                ...promoSlides,
+                ..._getPlatformPromotionSlides()
+              ];
             } else {
               _billboardItems = _getPlatformPromotionSlides();
             }
@@ -530,8 +607,11 @@ class _FeedScreenState extends State<FeedScreen> {
   void _handleBillboardTap(Map<String, dynamic> item) {
     if (item['type'] == 'product' && item['productId'] != null) {
       final targetId = item['productId'].toString();
-      final index = _products.indexWhere((p) => p['id']?.toString() == targetId);
-      if (index != -1 && _pageController != null && _pageController!.hasClients) {
+      final index =
+          _products.indexWhere((p) => p['id']?.toString() == targetId);
+      if (index != -1 &&
+          _pageController != null &&
+          _pageController!.hasClients) {
         _pageController!.animateToPage(
           index,
           duration: const Duration(milliseconds: 400),
@@ -543,7 +623,8 @@ class _FeedScreenState extends State<FeedScreen> {
         context,
         MaterialPageRoute(builder: (_) => const ExploreScreen()),
       );
-    } else if (item['type'] == 'explore_deals' || item['type'] == 'platform_intro') {
+    } else if (item['type'] == 'explore_deals' ||
+        item['type'] == 'platform_intro') {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const ExploreScreen()),
@@ -553,7 +634,8 @@ class _FeedScreenState extends State<FeedScreen> {
       if (auth.isSellerMode) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Go to Profile tab to activate the Billboard Promotion Plan for your product!'),
+            content: Text(
+                'Go to Profile tab to activate the Billboard Promotion Plan for your product!'),
             backgroundColor: Color(0xffFF5722),
             behavior: SnackBarBehavior.floating,
           ),
@@ -614,11 +696,13 @@ class _FeedScreenState extends State<FeedScreen> {
                           width: 32,
                           height: 32,
                           decoration: BoxDecoration(
-                            color: item['iconBg'] as Color? ?? const Color(0xFFFF6B35),
+                            color: item['iconBg'] as Color? ??
+                                const Color(0xFFFF6B35),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
-                            item['icon'] as IconData? ?? Icons.local_fire_department_rounded,
+                            item['icon'] as IconData? ??
+                                Icons.local_fire_department_rounded,
                             color: Colors.white,
                             size: 18,
                           ),
@@ -633,15 +717,19 @@ class _FeedScreenState extends State<FeedScreen> {
                               Row(
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5, vertical: 1),
                                     decoration: BoxDecoration(
-                                      color: (item['tagColor'] as Color? ?? const Color(0xFFFF5722)).withOpacity(0.2),
+                                      color: (item['tagColor'] as Color? ??
+                                              const Color(0xFFFF5722))
+                                          .withOpacity(0.2),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
                                       item['tag'] ?? 'FEATURED',
                                       style: TextStyle(
-                                        color: item['tagColor'] as Color? ?? const Color(0xFFFF5722),
+                                        color: item['tagColor'] as Color? ??
+                                            const Color(0xFFFF5722),
                                         fontSize: 9,
                                         fontWeight: FontWeight.w800,
                                         letterSpacing: 0.5,
@@ -654,8 +742,10 @@ class _FeedScreenState extends State<FeedScreen> {
                                       item['title'] ?? '',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                         fontSize: 11.5,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -669,7 +759,10 @@ class _FeedScreenState extends State<FeedScreen> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.7),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withOpacity(0.7),
                                   fontSize: 10,
                                 ),
                               ),
@@ -705,7 +798,8 @@ class _FeedScreenState extends State<FeedScreen> {
                     width: isCurrent ? 12 : 4,
                     height: 2.5,
                     decoration: BoxDecoration(
-                      color: isCurrent ? const Color(0xFFFF6B35) : Colors.white24,
+                      color:
+                          isCurrent ? const Color(0xFFFF6B35) : Colors.white24,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   );
@@ -748,12 +842,13 @@ class _FeedScreenState extends State<FeedScreen> {
                     color: Color(0xffFF5722),
                     shape: BoxShape.circle,
                   ),
-                  constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                  constraints:
+                      const BoxConstraints(minWidth: 14, minHeight: 14),
                   child: Center(
                     child: Text(
                       badgeCount > 9 ? '9+' : '$badgeCount',
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 8.5,
                         fontWeight: FontWeight.bold,
                         height: 1,

@@ -49,13 +49,21 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          backgroundColor: const Color(0xff1e1e1e),
-          title: const Text('Business Profile Required', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          content: const Text('Please onboard or register a Business Profile in the Profile tab to upload pitch videos.', style: TextStyle(color: Colors.grey)),
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? Color(0xff1e1e1e)
+              : Colors.white,
+          title: Text('Business Profile Required',
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.bold)),
+          content: const Text(
+              'Please onboard or register a Business Profile in the Profile tab to upload pitch videos.',
+              style: TextStyle(color: Colors.grey)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('OK', style: TextStyle(color: Color(0xffFF5722))),
+              child:
+                  const Text('OK', style: TextStyle(color: Color(0xffFF5722))),
             ),
           ],
         ),
@@ -98,55 +106,73 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Upload New Pitch Video',
-                      style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: nameController,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface),
                       decoration: const InputDecoration(
                         labelText: 'Product Name',
                         labelStyle: TextStyle(color: Colors.grey),
-                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24)),
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: priceController,
                       keyboardType: TextInputType.number,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface),
                       decoration: const InputDecoration(
                         labelText: 'Price (PKR)',
                         labelStyle: TextStyle(color: Colors.grey),
-                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24)),
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: descController,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface),
                       decoration: const InputDecoration(
                         labelText: 'Description',
                         labelStyle: TextStyle(color: Colors.grey),
-                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24)),
                       ),
                     ),
                     const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Category:', style: TextStyle(color: Colors.white70)),
+                        Text('Category:',
+                            style: TextStyle(
+                                color:
+                                    Theme.of(context).colorScheme.onSurface70)),
                         DropdownButton<String>(
-                          dropdownColor: const Color(0xff1e1e1e),
+                          dropdownColor:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Color(0xff1e1e1e)
+                                  : Colors.white,
                           value: category,
-                          style: const TextStyle(color: Colors.white),
-                          items: ['Electronics', 'Fashion', 'Home', 'Services'].map((c) {
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface),
+                          items: ['Electronics', 'Fashion', 'Home', 'Services']
+                              .map((c) {
                             return DropdownMenuItem(value: c, child: Text(c));
                           }).toList(),
                           onChanged: (val) {
-                            if (val != null) setModalState(() => category = val);
+                            if (val != null)
+                              setModalState(() => category = val);
                           },
                         ),
                       ],
@@ -155,22 +181,28 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                     TextField(
                       controller: stockController,
                       keyboardType: TextInputType.number,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface),
                       decoration: const InputDecoration(
                         labelText: 'Stock Qty',
                         labelStyle: TextStyle(color: Colors.grey),
-                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24)),
                       ),
                     ),
                     const SizedBox(height: 16),
 
                     // Video Selector Row
-                    const Text('Select Pitch Video:', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    const Text('Select Pitch Video:',
+                        style: TextStyle(color: Colors.grey, fontSize: 12)),
                     const SizedBox(height: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: const Color(0xff1e1e1e),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Color(0xff1e1e1e)
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: Colors.white12),
                       ),
@@ -182,18 +214,24 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               selectedFileName ?? 'No video selected',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: Colors.white70, fontSize: 13),
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface70,
+                                  fontSize: 13),
                             ),
                           ),
                           ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xffFF5722).withOpacity(0.12),
+                              backgroundColor:
+                                  const Color(0xffFF5722).withOpacity(0.12),
                               foregroundColor: const Color(0xffFF5722),
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
                             ),
                             onPressed: () async {
                               final ImagePicker picker = ImagePicker();
-                              final XFile? file = await picker.pickVideo(source: ImageSource.gallery);
+                              final XFile? file = await picker.pickVideo(
+                                  source: ImageSource.gallery);
                               if (file != null) {
                                 setModalState(() {
                                   selectedVideoFile = file;
@@ -202,7 +240,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               }
                             },
                             icon: const Icon(Icons.video_library, size: 16),
-                            label: const Text('Choose Video', style: TextStyle(fontSize: 12)),
+                            label: const Text('Choose Video',
+                                style: TextStyle(fontSize: 12)),
                           ),
                         ],
                       ),
@@ -212,7 +251,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Allow Viewers to Download:', style: TextStyle(color: Colors.white70)),
+                        Text('Allow Viewers to Download:',
+                            style: TextStyle(
+                                color:
+                                    Theme.of(context).colorScheme.onSurface70)),
                         Switch(
                           value: allowDownload,
                           activeColor: const Color(0xffFF5722),
@@ -229,18 +271,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xffFF5722),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                         onPressed: () async {
-                          if (nameController.text.isEmpty || priceController.text.isEmpty) {
+                          if (nameController.text.isEmpty ||
+                              priceController.text.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Please fill name and price')),
+                              const SnackBar(
+                                  content: Text('Please fill name and price')),
                             );
                             return;
                           }
                           if (selectedVideoFile == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Please select a video file from gallery or drive')),
+                              const SnackBar(
+                                  content: Text(
+                                      'Please select a video file from gallery or drive')),
                             );
                             return;
                           }
@@ -251,7 +298,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                             barrierDismissible: false,
                             builder: (context) {
                               return const Center(
-                                child: CircularProgressIndicator(color: Color(0xffFF5722)),
+                                child: CircularProgressIndicator(
+                                    color: Color(0xffFF5722)),
                               );
                             },
                           );
@@ -260,7 +308,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                             final response = await ApiService.uploadProduct(
                               name: nameController.text,
                               description: descController.text,
-                              price: double.tryParse(priceController.text) ?? 0.0,
+                              price:
+                                  double.tryParse(priceController.text) ?? 0.0,
                               category: category,
                               stock: int.tryParse(stockController.text) ?? 10,
                               allowDownload: allowDownload,
@@ -270,19 +319,26 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                             if (response.statusCode == 200 && context.mounted) {
                               Navigator.pop(context); // close sheet
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Product and video uploaded successfully.')),
+                                const SnackBar(
+                                    content: Text(
+                                        'Product and video uploaded successfully.')),
                               );
                             } else {
                               final err = jsonDecode(response.body);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(err['error'] ?? 'Upload failed')),
+                                SnackBar(
+                                    content:
+                                        Text(err['error'] ?? 'Upload failed')),
                               );
                             }
                           } catch (e) {
                             debugPrint('Upload error: $e');
                           }
                         },
-                        child: const Text('Publish Pitch', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        child: Text('Publish Pitch',
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontWeight: FontWeight.bold)),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -303,10 +359,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
     // Pages for IndexedStack
     final pages = <Widget>[
-      FeedScreen(isVisible: _selectedIndex == 0),   // 0: Home
-      const MessagesListScreen(),                     // 1: Chat
-      isSeller ? const ManageOrdersScreen() : const OrdersHistoryScreen(), // 2: Orders (Shop orders vs My purchases)
-      const ProfileScreen(),                          // 3: Profile
+      FeedScreen(isVisible: _selectedIndex == 0), // 0: Home
+      const MessagesListScreen(), // 1: Chat
+      isSeller
+          ? const ManageOrdersScreen()
+          : const OrdersHistoryScreen(), // 2: Orders (Shop orders vs My purchases)
+      const ProfileScreen(), // 3: Profile
     ];
 
     // Bottom nav items for Customer (4 tabs)
@@ -320,7 +378,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     // Bottom nav items for Seller (5 tabs — Upload in the middle)
     final sellerNavItems = [
       const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-      const BottomNavigationBarItem(icon: Icon(Icons.chat_bubble), label: 'Chat'),
+      const BottomNavigationBarItem(
+          icon: Icon(Icons.chat_bubble), label: 'Chat'),
       BottomNavigationBarItem(
         icon: Container(
           width: 44,
@@ -333,7 +392,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         ),
         label: '',
       ),
-      const BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: 'Orders'),
+      const BottomNavigationBarItem(
+          icon: Icon(Icons.shopping_bag), label: 'Orders'),
       const BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
     ];
 
@@ -346,7 +406,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     }
 
     // Clamp to valid range
-    final maxIndex = isSeller ? sellerNavItems.length - 1 : customerNavItems.length - 1;
+    final maxIndex =
+        isSeller ? sellerNavItems.length - 1 : customerNavItems.length - 1;
     if (navIndex > maxIndex) navIndex = maxIndex;
     if (_selectedIndex >= pages.length) _selectedIndex = 0;
 
@@ -356,7 +417,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         children: pages,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: const Color(0xff1e1e1e),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Color(0xff1e1e1e)
+            : Colors.white,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: const Color(0xffFF5722),
         unselectedItemColor: Colors.grey,
@@ -369,4 +432,3 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 }
-

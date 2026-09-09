@@ -32,6 +32,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
   VideoPlayerController? _controller;
   double _horizontalDrag = 0.0;
   bool _isLiked = false;
+  bool _isSaved = false;
   int _likesCount = 0;
   bool _showHeart = false;
 
@@ -54,7 +55,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
         final file = await DefaultCacheManager().getSingleFile(url);
         _controller = VideoPlayerController.file(file);
       }
-      
+
       await _controller!.initialize();
       if (mounted) {
         setState(() {});
@@ -92,14 +93,13 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     } else if (!oldWidget.isFocused && widget.isFocused && widget.isVisible) {
       _controller?.play();
     }
-    
+
     if (oldWidget.isVisible && !widget.isVisible) {
       _controller?.pause();
     } else if (!oldWidget.isVisible && widget.isVisible && widget.isFocused) {
       _controller?.play();
     }
   }
-
 
   void _handleLike() async {
     setState(() {
@@ -120,16 +120,11 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     }
   }
 
-  
-
-  
-
-  
-
   void _handleShareProduct() async {
     final videoUrl = widget.productData['video']?['url'];
     if (videoUrl == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Video not available.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Video not available.')));
       return;
     }
 
@@ -137,7 +132,11 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
       const SnackBar(
         content: Row(
           children: [
-            SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+            SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2)),
             SizedBox(width: 12),
             Text('Adding watermark & preparing video...'),
           ],
@@ -149,12 +148,15 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     try {
       final file = await DefaultCacheManager().getSingleFile(videoUrl);
       final dir = await getTemporaryDirectory();
-      final outPath = '${dir.path}/pitchandsell_${DateTime.now().millisecondsSinceEpoch}.mp4';
+      final outPath =
+          '${dir.path}/pitchandsell_${DateTime.now().millisecondsSinceEpoch}.mp4';
 
-      final watermarkText = 'PitchAndSell - @${widget.productData['business']?['name'] ?? 'Seller'}';
-      
+      final watermarkText =
+          'PitchAndSell - @${widget.productData['business']?['name'] ?? 'Seller'}';
+
       // FFmpeg command to add text watermark at bottom center
-      final command = "-y -i '${file.path}' -vf \"drawtext=text='$watermarkText':fontcolor=white@0.9:fontsize=32:x=(w-tw)/2:y=h-th-60:shadowcolor=black@0.6:shadowx=2:shadowy=2\" -c:a copy '$outPath'";
+      final command =
+          "-y -i '${file.path}' -vf \"drawtext=text='$watermarkText':fontcolor=white@0.9:fontsize=32:x=(w-tw)/2:y=h-th-60:shadowcolor=black@0.6:shadowx=2:shadowy=2\" -c:a copy '$outPath'";
 
       final session = await FFmpegKit.execute(command);
       final returnCode = await session.getReturnCode();
@@ -162,20 +164,25 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       if (ReturnCode.isSuccess(returnCode)) {
-        final link = 'https://pitch-and-sell-backend.onrender.com/product/${widget.productData['id']}';
+        final link =
+            'https://pitch-and-sell-backend.onrender.com/product/${widget.productData['id']}';
         await Share.shareXFiles(
-          [XFile(outPath)], 
-          text: 'Watch this awesome product by @${widget.productData['business']?['name'] ?? 'Seller'} on PitchAndSell!\n\nBuy it here: $link',
+          [XFile(outPath)],
+          text:
+              'Watch this awesome product by @${widget.productData['business']?['name'] ?? 'Seller'} on PitchAndSell!\n\nBuy it here: $link',
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to add watermark. Sharing link only...')));
-        final link = 'https://pitch-and-sell-backend.onrender.com/product/${widget.productData['id']}';
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Failed to add watermark. Sharing link only...')));
+        final link =
+            'https://pitch-and-sell-backend.onrender.com/product/${widget.productData['id']}';
         Share.share('Check out this product on PitchAndSell: $link');
       }
     } catch (e) {
       debugPrint('Watermark error: $e');
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      final link = 'https://pitch-and-sell-backend.onrender.com/product/${widget.productData['id']}';
+      final link =
+          'https://pitch-and-sell-backend.onrender.com/product/${widget.productData['id']}';
       Share.share('Check out this product on PitchAndSell: $link');
     }
   }
@@ -204,7 +211,9 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
             _horizontalDrag += details.delta.dx;
           },
           onHorizontalDragEnd: (details) {
-            if (_horizontalDrag < -40 || (details.primaryVelocity != null && details.primaryVelocity! < -300)) {
+            if (_horizontalDrag < -40 ||
+                (details.primaryVelocity != null &&
+                    details.primaryVelocity! < -300)) {
               final sellerId = widget.productData['seller_id'] ?? '';
               if (sellerId.isNotEmpty) {
                 Navigator.push(
@@ -212,7 +221,8 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                   MaterialPageRoute(
                     builder: (_) => SellerProfileScreen(
                       sellerId: sellerId,
-                      businessName: widget.productData['business']?['name'] ?? 'Seller',
+                      businessName:
+                          widget.productData['business']?['name'] ?? 'Seller',
                     ),
                   ),
                 );
@@ -232,12 +242,15 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                       ),
                     ),
                   )
-                : const Center(child: CircularProgressIndicator(color: Color(0xffFF5722))),
+                : const Center(
+                    child: CircularProgressIndicator(color: Color(0xffFF5722))),
           ),
         ),
 
         // Pause Indicator
-        if (_controller != null && _controller!.value.isInitialized && !_controller!.value.isPlaying)
+        if (_controller != null &&
+            _controller!.value.isInitialized &&
+            !_controller!.value.isPlaying)
           IgnorePointer(
             child: Center(
               child: Container(
@@ -310,7 +323,9 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                             MaterialPageRoute(
                               builder: (_) => SellerProfileScreen(
                                 sellerId: sellerId,
-                                businessName: widget.productData['business']?['name'] ?? 'Seller',
+                                businessName: widget.productData['business']
+                                        ?['name'] ??
+                                    'Seller',
                               ),
                             ),
                           );
@@ -318,30 +333,42 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                       },
                       child: Text(
                         '@${widget.productData['business']?['name'] ?? 'Seller'}',
-                        style: const TextStyle(color: Color(0xffFF5722), fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                        style: const TextStyle(
+                            color: Color(0xffFF5722),
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5),
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       widget.productData['name'],
-                      style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       widget.productData['description'] ?? '',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+                      style: const TextStyle(
+                          color: Colors.white70, fontSize: 12, height: 1.4),
                     ),
                     const SizedBox(height: 8),
-                    if (widget.productData['avgRating'] != null && widget.productData['avgRating'] > 0)
+                    if (widget.productData['avgRating'] != null &&
+                        widget.productData['avgRating'] > 0)
                       Row(
                         children: [
                           const Icon(Icons.star, color: Colors.amber, size: 14),
                           const SizedBox(width: 4),
                           Text(
                             '${(widget.productData['avgRating'] as num).toStringAsFixed(1)} (${widget.productData['reviewCount']})',
-                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -350,13 +377,19 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                       children: [
                         Text(
                           'PKR ${widget.productData['price']}',
-                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(width: 8),
                         if (widget.productData['oldPrice'] != null)
                           Text(
                             'PKR ${widget.productData['oldPrice']}',
-                            style: const TextStyle(color: Colors.grey, fontSize: 13, decoration: TextDecoration.lineThrough),
+                            style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 13,
+                                decoration: TextDecoration.lineThrough),
                           ),
                       ],
                     ),
@@ -385,7 +418,11 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                       size: 28,
                     ),
                     const SizedBox(height: 2),
-                    Text('$_likesCount', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                    Text('$_likesCount',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
@@ -393,12 +430,17 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
 
               // Review
               GestureDetector(
-                onTap: () => FeedDialogService.showCommentsSheet(context, widget.productData),
+                onTap: () => FeedDialogService.showCommentsSheet(
+                    context, widget.productData),
                 child: const Column(
                   children: [
                     Icon(Icons.star_rounded, color: Colors.white, size: 28),
                     SizedBox(height: 2),
-                    Text('Review', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                    Text('Review',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
@@ -410,7 +452,8 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                   try {
                     await ApiService.toggleSaveVideo(widget.productData['id']);
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved for later!')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Saved for later!')));
                     }
                   } catch (e) {
                     debugPrint('Save error: $e');
@@ -418,9 +461,14 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 },
                 child: const Column(
                   children: [
-                    Icon(Icons.bookmark_border_rounded, color: Colors.white, size: 28),
+                    Icon(Icons.bookmark_border_rounded,
+                        color: Colors.white, size: 28),
                     SizedBox(height: 2),
-                    Text('Save', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                    Text('Save',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
@@ -433,7 +481,11 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                   children: [
                     Icon(Icons.share_rounded, color: Colors.white, size: 26),
                     SizedBox(height: 2),
-                    Text('Share', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                    Text('Share',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
@@ -441,17 +493,22 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
 
               // Order Now Action Button (Cart)
               GestureDetector(
-                onTap: () => FeedDialogService.showOrderCheckoutSheet(context, widget.productData),
+                onTap: () => FeedDialogService.showOrderCheckoutSheet(
+                    context, widget.productData),
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: const Color(0xffFF5722),
                     shape: BoxShape.circle,
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4, offset: const Offset(0, 2)),
+                      BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2)),
                     ],
                   ),
-                  child: const Icon(Icons.shopping_cart_rounded, color: Colors.white, size: 22),
+                  child: const Icon(Icons.shopping_cart_rounded,
+                      color: Colors.white, size: 22),
                 ),
               ),
             ],
@@ -461,10 +518,3 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     );
   }
 }
-
-
-
-
-
-
-

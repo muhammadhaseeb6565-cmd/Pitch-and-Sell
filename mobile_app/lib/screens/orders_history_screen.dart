@@ -60,9 +60,14 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
     return Scaffold(
       backgroundColor: const Color(0xff121212),
       appBar: AppBar(
-        backgroundColor: const Color(0xff1e1e1e),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Color(0xff1e1e1e)
+            : Colors.white,
         elevation: 0,
-        title: const Text('My Purchase Orders', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text('My Purchase Orders',
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
@@ -71,7 +76,8 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xffFF5722)))
           : _orders.isEmpty
               ? const Center(
                   child: Text(
@@ -89,7 +95,9 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xff1e1e1e),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Color(0xff1e1e1e)
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.white10),
                       ),
@@ -100,19 +108,29 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                order['id'].toString().length >= 8 ? order['id'].toString().substring(0, 8) : order['id'].toString(),
-                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                order['id'].toString().length >= 8
+                                    ? order['id'].toString().substring(0, 8)
+                                    : order['id'].toString(),
+                                style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: _getStatusColor(order['status'] ?? 'UNKNOWN').withOpacity(0.15),
+                                  color: _getStatusColor(
+                                          order['status'] ?? 'UNKNOWN')
+                                      .withOpacity(0.15),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   order['status'] ?? 'UNKNOWN',
                                   style: TextStyle(
-                                    color: _getStatusColor(order['status'] ?? 'UNKNOWN'),
+                                    color: _getStatusColor(
+                                        order['status'] ?? 'UNKNOWN'),
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
                                   ),
@@ -123,7 +141,10 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                           const Divider(color: Colors.white10, height: 20),
                           Text(
                             product['name'] ?? 'Unknown Product',
-                            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500),
                           ),
                           const SizedBox(height: 4),
                           Row(
@@ -131,11 +152,15 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                             children: [
                               Text(
                                 'Qty: ${order['quantity'] ?? 1} x PKR ${order['unitPrice'] ?? 0}',
-                                style: const TextStyle(color: Colors.grey, fontSize: 13),
+                                style: const TextStyle(
+                                    color: Colors.grey, fontSize: 13),
                               ),
                               Text(
                                 'PKR ${order['totalAmount'] ?? 0}',
-                                style: const TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold, fontSize: 16),
+                                style: const TextStyle(
+                                    color: Color(0xffFF5722),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16),
                               ),
                             ],
                           ),
@@ -145,15 +170,20 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                             children: [
                               Text(
                                 'Mode: ${order['paymentMethod'] ?? 'N/A'}',
-                                style: const TextStyle(color: Colors.grey, fontSize: 13),
+                                style: const TextStyle(
+                                    color: Colors.grey, fontSize: 13),
                               ),
                               Text(
                                 'Date: ${order['createdAt'] != null ? order['createdAt'].toString().substring(0, 10) : 'N/A'}',
-                                style: const TextStyle(color: Colors.grey, fontSize: 13),
+                                style: const TextStyle(
+                                    color: Colors.grey, fontSize: 13),
                               ),
                             ],
                           ),
-                          if (order['deliveryAddress'] != null && order['deliveryAddress'].toString().isNotEmpty) ...[
+                          if (order['deliveryAddress'] != null &&
+                              order['deliveryAddress']
+                                  .toString()
+                                  .isNotEmpty) ...[
                             const SizedBox(height: 10),
                             Container(
                               padding: const EdgeInsets.all(10),
@@ -164,12 +194,17 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Icon(Icons.location_on_outlined, color: Color(0xffFF5722), size: 16),
+                                  const Icon(Icons.location_on_outlined,
+                                      color: Color(0xffFF5722), size: 16),
                                   const SizedBox(width: 6),
                                   Expanded(
                                     child: Text(
                                       'Deliver to: ${order['buyerName'] ?? 'You'} • ${order['deliveryAddress']}, ${order['city'] ?? ''} (${order['buyerPhone'] ?? ''})',
-                                      style: const TextStyle(color: Colors.white70, fontSize: 11),
+                                      style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface70,
+                                          fontSize: 11),
                                     ),
                                   ),
                                 ],
@@ -183,16 +218,23 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.indigo.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.indigo.withOpacity(0.3)),
+                                border: Border.all(
+                                    color: Colors.indigo.withOpacity(0.3)),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.local_shipping, color: Colors.indigoAccent, size: 16),
+                                  const Icon(Icons.local_shipping,
+                                      color: Colors.indigoAccent, size: 16),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
                                       'Courier: ${order['courierName'] ?? 'Courier'} • Tracking: ${order['trackingNumber']}',
-                                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                   ),
                                 ],
@@ -200,18 +242,26 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                             ),
                           ],
                           _buildTimeline(order['status'] ?? 'UNKNOWN'),
-                          if ((order['status'] ?? 'UNKNOWN') == 'PENDING' || (order['status'] ?? 'UNKNOWN') == 'ACCEPTED' || (order['status'] ?? 'UNKNOWN') == 'PROCESSING') ...[
+                          if ((order['status'] ?? 'UNKNOWN') == 'PENDING' ||
+                              (order['status'] ?? 'UNKNOWN') == 'ACCEPTED' ||
+                              (order['status'] ?? 'UNKNOWN') ==
+                                  'PROCESSING') ...[
                             const SizedBox(height: 8),
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton.icon(
                                 style: TextButton.styleFrom(
                                   foregroundColor: Colors.redAccent,
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
                                 ),
                                 onPressed: () => _showCancelDialog(order['id']),
-                                icon: const Icon(Icons.cancel_outlined, size: 16),
-                                label: const Text('Cancel Order', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                icon:
+                                    const Icon(Icons.cancel_outlined, size: 16),
+                                label: const Text('Cancel Order',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13)),
                               ),
                             ),
                           ],
@@ -224,7 +274,8 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
   }
 
   Widget _buildTimeline(String status) {
-    if (status.toUpperCase() == 'CANCELLED' || status.toUpperCase() == 'RETURNED') {
+    if (status.toUpperCase() == 'CANCELLED' ||
+        status.toUpperCase() == 'RETURNED') {
       return Padding(
         padding: const EdgeInsets.only(top: 12.0),
         child: Row(
@@ -233,7 +284,10 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
             const SizedBox(width: 8),
             Text(
               'Order was cancelled / returned.',
-              style: TextStyle(color: Colors.redAccent.shade100, fontSize: 13, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                  color: Colors.redAccent.shade100,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -245,15 +299,21 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
     final upperStatus = status.toUpperCase();
     if (upperStatus == 'PENDING') activeIndex = 0;
     if (upperStatus == 'ACCEPTED') activeIndex = 1;
-    if (upperStatus == 'PROCESSING' || upperStatus == 'SHIPPED') activeIndex = 2;
-    if (upperStatus == 'DELIVERED' || upperStatus == 'COMPLETED') activeIndex = 3;
+    if (upperStatus == 'PROCESSING' || upperStatus == 'SHIPPED')
+      activeIndex = 2;
+    if (upperStatus == 'DELIVERED' || upperStatus == 'COMPLETED')
+      activeIndex = 3;
 
     return Padding(
       padding: const EdgeInsets.only(top: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Order Timeline:', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+          const Text('Order Timeline:',
+              style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -268,9 +328,13 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                       height: 10,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isCompleted ? const Color(0xffFF5722) : Colors.grey.shade800,
+                        color: isCompleted
+                            ? const Color(0xffFF5722)
+                            : Colors.grey.shade800,
                         border: Border.all(
-                          color: isCompleted ? const Color(0xffFF5722) : Colors.grey.shade600,
+                          color: isCompleted
+                              ? const Color(0xffFF5722)
+                              : Colors.grey.shade600,
                           width: 2,
                         ),
                       ),
@@ -280,7 +344,9 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                       Expanded(
                         child: Container(
                           height: 2,
-                          color: index < activeIndex ? const Color(0xffFF5722) : Colors.grey.shade800,
+                          color: index < activeIndex
+                              ? const Color(0xffFF5722)
+                              : Colors.grey.shade800,
                         ),
                       ),
                   ],
@@ -314,9 +380,16 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xff1e1e1e),
-          title: const Text('Cancel Order?', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          content: const Text('Are you sure you want to cancel this order? This action cannot be undone and will restore product stock.', style: TextStyle(color: Colors.grey)),
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? Color(0xff1e1e1e)
+              : Colors.white,
+          title: Text('Cancel Order?',
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.bold)),
+          content: const Text(
+              'Are you sure you want to cancel this order? This action cannot be undone and will restore product stock.',
+              style: TextStyle(color: Colors.grey)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -325,7 +398,8 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.redAccent,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
               ),
               onPressed: () async {
                 Navigator.pop(context);
@@ -333,7 +407,8 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                   final response = await ApiService.cancelOrder(orderId);
                   if (response.statusCode == 200 && mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Order cancelled successfully.')),
+                      const SnackBar(
+                          content: Text('Order cancelled successfully.')),
                     );
                     _fetchOrders(); // reload
                   }
@@ -341,7 +416,10 @@ class _OrdersHistoryScreenState extends State<OrdersHistoryScreen> {
                   debugPrint('Cancel order failed: $e');
                 }
               },
-              child: const Text('Yes, Cancel', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              child: Text('Yes, Cancel',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.bold)),
             ),
           ],
         );
