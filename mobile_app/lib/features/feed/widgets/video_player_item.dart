@@ -6,7 +6,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter_new/return_code.dart';
-import 'dart:convert';
 import 'dart:ui';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../services/api_service.dart';
@@ -37,7 +36,6 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
   double _horizontalDrag = 0.0;
   bool _isLiked = false;
   bool _isSaved = false;
-  bool _isSaveLoading = false;
   int _likesCount = 0;
   bool _showHeart = false;
 
