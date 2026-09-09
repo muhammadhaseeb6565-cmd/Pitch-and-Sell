@@ -1,5 +1,5 @@
 import 'dart:convert';
-import \'../utils/app_color_scheme.dart\';
+import '../utils/app_color_scheme.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

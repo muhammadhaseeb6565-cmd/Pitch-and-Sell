@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import \'../utils/app_color_scheme.dart\';
+import '../utils/app_color_scheme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:convert';
 import '../services/api_service.dart';
