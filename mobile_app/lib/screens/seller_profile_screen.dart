@@ -568,7 +568,6 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                                               child: Icon(Icons.play_circle_outline, color: Colors.white70, size: 30),
                                             ),
                                           ),
-                                        ),
                                         if (isOwner)
                                           Positioned(
                                             top: 6,

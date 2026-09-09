@@ -147,7 +147,7 @@ class _FeedScreenState extends State<FeedScreen> {
                       ? Color(0xff1e1e1e)
                       : Colors.white,
                   highlightColor: const Color(0xff2a2a2a),
-                  child: Container(color: Colors.black),
+                  child: Container(color: Theme.of(context).colorScheme.onSurface),
                 )
               : _products.isEmpty
                   ? Center(
@@ -258,7 +258,7 @@ class _FeedScreenState extends State<FeedScreen> {
                                     letterSpacing: 1.1,
                                     shadows: [
                                       Shadow(
-                                          color: Colors.black87,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                           blurRadius: 4,
                                           offset: Offset(0, 1)),
                                     ],

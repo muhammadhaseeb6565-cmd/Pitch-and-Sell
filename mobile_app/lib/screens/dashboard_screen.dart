@@ -796,7 +796,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Container(
                         height: 180,
                         decoration: BoxDecoration(
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                             borderRadius: BorderRadius.circular(16))),
                     const SizedBox(height: 24),
                     Row(
@@ -805,14 +805,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: Container(
                                 height: 80,
                                 decoration: BoxDecoration(
-                                    color: Colors.black,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                     borderRadius: BorderRadius.circular(12)))),
                         const SizedBox(width: 16),
                         Expanded(
                             child: Container(
                                 height: 80,
                                 decoration: BoxDecoration(
-                                    color: Colors.black,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                     borderRadius: BorderRadius.circular(12)))),
                       ],
                     ),
@@ -823,14 +823,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: Container(
                                 height: 80,
                                 decoration: BoxDecoration(
-                                    color: Colors.black,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                     borderRadius: BorderRadius.circular(12)))),
                         const SizedBox(width: 16),
                         Expanded(
                             child: Container(
                                 height: 80,
                                 decoration: BoxDecoration(
-                                    color: Colors.black,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                     borderRadius: BorderRadius.circular(12)))),
                       ],
                     )

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -36,6 +37,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
   double _horizontalDrag = 0.0;
   bool _isLiked = false;
   bool _isSaved = false;
+  bool _isSaveLoading = false;
   int _likesCount = 0;
   bool _showHeart = false;
 
