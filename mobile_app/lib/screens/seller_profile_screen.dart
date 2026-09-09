@@ -505,7 +505,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                                             child: Container(
                                               padding: const EdgeInsets.all(5),
                                               decoration: BoxDecoration(
-                                                color: Colors.black
+                                                color: Theme.of(context).colorScheme.onSurface
                                                     .withOpacity(0.7),
                                                 shape: BoxShape.circle,
                                               ),

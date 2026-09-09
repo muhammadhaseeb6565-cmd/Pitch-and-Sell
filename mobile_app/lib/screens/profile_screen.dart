@@ -1489,7 +1489,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                             child: Container(
                                               padding: const EdgeInsets.all(4),
                                               decoration: BoxDecoration(
-                                                color: Colors.black
+                                                color: Theme.of(context).colorScheme.onSurface
                                                     .withOpacity(0.7),
                                                 shape: BoxShape.circle,
                                               ),

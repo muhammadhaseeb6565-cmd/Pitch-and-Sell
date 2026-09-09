@@ -230,6 +230,23 @@ class ApiService {
     }
   }
 
+
+  static Future<bool> isVideoSaved(String videoId) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return false;
+      final existing = await _supabase
+          .from('saved_videos')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('product_id', videoId)
+          .maybeSingle();
+      return existing != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
   static Future<http.Response> getSavedVideos() async {
     try {
       final user = _supabase.auth.currentUser;

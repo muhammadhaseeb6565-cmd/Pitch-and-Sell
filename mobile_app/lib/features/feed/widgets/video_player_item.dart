@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -33,6 +34,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
   double _horizontalDrag = 0.0;
   bool _isLiked = false;
   bool _isSaved = false;
+  bool _isSaveLoading = false;
   int _likesCount = 0;
   bool _showHeart = false;
 
@@ -44,6 +46,16 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
       _initVideoPlayer(video['url']);
       _likesCount = video['likesCount'] ?? 0;
     }
+    _checkIfSaved();
+  }
+
+  Future<void> _checkIfSaved() async {
+    try {
+      final productId = widget.productData['id'];
+      if (productId == null) return;
+      final isSaved = await ApiService.isVideoSaved(productId);
+      if (mounted) setState(() => _isSaved = isSaved);
+    } catch (_) {}
   }
 
   Future<void> _initVideoPlayer(String url) async {
@@ -448,25 +460,51 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
 
               // Save for Later
               GestureDetector(
-                onTap: () async {
-                  try {
-                    await ApiService.toggleSaveVideo(widget.productData['id']);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Saved for later!')));
-                    }
-                  } catch (e) {
-                    debugPrint('Save error: $e');
-                  }
-                },
-                child: const Column(
+                onTap: _isSaveLoading
+                    ? null
+                    : () async {
+                        setState(() => _isSaveLoading = true);
+                        try {
+                          final productId = widget.productData['id'];
+                          final res =
+                              await ApiService.toggleSaveVideo(productId);
+                          final body = jsonDecode(res.body);
+                          final nowSaved = body['saved'] == true;
+                          if (mounted) {
+                            setState(() {
+                              _isSaved = nowSaved;
+                              _isSaveLoading = false;
+                            });
+                            ScaffoldMessenger.of(context).clearSnackBars();
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(nowSaved
+                                  ? 'Video saved to wishlist!'
+                                  : 'Removed from wishlist.'),
+                              duration: const Duration(seconds: 2),
+                            ));
+                          }
+                        } catch (e) {
+                          if (mounted)
+                            setState(() => _isSaveLoading = false);
+                          debugPrint('Save error: $e');
+                        }
+                      },
+                child: Column(
                   children: [
-                    Icon(Icons.bookmark_border_rounded,
-                        color: Colors.white, size: 28),
-                    SizedBox(height: 2),
+                    Icon(
+                      _isSaved
+                          ? Icons.bookmark_rounded
+                          : Icons.bookmark_border_rounded,
+                      color:
+                          _isSaved ? const Color(0xffFF5722) : Colors.white,
+                      size: 28,
+                    ),
+                    const SizedBox(height: 2),
                     Text('Save',
                         style: TextStyle(
-                            color: Colors.white,
+                            color: _isSaved
+                                ? const Color(0xffFF5722)
+                                : Colors.white,
                             fontSize: 11,
                             fontWeight: FontWeight.w600)),
                   ],
