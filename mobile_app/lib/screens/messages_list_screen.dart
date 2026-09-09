@@ -80,20 +80,28 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
 
       List<Map<String, dynamic>> loadedChats = [];
       for (var chat in response) {
-        String otherUserId = chat['user1_id'] == user.id ? chat['user2_id'] : chat['user1_id'];
-        
+        String otherUserId =
+            chat['user1_id'] == user.id ? chat['user2_id'] : chat['user1_id'];
+
         // Fetch the other user's profile
         Map<String, dynamic>? profileRes;
         try {
-          profileRes = await _supabase.from('profiles').select('name, business_name, is_business, avatar').eq('id', otherUserId).maybeSingle();
+          profileRes = await _supabase
+              .from('profiles')
+              .select('name, business_name, is_business, avatar')
+              .eq('id', otherUserId)
+              .maybeSingle();
         } catch (_) {}
 
         String title = 'Seller';
         String? avatarUrl;
         if (profileRes != null) {
-          title = (profileRes['is_business'] == true && profileRes['business_name'] != null && profileRes['business_name'].toString().trim().isNotEmpty) 
-              ? profileRes['business_name'] 
-              : (profileRes['name'] != null && profileRes['name'].toString().trim().isNotEmpty)
+          title = (profileRes['is_business'] == true &&
+                  profileRes['business_name'] != null &&
+                  profileRes['business_name'].toString().trim().isNotEmpty)
+              ? profileRes['business_name']
+              : (profileRes['name'] != null &&
+                      profileRes['name'].toString().trim().isNotEmpty)
                   ? profileRes['name']
                   : 'Seller';
           avatarUrl = profileRes['avatar'];
@@ -113,17 +121,22 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
 
         String lastMessage = 'Start chatting';
         bool unread = false;
-        String time = chat['created_at'].toString().substring(0, 10); // fallback
+        String time =
+            chat['created_at'].toString().substring(0, 10); // fallback
 
         if (lastMessageRes != null) {
           lastMessage = lastMessageRes['content'] ?? 'Start chatting';
-          unread = (lastMessageRes['is_read'] == false && lastMessageRes['sender_id'] != user.id);
-          
+          unread = (lastMessageRes['is_read'] == false &&
+              lastMessageRes['sender_id'] != user.id);
+
           try {
             final date = DateTime.parse(lastMessageRes['created_at']).toLocal();
             final now = DateTime.now();
-            if (date.year == now.year && date.month == now.month && date.day == now.day) {
-              time = "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
+            if (date.year == now.year &&
+                date.month == now.month &&
+                date.day == now.day) {
+              time =
+                  "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
             } else {
               time = "${date.month}/${date.day}";
             }
@@ -159,9 +172,14 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
     return Scaffold(
       backgroundColor: const Color(0xff121212),
       appBar: AppBar(
-        backgroundColor: const Color(0xff1e1e1e),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Color(0xff1e1e1e)
+            : Colors.white,
         elevation: 0,
-        title: const Text('Inbox Messages', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text('Inbox Messages',
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
@@ -170,7 +188,8 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xffFF5722)))
           : _chats.isEmpty
               ? RefreshIndicator(
                   color: const Color(0xffFF5722),
@@ -195,33 +214,48 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     itemCount: _chats.length,
-                    separatorBuilder: (context, index) => const Divider(color: Colors.white10),
+                    separatorBuilder: (context, index) =>
+                        const Divider(color: Colors.white10),
                     itemBuilder: (context, index) {
                       final chat = _chats[index];
                       final avatarUrl = chat['avatar'] as String?;
                       return ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: const Color(0xffFF5722).withOpacity(0.15),
-                          backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
+                          backgroundColor:
+                              const Color(0xffFF5722).withOpacity(0.15),
+                          backgroundImage:
+                              avatarUrl != null && avatarUrl.isNotEmpty
+                                  ? NetworkImage(avatarUrl)
+                                  : null,
                           child: (avatarUrl == null || avatarUrl.isEmpty)
-                              ? const Icon(Icons.person, color: Color(0xffFF5722))
+                              ? const Icon(Icons.person,
+                                  color: Color(0xffFF5722))
                               : null,
                         ),
                         title: Text(
                           chat['title'],
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontWeight: FontWeight.bold),
                         ),
                         subtitle: Text(
                           chat['lastMessage'],
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: chat['unread'] ? Colors.white : Colors.grey, fontWeight: chat['unread'] ? FontWeight.bold : FontWeight.normal),
+                          style: TextStyle(
+                              color:
+                                  chat['unread'] ? Colors.white : Colors.grey,
+                              fontWeight: chat['unread']
+                                  ? FontWeight.bold
+                                  : FontWeight.normal),
                         ),
                         trailing: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text(chat['time'], style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                            Text(chat['time'],
+                                style: const TextStyle(
+                                    color: Colors.grey, fontSize: 12)),
                             const SizedBox(height: 4),
                             if (chat['unread'])
                               const CircleAvatar(
@@ -239,7 +273,8 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                                 chatTitle: chat['title'],
                               ),
                             ),
-                          ).then((_) => _fetchChats(showLoading: false)); // refresh on return
+                          ).then((_) => _fetchChats(
+                              showLoading: false)); // refresh on return
                         },
                       );
                     },
@@ -248,4 +283,3 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
     );
   }
 }
-

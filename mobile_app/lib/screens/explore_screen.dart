@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_color_scheme.dart';
 import 'feed_screen.dart';
 import '../services/api_service.dart';
 import 'dart:convert';
@@ -46,8 +47,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
     return Scaffold(
       backgroundColor: const Color(0xff121212),
       appBar: AppBar(
-        backgroundColor: const Color(0xff1e1e1e),
-        title: const Text('Explore Pitches', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Color(0xff1e1e1e)
+            : Colors.white,
+        title: Text('Explore Pitches',
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.bold)),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -58,13 +64,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
             // Search Bar
             TextField(
               controller: _searchController,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
               decoration: InputDecoration(
                 hintText: 'Search pitches, products, sellers...',
                 hintStyle: const TextStyle(color: Colors.grey),
                 prefixIcon: const Icon(Icons.search, color: Colors.grey),
                 filled: true,
-                fillColor: const Color(0xff1e1e1e),
+                fillColor: Theme.of(context).brightness == Brightness.dark
+                    ? Color(0xff1e1e1e)
+                    : Colors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -76,7 +84,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (_) => Scaffold(
-                        appBar: AppBar(title: Text('Search: $val'), backgroundColor: const Color(0xff1e1e1e)),
+                        appBar: AppBar(
+                            title: Text('Search: $val'),
+                            backgroundColor:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Color(0xff1e1e1e)
+                                    : Colors.white),
                         body: FeedScreen(initialSearch: val),
                       ),
                     ),
@@ -91,15 +104,21 @@ class _ExploreScreenState extends State<ExploreScreen> {
               height: 38,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                children: ['All', 'Trending', 'New Pitches', 'Top Sellers'].map((filter) {
+                children: ['All', 'Trending', 'New Pitches', 'Top Sellers']
+                    .map((filter) {
                   final isSelected = _selectedFilter == filter;
                   return GestureDetector(
                     onTap: () => setState(() => _selectedFilter = filter),
                     child: Container(
                       margin: const EdgeInsets.only(right: 10),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xffFF5722) : const Color(0xff1e1e1e),
+                        color: isSelected
+                            ? Color(0xffFF5722)
+                            : Theme.of(context).brightness == Brightness.dark
+                                ? Color(0xff1e1e1e)
+                                : Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: Colors.white10),
                       ),
@@ -118,150 +137,197 @@ class _ExploreScreenState extends State<ExploreScreen> {
             ),
             const SizedBox(height: 24),
 
-            const Text(
+            Text(
               'Browse Categories',
-              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
 
             // Grid categories
             _isLoading
-                ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
+                ? const Center(
+                    child: CircularProgressIndicator(color: Color(0xffFF5722)))
                 : GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.4,
-              ),
-              itemCount: _categories.length,
-              itemBuilder: (context, idx) {
-                final cat = _categories[idx];
-                final name = cat['category'] ?? cat['name'] ?? 'Category';
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => Scaffold(
-                          appBar: AppBar(title: Text(name), backgroundColor: const Color(0xff1e1e1e)),
-                          body: FeedScreen(initialCategory: name),
-                        ),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      gradient: const LinearGradient(
-                        colors: [Color(0xffFF5722), Color(0xffFF8A50)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 1.4,
                     ),
-                  child: Stack(
-                    children: [
-                      const Positioned(
-                        right: 8,
-                        bottom: 8,
-                        child: Opacity(
-                          opacity: 0.3,
-                          child: Icon(Icons.category, size: 48, color: Colors.white),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              name,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                    itemCount: _categories.length,
+                    itemBuilder: (context, idx) {
+                      final cat = _categories[idx];
+                      final name = cat['category'] ?? cat['name'] ?? 'Category';
+                      return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => Scaffold(
+                                  appBar: AppBar(
+                                      title: Text(name),
+                                      backgroundColor:
+                                          Theme.of(context).brightness ==
+                                                  Brightness.dark
+                                              ? Color(0xff1e1e1e)
+                                              : Colors.white),
+                                  body: FeedScreen(initialCategory: name),
+                                ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              gradient: const LinearGradient(
+                                colors: [Color(0xffFF5722), Color(0xffFF8A50)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                               ),
                             ),
-                            Text(
-                              '${cat['count'] ?? 0} Pitches →',
-                              style: const TextStyle(color: Colors.white70, fontSize: 12),
+                            child: Stack(
+                              children: [
+                                const Positioned(
+                                  right: 8,
+                                  bottom: 8,
+                                  child: Opacity(
+                                    opacity: 0.3,
+                                    child: Icon(Icons.category,
+                                        size: 48, color: Colors.white),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        name,
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${cat['count'] ?? 0} Pitches →',
+                                        style: TextStyle(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface70,
+                                            fontSize: 12),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
+                          ));
+                    },
                   ),
-                ));
-              },
-            ),
             const SizedBox(height: 32),
 
-            const Text(
+            Text(
               'Trending Businesses',
-              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            _isLoading 
-                ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
+            _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: Color(0xffFF5722)))
                 : ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _trendingSellers.length,
-              itemBuilder: (context, idx) {
-                final seller = _trendingSellers[idx];
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => Scaffold(
-                          appBar: AppBar(title: Text('Pitches from ${seller['business_name'] ?? 'Seller'}'), backgroundColor: const Color(0xff1e1e1e)),
-                          body: FeedScreen(), // Need to pass business id if feed supports it, for now just feed
-                        ),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 6),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xff1e1e1e),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white10),
-                    ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: const Color(0xffFF5722).withOpacity(0.1),
-                          child: Text((seller['business_name'] ?? 'S')[0], style: const TextStyle(color: Color(0xffFF5722))),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _trendingSellers.length,
+                    itemBuilder: (context, idx) {
+                      final seller = _trendingSellers[idx];
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => Scaffold(
+                                appBar: AppBar(
+                                    title: Text(
+                                        'Pitches from ${seller['business_name'] ?? 'Seller'}'),
+                                    backgroundColor:
+                                        Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? Color(0xff1e1e1e)
+                                            : Colors.white),
+                                body:
+                                    FeedScreen(), // Need to pass business id if feed supports it, for now just feed
+                              ),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Color(0xff1e1e1e)
+                                    : Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white10),
+                          ),
+                          child: Row(
                             children: [
-                              Text(
-                                seller['business_name'] ?? 'Unknown Business',
-                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              CircleAvatar(
+                                backgroundColor:
+                                    const Color(0xffFF5722).withOpacity(0.1),
+                                child: Text((seller['business_name'] ?? 'S')[0],
+                                    style: const TextStyle(
+                                        color: Color(0xffFF5722))),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${seller['total_orders'] ?? 0} Orders',
-                                style: const TextStyle(color: Colors.green, fontSize: 11, fontWeight: FontWeight.w500),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      seller['business_name'] ??
+                                          'Unknown Business',
+                                      style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${seller['total_orders'] ?? 0} Orders',
+                                      style: const TextStyle(
+                                          color: Colors.green,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w500),
+                                    ),
+                                  ],
+                                ),
                               ),
+                              const Icon(Icons.arrow_forward_ios,
+                                  color: Colors.grey, size: 14),
                             ],
                           ),
                         ),
-                        const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 14),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ],
         ),
       ),

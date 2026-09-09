@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../utils/app_color_scheme.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -28,8 +29,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     'availableForPayout': 0.0
   };
   List<dynamic> _ledgerEntries = [];
-  Map<String, dynamic> _insights = {'totalViews': 0, 'saves': 0, 'cartAbandons': 0};
-  Map<String, dynamic> _promoStats = {'name': '', 'status': 'NONE', 'impressions': 0, 'clicks': 0, 'sales': 0, 'roas': 0.0};
+  Map<String, dynamic> _insights = {
+    'totalViews': 0,
+    'saves': 0,
+    'cartAbandons': 0
+  };
+  Map<String, dynamic> _promoStats = {
+    'name': '',
+    'status': 'NONE',
+    'impressions': 0,
+    'clicks': 0,
+    'sales': 0,
+    'roas': 0.0
+  };
   bool _isLoading = true;
 
   @override
@@ -76,8 +88,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final client = Supabase.instance.client;
       final user = client.auth.currentUser;
       if (user != null) {
-        final savesRes = await client.from('saved_videos').select('id').count(CountOption.exact);
-        final ordersRes = await client.from('orders').select('id').eq('status', 'cart_abandoned').count(CountOption.exact);
+        final savesRes = await client
+            .from('saved_videos')
+            .select('id')
+            .count(CountOption.exact);
+        final ordersRes = await client
+            .from('orders')
+            .select('id')
+            .eq('status', 'cart_abandoned')
+            .count(CountOption.exact);
         _insights = {
           'totalViews': _summary['totalViews'] ?? 0,
           'saves': savesRes.count,
@@ -100,8 +119,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-
-
   void _showPayoutRequestSheet() {
     final amountController = TextEditingController();
     final detailsController = TextEditingController();
@@ -110,7 +127,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xff1e1e1e),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? Color(0xff1e1e1e)
+          : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -126,9 +145,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Request Payout Withdrawal',
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
               Text(
@@ -136,29 +158,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: const TextStyle(color: Colors.grey, fontSize: 14),
               ),
               const SizedBox(height: 16),
-
               TextField(
                 controller: amountController,
                 keyboardType: TextInputType.number,
-                style: const TextStyle(color: Colors.white),
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.onSurface),
                 decoration: const InputDecoration(
                   labelText: 'Amount (PKR)',
                   labelStyle: TextStyle(color: Colors.grey),
-                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                  enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white24)),
                 ),
               ),
               const SizedBox(height: 16),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Payout Method:', style: TextStyle(color: Colors.white70)),
+                  Text('Payout Method:',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface70)),
                   DropdownButton<String>(
-                    dropdownColor: const Color(0xff1e1e1e),
+                    dropdownColor:
+                        Theme.of(context).brightness == Brightness.dark
+                            ? Color(0xff1e1e1e)
+                            : Colors.white,
                     value: method,
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface),
                     items: ['BANK_ACCOUNT', 'EASYPAISA', 'JAZZCASH'].map((m) {
-                      return DropdownMenuItem(value: m, child: Text(m.replaceAll('_', ' ')));
+                      return DropdownMenuItem(
+                          value: m, child: Text(m.replaceAll('_', ' ')));
                     }).toList(),
                     onChanged: (val) {
                       if (val != null) setState(() => method = val);
@@ -167,31 +196,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
               const SizedBox(height: 12),
-
               TextField(
                 controller: detailsController,
-                style: const TextStyle(color: Colors.white),
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.onSurface),
                 decoration: const InputDecoration(
                   labelText: 'Account Details / Number',
                   labelStyle: TextStyle(color: Colors.grey),
-                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                  enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white24)),
                 ),
               ),
               const SizedBox(height: 24),
-
               SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xffFF5722),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () async {
                     final amount = double.tryParse(amountController.text) ?? 0;
                     if (amount < 500) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Minimum payout amount is PKR 500.')),
+                        const SnackBar(
+                            content: Text('Minimum payout amount is PKR 500.')),
                       );
                       return;
                     }
@@ -205,20 +236,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       if (response.statusCode == 200 && context.mounted) {
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Payout requested successfully!')),
+                          const SnackBar(
+                              content: Text('Payout requested successfully!')),
                         );
                         _fetchLedger(); // reload balance
                       } else {
                         final err = jsonDecode(response.body);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(err['error'] ?? 'Request failed')),
+                          SnackBar(
+                              content: Text(err['error'] ?? 'Request failed')),
                         );
                       }
                     } catch (e) {
                       debugPrint(e.toString());
                     }
                   },
-                  child: const Text('Submit Payout Request', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: Text('Submit Payout Request',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.bold)),
                 ),
               ),
               const SizedBox(height: 24),
@@ -263,75 +299,97 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Upload New Pitch Video',
-                      style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: nameController,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface),
                       decoration: const InputDecoration(
                         labelText: 'Product Name',
                         labelStyle: TextStyle(color: Colors.grey),
-                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24)),
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: priceController,
                       keyboardType: TextInputType.number,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface),
                       decoration: const InputDecoration(
                         labelText: 'Price (PKR)',
                         labelStyle: TextStyle(color: Colors.grey),
-                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24)),
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: descController,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface),
                       decoration: const InputDecoration(
                         labelText: 'Description',
                         labelStyle: TextStyle(color: Colors.grey),
-                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24)),
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: sizesController,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface),
                       decoration: const InputDecoration(
                         labelText: 'Sizes (Comma separated: S,M,L)',
                         labelStyle: TextStyle(color: Colors.grey),
-                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24)),
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: colorsController,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface),
                       decoration: const InputDecoration(
                         labelText: 'Colors (Comma separated: Red,Black)',
                         labelStyle: TextStyle(color: Colors.grey),
-                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24)),
                       ),
                     ),
                     const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Category:', style: TextStyle(color: Colors.white70)),
+                        Text('Category:',
+                            style: TextStyle(
+                                color:
+                                    Theme.of(context).colorScheme.onSurface70)),
                         DropdownButton<String>(
-                          dropdownColor: const Color(0xff1e1e1e),
+                          dropdownColor:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Color(0xff1e1e1e)
+                                  : Colors.white,
                           value: category,
-                          style: const TextStyle(color: Colors.white),
-                          items: ['Electronics', 'Fashion', 'Home', 'Services'].map((c) {
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface),
+                          items: ['Electronics', 'Fashion', 'Home', 'Services']
+                              .map((c) {
                             return DropdownMenuItem(value: c, child: Text(c));
                           }).toList(),
                           onChanged: (val) {
-                            if (val != null) setModalState(() => category = val);
+                            if (val != null)
+                              setModalState(() => category = val);
                           },
                         ),
                       ],
@@ -340,20 +398,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     TextField(
                       controller: stockController,
                       keyboardType: TextInputType.number,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface),
                       decoration: const InputDecoration(
                         labelText: 'Stock Qty',
                         labelStyle: TextStyle(color: Colors.grey),
-                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white24)),
                       ),
                     ),
                     // Video Selector Row
-                    const Text('Select Pitch Video:', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    const Text('Select Pitch Video:',
+                        style: TextStyle(color: Colors.grey, fontSize: 12)),
                     const SizedBox(height: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: const Color(0xff1e1e1e),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Color(0xff1e1e1e)
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: Colors.white12),
                       ),
@@ -365,33 +429,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               selectedFileName ?? 'No video selected',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: Colors.white70, fontSize: 13),
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface70,
+                                  fontSize: 13),
                             ),
                           ),
                           ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xffFF5722).withOpacity(0.12),
+                              backgroundColor:
+                                  const Color(0xffFF5722).withOpacity(0.12),
                               foregroundColor: const Color(0xffFF5722),
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
                             ),
                             onPressed: () async {
                               final ImagePicker picker = ImagePicker();
-                              final XFile? file = await picker.pickVideo(source: ImageSource.gallery, maxDuration: const Duration(seconds: 60));
+                              final XFile? file = await picker.pickVideo(
+                                  source: ImageSource.gallery,
+                                  maxDuration: const Duration(seconds: 60));
                               if (file != null) {
                                 // Validate duration
-                                final controller = VideoPlayerController.file(File(file.path));
+                                final controller =
+                                    VideoPlayerController.file(File(file.path));
                                 await controller.initialize();
                                 if (controller.value.duration.inSeconds > 60) {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Video must be 60 seconds or less.'), backgroundColor: Colors.red),
+                                      const SnackBar(
+                                          content: Text(
+                                              'Video must be 60 seconds or less.'),
+                                          backgroundColor: Colors.red),
                                     );
                                   }
                                   controller.dispose();
                                   return;
                                 }
                                 controller.dispose();
-                                
+
                                 setModalState(() {
                                   selectedVideoFile = file;
                                   selectedFileName = file.name;
@@ -399,7 +474,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               }
                             },
                             icon: const Icon(Icons.video_library, size: 16),
-                            label: const Text('Choose Video', style: TextStyle(fontSize: 12)),
+                            label: const Text('Choose Video',
+                                style: TextStyle(fontSize: 12)),
                           ),
                         ],
                       ),
@@ -408,7 +484,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Allow Viewers to Download:', style: TextStyle(color: Colors.white70)),
+                        Text('Allow Viewers to Download:',
+                            style: TextStyle(
+                                color:
+                                    Theme.of(context).colorScheme.onSurface70)),
                         Switch(
                           value: allowDownload,
                           activeColor: const Color(0xffFF5722),
@@ -425,29 +504,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xffFF5722),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                         onPressed: () async {
-                          if (nameController.text.isEmpty || priceController.text.isEmpty) {
+                          if (nameController.text.isEmpty ||
+                              priceController.text.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Please fill name and price')),
+                              const SnackBar(
+                                  content: Text('Please fill name and price')),
                             );
                             return;
                           }
                           if (selectedVideoFile == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Please select a video file')),
+                              const SnackBar(
+                                  content: Text('Please select a video file')),
                             );
                             return;
                           }
                           try {
-                            List<String> parsedSizes = sizesController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-                            List<String> parsedColors = colorsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+                            List<String> parsedSizes = sizesController.text
+                                .split(',')
+                                .map((e) => e.trim())
+                                .where((e) => e.isNotEmpty)
+                                .toList();
+                            List<String> parsedColors = colorsController.text
+                                .split(',')
+                                .map((e) => e.trim())
+                                .where((e) => e.isNotEmpty)
+                                .toList();
 
                             final response = await ApiService.uploadProduct(
                               name: nameController.text,
                               description: descController.text,
-                              price: double.tryParse(priceController.text) ?? 0.0,
+                              price:
+                                  double.tryParse(priceController.text) ?? 0.0,
                               category: category,
                               stock: int.tryParse(stockController.text) ?? 10,
                               allowDownload: allowDownload,
@@ -458,19 +550,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             if (response.statusCode == 201 && context.mounted) {
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Product and video uploaded successfully.')),
+                                const SnackBar(
+                                    content: Text(
+                                        'Product and video uploaded successfully.')),
                               );
                             } else {
                               final err = jsonDecode(response.body);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(err['error'] ?? 'Upload failed')),
+                                SnackBar(
+                                    content:
+                                        Text(err['error'] ?? 'Upload failed')),
                               );
                             }
                           } catch (e) {
                             debugPrint('Upload error: $e');
                           }
                         },
-                        child: const Text('Publish Pitch', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        child: Text('Publish Pitch',
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontWeight: FontWeight.bold)),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -493,7 +592,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator(color: Color(0xffFF5722))),
+      builder: (context) => const Center(
+          child: CircularProgressIndicator(color: Color(0xffFF5722))),
     );
 
     try {
@@ -501,7 +601,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (feedRes.statusCode == 200 && mounted) {
         final data = jsonDecode(feedRes.body);
         final all = data['products'] as List;
-        myProductsList = all.where((p) => p['businessId'] == businessId).toList();
+        myProductsList =
+            all.where((p) => p['businessId'] == businessId).toList();
       }
     } catch (e) {
       debugPrint('Fetch products for boost error: $e');
@@ -512,7 +613,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (myProductsList.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No products available to boost. Upload a video first!')),
+          const SnackBar(
+              content: Text(
+                  'No products available to boost. Upload a video first!')),
         );
       }
       return;
@@ -543,17 +646,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Buy Boost Promotion Campaign',
-                      style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
-                    const Text('Select Product to Promote:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                    const Text('Select Product to Promote:',
+                        style: TextStyle(color: Colors.grey, fontSize: 13)),
                     DropdownButton<String>(
-                      dropdownColor: const Color(0xff1e1e1e),
+                      dropdownColor:
+                          Theme.of(context).brightness == Brightness.dark
+                              ? Color(0xff1e1e1e)
+                              : Colors.white,
                       value: selectedProductId,
                       isExpanded: true,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface),
                       items: myProductsList.map<DropdownMenuItem<String>>((p) {
                         return DropdownMenuItem<String>(
                           value: p['id'],
@@ -561,22 +672,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         );
                       }).toList(),
                       onChanged: (val) {
-                        if (val != null) setModalState(() => selectedProductId = val);
+                        if (val != null)
+                          setModalState(() => selectedProductId = val);
                       },
                     ),
                     const SizedBox(height: 16),
-                    const Text('Select Boost Level Tier:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                    const Text('Select Boost Level Tier:',
+                        style: TextStyle(color: Colors.grey, fontSize: 13)),
                     const SizedBox(height: 8),
-                    
+
                     // Plan Tiers Selector
                     RadioListTile<String>(
-                      title: const Text('Billboard Showcase (3 Days) — ₨100', style: TextStyle(color: Colors.white)),
-                      subtitle: const Text('Showcase your product on the billboard above the video feed.', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                      title: Text('Billboard Showcase (3 Days) — ₨100',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface)),
+                      subtitle: const Text(
+                          'Showcase your product on the billboard above the video feed.',
+                          style: TextStyle(color: Colors.grey, fontSize: 11)),
                       value: 'BILLBOARD',
                       groupValue: selectedPlan,
                       activeColor: const Color(0xffFF5722),
                       onChanged: (val) {
-                        if (val != null) setModalState(() => selectedPlan = val);
+                        if (val != null)
+                          setModalState(() => selectedPlan = val);
                       },
                     ),
                     const SizedBox(height: 24),
@@ -586,29 +704,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xffFF5722),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                         onPressed: () async {
                           try {
-                            final response = await ApiService.promoteProduct(selectedProductId, selectedPlan);
+                            final response = await ApiService.promoteProduct(
+                                selectedProductId, selectedPlan);
                             if (response.statusCode == 200 && context.mounted) {
                               Navigator.pop(context);
                               final resData = jsonDecode(response.body);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(resData['message'] ?? 'Boost activated!')),
+                                SnackBar(
+                                    content: Text(resData['message'] ??
+                                        'Boost activated!')),
                               );
                               _fetchLedger(); // refresh ledger balance sheet
                             } else {
                               final err = jsonDecode(response.body);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(err['error'] ?? 'Boost transaction failed')),
+                                SnackBar(
+                                    content: Text(err['error'] ??
+                                        'Boost transaction failed')),
                               );
                             }
                           } catch (e) {
                             debugPrint('Purchase boost error: $e');
                           }
                         },
-                        child: const Text('Confirm Purchase', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        child: Text('Confirm Purchase',
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontWeight: FontWeight.bold)),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -627,11 +754,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       backgroundColor: const Color(0xff121212),
       appBar: AppBar(
-        backgroundColor: const Color(0xff1e1e1e),
-        title: const Text('Seller Dashboard', style: TextStyle(color: Colors.white)),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Color(0xff1e1e1e)
+            : Colors.white,
+        title: Text('Seller Dashboard',
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_circle_outline, color: Color(0xffFF5722)),
+            icon:
+                const Icon(Icons.add_circle_outline, color: Color(0xffFF5722)),
             tooltip: 'Upload Video',
             onPressed: _showUploadVideoSheet,
           ),
@@ -655,26 +786,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ? Padding(
               padding: const EdgeInsets.all(16.0),
               child: Shimmer.fromColors(
-                baseColor: const Color(0xff1e1e1e),
+                baseColor: Theme.of(context).brightness == Brightness.dark
+                    ? Color(0xff1e1e1e)
+                    : Colors.white,
                 highlightColor: const Color(0xff2a2a2a),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(height: 180, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(16))),
+                    Container(
+                        height: 180,
+                        decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(16))),
                     const SizedBox(height: 24),
                     Row(
                       children: [
-                        Expanded(child: Container(height: 80, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(12)))),
+                        Expanded(
+                            child: Container(
+                                height: 80,
+                                decoration: BoxDecoration(
+                                    color: Colors.black,
+                                    borderRadius: BorderRadius.circular(12)))),
                         const SizedBox(width: 16),
-                        Expanded(child: Container(height: 80, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(12)))),
+                        Expanded(
+                            child: Container(
+                                height: 80,
+                                decoration: BoxDecoration(
+                                    color: Colors.black,
+                                    borderRadius: BorderRadius.circular(12)))),
                       ],
                     ),
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        Expanded(child: Container(height: 80, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(12)))),
+                        Expanded(
+                            child: Container(
+                                height: 80,
+                                decoration: BoxDecoration(
+                                    color: Colors.black,
+                                    borderRadius: BorderRadius.circular(12)))),
                         const SizedBox(width: 16),
-                        Expanded(child: Container(height: 80, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(12)))),
+                        Expanded(
+                            child: Container(
+                                height: 80,
+                                decoration: BoxDecoration(
+                                    color: Colors.black,
+                                    borderRadius: BorderRadius.circular(12)))),
                       ],
                     )
                   ],
@@ -691,7 +848,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: const Color(0xff1e1e1e),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Color(0xff1e1e1e)
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.white10),
                     ),
@@ -699,12 +858,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       children: [
                         const Text(
                           'AVAILABLE FOR PAYOUT',
-                          style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1),
+                          style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'PKR ${_summary['availableForPayout']}',
-                          style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 16),
                         Row(
@@ -713,11 +879,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xffFF5722),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20)),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
                                 ),
                                 onPressed: _showPayoutRequestSheet,
-                                child: const Text('Request Payout', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                child: Text('Request Payout',
+                                    style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
+                                        fontWeight: FontWeight.bold)),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -726,16 +899,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: Colors.white,
                                   side: const BorderSide(color: Colors.white24),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20)),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
                                 ),
                                 onPressed: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (_) => const ManageOrdersScreen()),
+                                    MaterialPageRoute(
+                                        builder: (_) =>
+                                            const ManageOrdersScreen()),
                                   );
                                 },
-                                child: const Text('Manage Orders', style: TextStyle(fontWeight: FontWeight.bold)),
+                                child: const Text('Manage Orders',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
                               ),
                             ),
                           ],
@@ -754,25 +933,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     mainAxisSpacing: 16,
                     childAspectRatio: 1.25,
                     children: [
-                      _buildMetricCard('Gross Sales', 'PKR ${_summary['grossSales']}', Colors.green),
-                      _buildMetricCard('Platform Fees', 'PKR ${_summary['platformFees']}', Colors.redAccent),
-                      _buildMetricCard('Net Earnings', 'PKR ${_summary['netEarnings']}', Colors.blue),
-                      _buildMetricCard('Paid Out', 'PKR ${_summary['paidOut']}', Colors.grey),
+                      _buildMetricCard('Gross Sales',
+                          'PKR ${_summary['grossSales']}', Colors.green),
+                      _buildMetricCard('Platform Fees',
+                          'PKR ${_summary['platformFees']}', Colors.redAccent),
+                      _buildMetricCard('Net Earnings',
+                          'PKR ${_summary['netEarnings']}', Colors.blue),
+                      _buildMetricCard('Paid Out', 'PKR ${_summary['paidOut']}',
+                          Colors.grey),
                     ],
                   ),
                   const SizedBox(height: 24),
 
                   // Seller Superpowers (Audience Insights)
-                  const Text(
+                  Text(
                     'Video & Audience Insights 🚀',
-                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xff1e1e1e),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Color(0xff1e1e1e)
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.white10),
                     ),
@@ -781,9 +969,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            _buildPromoMetric('${_insights['totalViews']}', 'Total Views'),
-                            _buildPromoMetric('${_insights['saves']}', 'Saves/Bookmarks'),
-                            _buildPromoMetric('${_insights['cartAbandons']}', 'Cart Abandons'),
+                            _buildPromoMetric(
+                                '${_insights['totalViews']}', 'Total Views'),
+                            _buildPromoMetric(
+                                '${_insights['saves']}', 'Saves/Bookmarks'),
+                            _buildPromoMetric('${_insights['cartAbandons']}',
+                                'Cart Abandons'),
                           ],
                         ),
                         const SizedBox(height: 16),
@@ -792,16 +983,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           decoration: BoxDecoration(
                             color: Colors.blue.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                            border:
+                                Border.all(color: Colors.blue.withOpacity(0.3)),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.insights, color: Colors.blue, size: 24),
+                              const Icon(Icons.insights,
+                                  color: Colors.blue, size: 24),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
                                   'Pro Tip: Your videos get 20% more views when you use the "Tech" category!',
-                                  style: TextStyle(color: Colors.blue[200], fontSize: 13, height: 1.3),
+                                  style: TextStyle(
+                                      color: Colors.blue[200],
+                                      fontSize: 13,
+                                      height: 1.3),
                                 ),
                               ),
                             ],
@@ -813,16 +1009,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(height: 24),
 
                   // Featured Promotions Tracker Section
-                  const Text(
+                  Text(
                     'Featured Product Promotions',
-                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xff1e1e1e),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Color(0xff1e1e1e)
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.white10),
                     ),
@@ -833,18 +1034,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              _promoStats['name']?.isNotEmpty == true ? _promoStats['name'] : 'No Active Promotion',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                              _promoStats['name']?.isNotEmpty == true
+                                  ? _promoStats['name']
+                                  : 'No Active Promotion',
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15),
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: _promoStats['status'] == 'ACTIVE' ? Colors.green.withOpacity(0.15) : Colors.grey.withOpacity(0.15),
+                                color: _promoStats['status'] == 'ACTIVE'
+                                    ? Colors.green.withOpacity(0.15)
+                                    : Colors.grey.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
                                 _promoStats['status'] ?? 'NONE',
-                                style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 11),
+                                style: TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11),
                               ),
                             ),
                           ],
@@ -853,17 +1066,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         const Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Budget: PKR 100 / 3 Days', style: TextStyle(color: Colors.grey, fontSize: 13)),
-                            Text('Remaining: 1.5 Days', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                            Text('Budget: PKR 100 / 3 Days',
+                                style: TextStyle(
+                                    color: Colors.grey, fontSize: 13)),
+                            Text('Remaining: 1.5 Days',
+                                style: TextStyle(
+                                    color: Colors.grey, fontSize: 13)),
                           ],
                         ),
                         const Divider(color: Colors.white10, height: 24),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            _buildPromoMetric('${_promoStats['impressions'] ?? 0}', 'Impressions'),
-                            _buildPromoMetric('${_promoStats['clicks'] ?? 0}', 'Clicks'),
-                             _buildPromoMetric('${_promoStats['sales'] ?? 0}', 'Orders'),
+                            _buildPromoMetric(
+                                '${_promoStats['impressions'] ?? 0}',
+                                'Impressions'),
+                            _buildPromoMetric(
+                                '${_promoStats['clicks'] ?? 0}', 'Clicks'),
+                            _buildPromoMetric(
+                                '${_promoStats['sales'] ?? 0}', 'Orders'),
                           ],
                         ),
                         const Divider(color: Colors.white10, height: 20),
@@ -873,11 +1094,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xffFF5722),
                               side: const BorderSide(color: Color(0xffFF5722)),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
                             ),
                             onPressed: _showBoostCampaignPickerSheet,
                             icon: const Icon(Icons.bolt, size: 16),
-                            label: const Text('Buy Boost Promotion Campaign', style: TextStyle(fontWeight: FontWeight.bold)),
+                            label: const Text('Buy Boost Promotion Campaign',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                         ),
                       ],
@@ -886,14 +1109,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(height: 24),
 
                   // Ledger Audit Log Section
-                  const Text(
+                  Text(
                     'Ledger Audit Logs',
-                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
-                  
+
                   _ledgerEntries.isEmpty
-                      ? const Text('No ledger entries recorded.', style: TextStyle(color: Colors.grey))
+                      ? const Text('No ledger entries recorded.',
+                          style: TextStyle(color: Colors.grey))
                       : ListView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
@@ -909,26 +1136,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         entry['title'] ?? '',
-                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                                        style: TextStyle(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
+                                            fontWeight: FontWeight.w500),
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        (entry['status'] ?? '').toString().replaceAll('_', ' '),
-                                        style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                        (entry['status'] ?? '')
+                                            .toString()
+                                            .replaceAll('_', ' '),
+                                        style: const TextStyle(
+                                            color: Colors.grey, fontSize: 12),
                                       ),
                                     ],
                                   ),
                                   Text(
                                     '${isCredit ? '+' : ''}PKR ${entry['amount']}',
                                     style: TextStyle(
-                                      color: isCredit ? Colors.green : Colors.redAccent,
+                                      color: isCredit
+                                          ? Colors.green
+                                          : Colors.redAccent,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -947,7 +1185,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       decoration: BoxDecoration(
-        color: const Color(0xff1e1e1e),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Color(0xff1e1e1e)
+            : Colors.white,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -960,7 +1200,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             fit: BoxFit.scaleDown,
             child: Text(
               val,
-              style: TextStyle(color: color, fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: color, fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -973,7 +1214,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: [
         Text(
           value,
-          style: const TextStyle(color: Color(0xffFF5722), fontSize: 18, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+              color: Color(0xffFF5722),
+              fontSize: 18,
+              fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
         Text(

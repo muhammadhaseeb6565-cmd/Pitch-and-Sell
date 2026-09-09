@@ -20,7 +20,8 @@ class _PitchGeneratorScreenState extends State<PitchGeneratorScreen> {
   List<dynamic> _tips = [];
 
   Future<void> _handleGenerate() async {
-    if (_prodNameController.text.isEmpty || _sellingPointController.text.isEmpty) {
+    if (_prodNameController.text.isEmpty ||
+        _sellingPointController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill all fields')),
       );
@@ -61,9 +62,14 @@ class _PitchGeneratorScreenState extends State<PitchGeneratorScreen> {
     return Scaffold(
       backgroundColor: const Color(0xff121212),
       appBar: AppBar(
-        backgroundColor: const Color(0xff1e1e1e),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Color(0xff1e1e1e)
+            : Colors.white,
         elevation: 0,
-        title: const Text('AI Pitch Script Generator', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text('AI Pitch Script Generator',
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.bold)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -79,21 +85,24 @@ class _PitchGeneratorScreenState extends State<PitchGeneratorScreen> {
             // Form Fields
             TextField(
               controller: _prodNameController,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
               decoration: const InputDecoration(
                 labelText: 'Product Name',
                 labelStyle: TextStyle(color: Colors.grey),
-                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white24)),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _sellingPointController,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
               decoration: const InputDecoration(
-                labelText: 'Key Selling Point (e.g., RGB Lights, Active Noise Cancellation)',
+                labelText:
+                    'Key Selling Point (e.g., RGB Lights, Active Noise Cancellation)',
                 labelStyle: TextStyle(color: Colors.grey),
-                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white24)),
               ),
             ),
             const SizedBox(height: 20),
@@ -104,11 +113,20 @@ class _PitchGeneratorScreenState extends State<PitchGeneratorScreen> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     value: _tone,
-                    decoration: const InputDecoration(labelText: 'Tone', labelStyle: TextStyle(color: Colors.grey)),
-                    dropdownColor: const Color(0xff1e1e1e),
+                    decoration: const InputDecoration(
+                        labelText: 'Tone',
+                        labelStyle: TextStyle(color: Colors.grey)),
+                    dropdownColor:
+                        Theme.of(context).brightness == Brightness.dark
+                            ? Color(0xff1e1e1e)
+                            : Colors.white,
                     items: const [
-                      DropdownMenuItem(value: 'exciting', child: Text('Exciting / High Energy')),
-                      DropdownMenuItem(value: 'professional', child: Text('Professional / Formal')),
+                      DropdownMenuItem(
+                          value: 'exciting',
+                          child: Text('Exciting / High Energy')),
+                      DropdownMenuItem(
+                          value: 'professional',
+                          child: Text('Professional / Formal')),
                     ],
                     onChanged: (val) {
                       if (val != null) setState(() => _tone = val);
@@ -119,8 +137,13 @@ class _PitchGeneratorScreenState extends State<PitchGeneratorScreen> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     value: _lang,
-                    decoration: const InputDecoration(labelText: 'Language', labelStyle: TextStyle(color: Colors.grey)),
-                    dropdownColor: const Color(0xff1e1e1e),
+                    decoration: const InputDecoration(
+                        labelText: 'Language',
+                        labelStyle: TextStyle(color: Colors.grey)),
+                    dropdownColor:
+                        Theme.of(context).brightness == Brightness.dark
+                            ? Color(0xff1e1e1e)
+                            : Colors.white,
                     items: const [
                       DropdownMenuItem(value: 'ur', child: Text('Roman Urdu')),
                       DropdownMenuItem(value: 'en', child: Text('English')),
@@ -141,15 +164,23 @@ class _PitchGeneratorScreenState extends State<PitchGeneratorScreen> {
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xffFF5722),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: _isLoading ? null : _handleGenerate,
-                icon: _isLoading 
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : const Icon(Icons.psychology, color: Colors.white),
+                icon: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2))
+                    : const Icon(Icons.psychology, color: Colors.white),
                 label: Text(
                   _isLoading ? 'Generating Script...' : 'Generate AI Script',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16),
                 ),
               ),
             ),
@@ -157,36 +188,52 @@ class _PitchGeneratorScreenState extends State<PitchGeneratorScreen> {
             // Display Results
             if (_generatedScript.isNotEmpty) ...[
               const SizedBox(height: 32),
-              const Text(
+              Text(
                 'Your generated 15s Pitch Script:',
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: const Color(0xff1e1e1e),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Color(0xff1e1e1e)
+                      : Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xffFF5722).withOpacity(0.3)),
+                  border: Border.all(
+                      color: const Color(0xffFF5722).withOpacity(0.3)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       _generatedScript,
-                      style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.6, fontFamily: 'monospace'),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 14,
+                          height: 1.6,
+                          fontFamily: 'monospace'),
                     ),
                     const Divider(color: Colors.white10, height: 32),
                     TextButton.icon(
                       onPressed: () {
-                        Clipboard.setData(ClipboardData(text: _generatedScript));
+                        Clipboard.setData(
+                            ClipboardData(text: _generatedScript));
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Script copied to clipboard!')),
+                          const SnackBar(
+                              content: Text('Script copied to clipboard!')),
                         );
                       },
-                      icon: const Icon(Icons.copy, color: Color(0xffFF5722), size: 18),
-                      label: const Text('Copy Script', style: TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold)),
+                      icon: const Icon(Icons.copy,
+                          color: Color(0xffFF5722), size: 18),
+                      label: const Text('Copy Script',
+                          style: TextStyle(
+                              color: Color(0xffFF5722),
+                              fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -196,21 +243,29 @@ class _PitchGeneratorScreenState extends State<PitchGeneratorScreen> {
             // Display Tips
             if (_tips.isNotEmpty) ...[
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'Recording Tips:',
-                style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               ..._tips.map((tip) => Padding(
-                padding: const EdgeInsets.only(bottom: 6.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('• ', style: TextStyle(color: Color(0xffFF5722), fontSize: 16)),
-                    Expanded(child: Text(tip, style: const TextStyle(color: Colors.grey, fontSize: 13))),
-                  ],
-                ),
-              )),
+                    padding: const EdgeInsets.only(bottom: 6.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('• ',
+                            style: TextStyle(
+                                color: Color(0xffFF5722), fontSize: 16)),
+                        Expanded(
+                            child: Text(tip,
+                                style: const TextStyle(
+                                    color: Colors.grey, fontSize: 13))),
+                      ],
+                    ),
+                  )),
             ],
             const SizedBox(height: 32),
           ],

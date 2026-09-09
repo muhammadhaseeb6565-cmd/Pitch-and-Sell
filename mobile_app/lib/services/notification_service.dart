@@ -19,7 +19,10 @@ class NotificationService {
     );
     const InitializationSettings initSettings = InitializationSettings(android: androidSettings, iOS: iosSettings);
 
-    await _notificationsPlugin.initialize(initSettings);
+    await _notificationsPlugin.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse details) {},
+    );
 
     // Request permissions for Android 13+
     _notificationsPlugin.resolvePlatformSpecificImplementation<

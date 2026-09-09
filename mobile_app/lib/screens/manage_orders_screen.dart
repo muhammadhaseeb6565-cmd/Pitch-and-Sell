@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../utils/app_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/api_service.dart';
@@ -60,20 +61,29 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: const Color(0xff1e1e1e),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              title: const Row(
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? Color(0xff1e1e1e)
+                  : Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14)),
+              title: Row(
                 children: [
-                  Icon(Icons.local_shipping, color: Color(0xffFF5722), size: 24),
+                  Icon(Icons.local_shipping,
+                      color: Color(0xffFF5722), size: 24),
                   SizedBox(width: 10),
-                  Text('Dispatch Order', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text('Dispatch Order',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16)),
                 ],
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Select Courier Service:', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  const Text('Select Courier Service:',
+                      style: TextStyle(color: Colors.grey, fontSize: 12)),
                   const SizedBox(height: 6),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -87,31 +97,56 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
                         dropdownColor: const Color(0xff252525),
                         value: selectedCourier,
                         isExpanded: true,
-                        style: const TextStyle(color: Colors.white, fontSize: 14),
-                        items: ['TCS', 'Leopards Courier', 'Trax', 'PostEx', 'Call Courier', 'Bykea', 'M&P', 'Rider', 'Self Delivery'].map((c) {
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontSize: 14),
+                        items: [
+                          'TCS',
+                          'Leopards Courier',
+                          'Trax',
+                          'PostEx',
+                          'Call Courier',
+                          'Bykea',
+                          'M&P',
+                          'Rider',
+                          'Self Delivery'
+                        ].map((c) {
                           return DropdownMenuItem(value: c, child: Text(c));
                         }).toList(),
                         onChanged: (val) {
-                          if (val != null) setDialogState(() => selectedCourier = val);
+                          if (val != null)
+                            setDialogState(() => selectedCourier = val);
                         },
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text('Consignment / Tracking Number:', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  const Text('Consignment / Tracking Number:',
+                      style: TextStyle(color: Colors.grey, fontSize: 12)),
                   const SizedBox(height: 6),
                   TextField(
                     controller: trackingController,
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 14),
                     decoration: InputDecoration(
                       hintText: 'e.g. 77291823910',
-                      hintStyle: const TextStyle(color: Colors.grey, fontSize: 13),
+                      hintStyle:
+                          const TextStyle(color: Colors.grey, fontSize: 13),
                       filled: true,
                       fillColor: const Color(0xff252525),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white12)),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.white12)),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xffFF5722))),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Colors.white12)),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Colors.white12)),
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide:
+                              const BorderSide(color: Color(0xffFF5722))),
                     ),
                   ),
                 ],
@@ -119,17 +154,21 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                  child: const Text('Cancel',
+                      style: TextStyle(color: Colors.grey)),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xffFF5722),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                   onPressed: () async {
                     if (trackingController.text.trim().isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please enter tracking / CN number.')),
+                        const SnackBar(
+                            content:
+                                Text('Please enter tracking / CN number.')),
                       );
                       return;
                     }
@@ -142,7 +181,10 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
                     );
                     _fetchOrders();
                   },
-                  child: const Text('Confirm Shipment', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: Text('Confirm Shipment',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.bold)),
                 ),
               ],
             );
@@ -174,7 +216,9 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
   Widget build(BuildContext context) {
     final textColor = Theme.of(context).colorScheme.onSurface;
     final cardColor = Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xff1e1e1e)
+        ? Theme.of(context).brightness == Brightness.dark
+            ? Color(0xff1e1e1e)
+            : Colors.white
         : Colors.white;
     final bgColor = Theme.of(context).scaffoldBackgroundColor;
 
@@ -195,17 +239,23 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xffFF5722)))
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xffFF5722)))
           : _orders.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Icon(Icons.inbox_outlined, color: Colors.grey, size: 54),
                       SizedBox(height: 12),
-                      Text('No customer orders yet.', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                      Text('No customer orders yet.',
+                          style: TextStyle(color: Colors.grey, fontSize: 16)),
                       SizedBox(height: 4),
-                      Text('When customers place orders, details will appear here.', style: TextStyle(color: Colors.white38, fontSize: 12)),
+                      Text(
+                          'When customers place orders, details will appear here.',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface38,
+                              fontSize: 12)),
                     ],
                   ),
                 )
@@ -215,18 +265,24 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
                   itemBuilder: (context, index) {
                     final order = _orders[index];
                     final status = (order['status'] ?? 'pending').toString();
-                    final isPending = status == 'pending' || status == 'processing';
+                    final isPending =
+                        status == 'pending' || status == 'processing';
 
                     final buyerName = order['buyerName'] ?? 'Customer';
                     final buyerPhone = order['buyerPhone'] ?? 'Not provided';
                     final buyerAltPhone = order['buyerAltPhone'];
                     final city = order['city'] ?? 'Pakistan';
-                    final address = order['deliveryAddress'] ?? 'Address not specified';
+                    final address =
+                        order['deliveryAddress'] ?? 'Address not specified';
                     final instructions = order['deliveryInstructions'];
-                    final isCOD = (order['paymentMethod'] ?? '').toString().toUpperCase().contains('COD');
+                    final isCOD = (order['paymentMethod'] ?? '')
+                        .toString()
+                        .toUpperCase()
+                        .contains('COD');
 
                     final orderId = order['id'].toString();
-                    final shortId = orderId.length >= 8 ? orderId.substring(0, 8) : orderId;
+                    final shortId =
+                        orderId.length >= 8 ? orderId.substring(0, 8) : orderId;
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 20),
@@ -245,18 +301,28 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
                             children: [
                               Text(
                                 'Order #$shortId',
-                                style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15),
+                                style: TextStyle(
+                                    color: textColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: _getStatusColor(status).withOpacity(0.18),
+                                  color:
+                                      _getStatusColor(status).withOpacity(0.18),
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: _getStatusColor(status).withOpacity(0.4)),
+                                  border: Border.all(
+                                      color: _getStatusColor(status)
+                                          .withOpacity(0.4)),
                                 ),
                                 child: Text(
                                   status.toUpperCase(),
-                                  style: TextStyle(color: _getStatusColor(status), fontSize: 11, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                      color: _getStatusColor(status),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ],
@@ -276,23 +342,35 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
                               children: [
                                 Row(
                                   children: [
-                                    const Icon(Icons.person, color: Color(0xffFF5722), size: 16),
+                                    const Icon(Icons.person,
+                                        color: Color(0xffFF5722), size: 16),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
                                         buyerName,
-                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                        style: TextStyle(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14),
                                       ),
                                     ),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 2),
                                       decoration: BoxDecoration(
                                         color: Colors.white10,
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
                                         city,
-                                        style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
+                                        style: TextStyle(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface70,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600),
                                       ),
                                     ),
                                   ],
@@ -302,83 +380,116 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
                                 // Phone number row with copy
                                 Row(
                                   children: [
-                                    const Icon(Icons.phone, color: Colors.green, size: 16),
+                                    const Icon(Icons.phone,
+                                        color: Colors.green, size: 16),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
                                         buyerPhone,
-                                        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+                                        style: TextStyle(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w500),
                                       ),
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.copy, color: Colors.grey, size: 16),
+                                      icon: const Icon(Icons.copy,
+                                          color: Colors.grey, size: 16),
                                       tooltip: 'Copy Phone',
                                       padding: EdgeInsets.zero,
                                       constraints: const BoxConstraints(),
-                                      onPressed: () => _copyToClipboard(buyerPhone, 'Phone number'),
+                                      onPressed: () => _copyToClipboard(
+                                          buyerPhone, 'Phone number'),
                                     ),
                                   ],
                                 ),
 
-                                if (buyerAltPhone != null && buyerAltPhone.toString().isNotEmpty) ...[
+                                if (buyerAltPhone != null &&
+                                    buyerAltPhone.toString().isNotEmpty) ...[
                                   const SizedBox(height: 4),
                                   Row(
                                     children: [
-                                      const Icon(Icons.phone_outlined, color: Colors.grey, size: 16),
+                                      const Icon(Icons.phone_outlined,
+                                          color: Colors.grey, size: 16),
                                       const SizedBox(width: 8),
                                       Text(
                                         'Alt / WhatsApp: $buyerAltPhone',
-                                        style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                        style: TextStyle(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface70,
+                                            fontSize: 12),
                                       ),
                                     ],
                                   ),
                                 ],
 
-                                const Divider(color: Colors.white10, height: 16),
+                                const Divider(
+                                    color: Colors.white10, height: 16),
 
                                 // Complete Address
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Icon(Icons.location_on_outlined, color: Color(0xffFF5722), size: 16),
+                                    const Icon(Icons.location_on_outlined,
+                                        color: Color(0xffFF5722), size: 16),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           const Text(
                                             'DELIVERY ADDRESS:',
-                                            style: TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold),
+                                            style: TextStyle(
+                                                color: Colors.grey,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold),
                                           ),
                                           const SizedBox(height: 2),
                                           Text(
                                             '$address, $city',
-                                            style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.3),
+                                            style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
+                                                fontSize: 13,
+                                                height: 1.3),
                                           ),
                                         ],
                                       ),
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.copy, color: Colors.grey, size: 16),
+                                      icon: const Icon(Icons.copy,
+                                          color: Colors.grey, size: 16),
                                       tooltip: 'Copy Address',
                                       padding: EdgeInsets.zero,
                                       constraints: const BoxConstraints(),
-                                      onPressed: () => _copyToClipboard('$address, $city', 'Address'),
+                                      onPressed: () => _copyToClipboard(
+                                          '$address, $city', 'Address'),
                                     ),
                                   ],
                                 ),
 
-                                if (instructions != null && instructions.toString().isNotEmpty) ...[
+                                if (instructions != null &&
+                                    instructions.toString().isNotEmpty) ...[
                                   const SizedBox(height: 8),
                                   Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      const Icon(Icons.info_outline, color: Colors.amber, size: 16),
+                                      const Icon(Icons.info_outline,
+                                          color: Colors.amber, size: 16),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
                                           'Instructions: $instructions',
-                                          style: const TextStyle(color: Colors.amberAccent, fontSize: 11, fontStyle: FontStyle.italic),
+                                          style: const TextStyle(
+                                              color: Colors.amberAccent,
+                                              fontSize: 11,
+                                              fontStyle: FontStyle.italic),
                                         ),
                                       ),
                                     ],
@@ -399,12 +510,16 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
                                   children: [
                                     Text(
                                       order['product']?['name'] ?? 'Product',
-                                      style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontSize: 14),
+                                      style: TextStyle(
+                                          color: textColor,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
                                       'Qty: ${order['quantity'] ?? 1}${order['selectedSize'] != null ? ' | Size: ${order['selectedSize']}' : ''}${order['selectedColor'] != null ? ' | Color: ${order['selectedColor']}' : ''}',
-                                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                      style: const TextStyle(
+                                          color: Colors.grey, fontSize: 12),
                                     ),
                                   ],
                                 ),
@@ -414,19 +529,26 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
                                 children: [
                                   Text(
                                     '₨ ${order['totalAmount']}',
-                                    style: const TextStyle(color: Color(0xffFF5722), fontWeight: FontWeight.bold, fontSize: 16),
+                                    style: const TextStyle(
+                                        color: Color(0xffFF5722),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16),
                                   ),
                                   Container(
                                     margin: const EdgeInsets.only(top: 2),
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: isCOD ? Colors.amber.withOpacity(0.15) : Colors.green.withOpacity(0.15),
+                                      color: isCOD
+                                          ? Colors.amber.withOpacity(0.15)
+                                          : Colors.green.withOpacity(0.15),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
                                       isCOD ? 'COLLECT COD' : 'PAID ONLINE',
                                       style: TextStyle(
-                                        color: isCOD ? Colors.amber : Colors.green,
+                                        color:
+                                            isCOD ? Colors.amber : Colors.green,
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -443,14 +565,22 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton.icon(
-                                icon: const Icon(Icons.local_shipping, size: 18, color: Colors.white),
+                                icon: const Icon(Icons.local_shipping,
+                                    size: 18, color: Colors.white),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xffFF5722),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
                                 ),
                                 onPressed: () => _showShippingDialog(orderId),
-                                label: const Text('Ship Order & Add Courier Tracking', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                label: Text('Ship Order & Add Courier Tracking',
+                                    style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
+                                        fontWeight: FontWeight.bold)),
                               ),
                             )
                           else if (order['trackingNumber'] != null)
@@ -462,20 +592,36 @@ class _ManageOrdersScreenState extends State<ManageOrdersScreen> {
                                 border: Border.all(color: Colors.white12),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      const Text('DISPATCHED VIA', style: TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold)),
+                                      const Text('DISPATCHED VIA',
+                                          style: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold)),
                                       const SizedBox(height: 2),
-                                      Text('${order['courierName']}: ${order['trackingNumber']}', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                                      Text(
+                                          '${order['courierName']}: ${order['trackingNumber']}',
+                                          style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold)),
                                     ],
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.copy, color: Colors.grey, size: 16),
+                                    icon: const Icon(Icons.copy,
+                                        color: Colors.grey, size: 16),
                                     tooltip: 'Copy Tracking',
-                                    onPressed: () => _copyToClipboard(order['trackingNumber'].toString(), 'Tracking ID'),
+                                    onPressed: () => _copyToClipboard(
+                                        order['trackingNumber'].toString(),
+                                        'Tracking ID'),
                                   ),
                                 ],
                               ),

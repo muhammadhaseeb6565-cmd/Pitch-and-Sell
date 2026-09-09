@@ -23,19 +23,19 @@ class FeedProvider extends ChangeNotifier {
 
     try {
       if (initialCategory != null) _selectedCategory = initialCategory;
-      
+
       final response = await ApiService.getFeed(
         category: _selectedCategory == 'All' ? null : _selectedCategory,
         search: initialSearch,
       );
-      
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         _products = data['products'] ?? [];
       } else {
         _products = [];
       }
-      
+
       // Initialize the first two videos immediately
       if (_products.isNotEmpty) {
         await _initializeController(0);
@@ -54,7 +54,7 @@ class FeedProvider extends ChangeNotifier {
   Future<void> setCategory(String category) async {
     if (_selectedCategory == category) return;
     _selectedCategory = category;
-    
+
     // Clear pool before changing feed
     _disposeAllControllers();
     await fetchFeed(null, null);
@@ -66,7 +66,7 @@ class FeedProvider extends ChangeNotifier {
 
   void onPageChanged(int index) {
     _currentIndex = index;
-    
+
     // Play current, pause others
     _controllers.forEach((idx, controller) {
       if (idx == index) {
@@ -79,7 +79,7 @@ class FeedProvider extends ChangeNotifier {
     // Initialize upcoming videos (n+1, n+2)
     _initializeController(index + 1);
     _initializeController(index + 2);
-    
+
     // Initialize previous video (n-1) in case of scrolling up
     _initializeController(index - 1);
 
@@ -96,7 +96,7 @@ class FeedProvider extends ChangeNotifier {
       _controllers[key]?.dispose();
       _controllers.remove(key);
     }
-    
+
     notifyListeners();
   }
 
@@ -106,7 +106,7 @@ class FeedProvider extends ChangeNotifier {
 
     final video = _products[index]['video'];
     if (video == null || video['url'] == null) return;
-    
+
     final url = video['url'];
     VideoPlayerController controller;
 
@@ -119,11 +119,11 @@ class FeedProvider extends ChangeNotifier {
         DefaultCacheManager().downloadFile(url);
         controller = VideoPlayerController.networkUrl(Uri.parse(url));
       }
-      
+
       _controllers[index] = controller;
       await controller.initialize();
       controller.setLooping(true);
-      
+
       // Auto-play if it's the current video that just finished loading
       if (index == _currentIndex) {
         controller.play();

@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../utils/app_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'onboarding_screen.dart';
@@ -15,7 +16,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _glowAnimation;
 
@@ -39,12 +41,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         if (!authProvider.hasAcceptedTerms) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const WelcomeScreen(forceTerms: true)),
+            MaterialPageRoute(
+                builder: (_) => const WelcomeScreen(forceTerms: true)),
           );
         } else if (!authProvider.hasSetPreferredCategories) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const CategoryPreferencesScreen(isFirstTime: true)),
+            MaterialPageRoute(
+                builder: (_) =>
+                    const CategoryPreferencesScreen(isFirstTime: true)),
           );
         } else {
           Navigator.pushReplacement(
@@ -107,10 +112,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               },
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'Pitch It. Sell It. Grow It.',
               style: TextStyle(
-                color: Colors.white60,
+                color: Theme.of(context).colorScheme.onSurface60,
                 fontSize: 14,
                 fontStyle: FontStyle.italic,
                 letterSpacing: 1,

@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../utils/app_color_scheme.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -33,18 +34,21 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     SocketService.joinChat(widget.chatId);
-    
+
     // Register receive listener
     SocketService.onReceiveMessage((data) {
       if (mounted) {
         setState(() {
           // Check if message already exists to avoid duplicates (since we optimistic update)
-          bool exists = _messages.any((m) => m['content'] == data['content'] && m['senderId'] == data['senderId']);
+          bool exists = _messages.any((m) =>
+              m['content'] == data['content'] &&
+              m['senderId'] == data['senderId']);
           if (!exists) {
             _messages.add({
               'senderId': data['senderId'],
               'content': data['content'],
-              'timestamp': data['createdAt'] ?? DateTime.now().toIso8601String(),
+              'timestamp':
+                  data['createdAt'] ?? DateTime.now().toIso8601String(),
             });
             _scrollToBottom();
           }
@@ -58,7 +62,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _fetchOldMessages() async {
     try {
       final res = await SocketService.fetchOldMessages(widget.chatId);
-          
+
       if (mounted) {
         setState(() {
           _messages.clear();
@@ -71,16 +75,15 @@ class _ChatScreenState extends State<ChatScreen> {
           }
         });
         _scrollToBottom();
-        
+
         // Mark as read
         final user = Provider.of<AuthProvider>(context, listen: false).user;
-      if (user != null) {
-        await SocketService.markAsRead(widget.chatId, user['id']);
-      }
+        if (user != null) {
+          await SocketService.markAsRead(widget.chatId, user['id']);
+        }
       }
     } catch (e) {
       debugPrint('Error fetching old messages: $e');
-
     }
   }
 
@@ -92,7 +95,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final myId = authProvider.user?['id'] ?? 'buyer-id';
 
     SocketService.sendMessage(widget.chatId, myId, text);
-    
+
     setState(() {
       _messages.add({
         'senderId': myId,
@@ -126,7 +129,9 @@ class _ChatScreenState extends State<ChatScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xff1e1e1e),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? Color(0xff1e1e1e)
+          : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -142,58 +147,70 @@ class _ChatScreenState extends State<ChatScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Send Structured Wholesale Offer',
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              
               TextField(
                 controller: qtyController,
                 keyboardType: TextInputType.number,
-                style: const TextStyle(color: Colors.white),
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.onSurface),
                 decoration: const InputDecoration(
                   labelText: 'Quantity',
                   labelStyle: TextStyle(color: Colors.grey),
-                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                  enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white24)),
                 ),
               ),
               const SizedBox(height: 12),
-
               TextField(
                 controller: priceController,
                 keyboardType: TextInputType.number,
-                style: const TextStyle(color: Colors.white),
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.onSurface),
                 decoration: const InputDecoration(
                   labelText: 'Unit Price (PKR)',
                   labelStyle: TextStyle(color: Colors.grey),
-                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                  enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white24)),
                 ),
               ),
               const SizedBox(height: 12),
-
               TextField(
                 controller: deliveryController,
                 keyboardType: TextInputType.number,
-                style: const TextStyle(color: Colors.white),
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.onSurface),
                 decoration: const InputDecoration(
                   labelText: 'Delivery Fee (PKR)',
                   labelStyle: TextStyle(color: Colors.grey),
-                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                  enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white24)),
                 ),
               ),
               const SizedBox(height: 16),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Payment Mode:', style: TextStyle(color: Colors.white70)),
+                  Text('Payment Mode:',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface70)),
                   DropdownButton<String>(
-                    dropdownColor: const Color(0xff1e1e1e),
+                    dropdownColor:
+                        Theme.of(context).brightness == Brightness.dark
+                            ? Color(0xff1e1e1e)
+                            : Colors.white,
                     value: paymentMethod,
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface),
                     items: ['COD', 'PAY_NOW'].map((method) {
-                      return DropdownMenuItem(value: method, child: Text(method));
+                      return DropdownMenuItem(
+                          value: method, child: Text(method));
                     }).toList(),
                     onChanged: (val) {
                       if (val != null) setState(() => paymentMethod = val);
@@ -202,39 +219,40 @@ class _ChatScreenState extends State<ChatScreen> {
                 ],
               ),
               const SizedBox(height: 24),
-
               SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xffFF5722),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () async {
                     // Call backend api
-                      try {
-                        final authProv = Provider.of<AuthProvider>(context, listen: false);
-                        final myId = authProv.user?['id'];
-                        final response = await ApiService.createOffer({
-                          'chatId': widget.chatId,
-                          'productId': widget.productId!, 
-                          'sellerId': widget.sellerId ?? '',
-                          'quantity': int.parse(qtyController.text),
-                          'unitPrice': double.parse(priceController.text),
-                          'deliveryFee': double.parse(deliveryController.text),
-                          'paymentMethod': paymentMethod,
-                        });
-                        if (response.statusCode == 201 && context.mounted) {
-                          Navigator.pop(context);
-                          final data = jsonDecode(response.body);
-                          // Inject offer bubble directly
-                          setState(() {
-                            _messages.add({
-                              'senderId': myId,
-                              'type': 'offer',
-                              'offer': data['offer'],
-                            });
+                    try {
+                      final authProv =
+                          Provider.of<AuthProvider>(context, listen: false);
+                      final myId = authProv.user?['id'];
+                      final response = await ApiService.createOffer({
+                        'chatId': widget.chatId,
+                        'productId': widget.productId!,
+                        'sellerId': widget.sellerId ?? '',
+                        'quantity': int.parse(qtyController.text),
+                        'unitPrice': double.parse(priceController.text),
+                        'deliveryFee': double.parse(deliveryController.text),
+                        'paymentMethod': paymentMethod,
+                      });
+                      if (response.statusCode == 201 && context.mounted) {
+                        Navigator.pop(context);
+                        final data = jsonDecode(response.body);
+                        // Inject offer bubble directly
+                        setState(() {
+                          _messages.add({
+                            'senderId': myId,
+                            'type': 'offer',
+                            'offer': data['offer'],
+                          });
                         });
                         _scrollToBottom();
                       }
@@ -242,7 +260,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       debugPrint('Offer error: $e');
                     }
                   },
-                  child: const Text('Send Offer Card', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: Text('Send Offer Card',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.bold)),
                 ),
               ),
               const SizedBox(height: 24),
@@ -261,12 +282,16 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       backgroundColor: const Color(0xff121212),
       appBar: AppBar(
-        backgroundColor: const Color(0xff1e1e1e),
-        title: Text(widget.chatTitle, style: const TextStyle(color: Colors.white)),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Color(0xff1e1e1e)
+            : Colors.white,
+        title: Text(widget.chatTitle,
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         actions: [
           if (widget.productId != null)
             IconButton(
-              icon: const Icon(Icons.description_outlined, color: Color(0xffFF5722)),
+              icon: const Icon(Icons.description_outlined,
+                  color: Color(0xffFF5722)),
               onPressed: _showCreateOfferSheet,
               tooltip: 'Send Structured Offer',
             ),
@@ -290,48 +315,63 @@ class _ChatScreenState extends State<ChatScreen> {
 
                 final isMe = msg['senderId'] == myId;
                 return Align(
-                  alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment:
+                      isMe ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
-                      color: isMe ? const Color(0xffFF5722) : const Color(0xff222222),
+                      color: isMe
+                          ? const Color(0xffFF5722)
+                          : const Color(0xff222222),
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(12),
                         topRight: const Radius.circular(12),
-                        bottomLeft: isMe ? const Radius.circular(12) : Radius.zero,
-                        bottomRight: isMe ? Radius.zero : const Radius.circular(12),
+                        bottomLeft:
+                            isMe ? const Radius.circular(12) : Radius.zero,
+                        bottomRight:
+                            isMe ? Radius.zero : const Radius.circular(12),
                       ),
                     ),
                     child: Text(
                       msg['content'] ?? '',
-                      style: const TextStyle(color: Colors.white, fontSize: 15),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 15),
                     ),
                   ),
                 );
               },
             ),
           ),
-          
+
           // Chat input field
           SafeArea(
             top: false,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              color: const Color(0xff1e1e1e),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Color(0xff1e1e1e)
+                  : Colors.white,
               child: Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _messageController,
-                      style: const TextStyle(color: Colors.white, fontSize: 15),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 15),
                       cursorColor: const Color(0xffFF5722),
                       decoration: InputDecoration(
                         hintText: 'Type a message...',
-                        hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
+                        hintStyle: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface38,
+                            fontSize: 14),
                         fillColor: const Color(0xff121212),
                         filled: true,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
                           borderSide: BorderSide.none,
@@ -341,7 +381,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   const SizedBox(width: 6),
                   IconButton(
-                    icon: const Icon(Icons.send_rounded, color: Color(0xffFF5722), size: 24),
+                    icon: const Icon(Icons.send_rounded,
+                        color: Color(0xffFF5722), size: 24),
                     onPressed: _sendMessage,
                   ),
                 ],
@@ -384,17 +425,23 @@ class OfferBubbleCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
+              Row(
                 children: [
                   Icon(Icons.assignment, color: Color(0xffFF5722), size: 20),
                   SizedBox(width: 8),
-                  Text('Wholesale Offer', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text('Wholesale Offer',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16)),
                 ],
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isPending ? Colors.amber.withOpacity(0.2) : Colors.green.withOpacity(0.2),
+                  color: isPending
+                      ? Colors.amber.withOpacity(0.2)
+                      : Colors.green.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -409,13 +456,22 @@ class OfferBubbleCard extends StatelessWidget {
             ],
           ),
           const Divider(color: Colors.white24, height: 20),
-          Text('Quantity: ${offer['quantity']}', style: const TextStyle(color: Colors.white70)),
-          Text('Unit Price: PKR ${offer['unitPrice']}', style: const TextStyle(color: Colors.white70)),
-          Text('Delivery Fee: PKR ${offer['deliveryFee']}', style: const TextStyle(color: Colors.white70)),
+          Text('Quantity: ${offer['quantity']}',
+              style:
+                  TextStyle(color: Theme.of(context).colorScheme.onSurface70)),
+          Text('Unit Price: PKR ${offer['unitPrice']}',
+              style:
+                  TextStyle(color: Theme.of(context).colorScheme.onSurface70)),
+          Text('Delivery Fee: PKR ${offer['deliveryFee']}',
+              style:
+                  TextStyle(color: Theme.of(context).colorScheme.onSurface70)),
           const SizedBox(height: 4),
           Text(
             'Total Amount: PKR ${offer['totalAmount']}',
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.bold,
+                fontSize: 15),
           ),
           const SizedBox(height: 12),
           if (isPending && !isSender) ...[
@@ -423,37 +479,47 @@ class OfferBubbleCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.green),
                     onPressed: () async {
                       try {
-                        final response = await ApiService.acceptOffer(offer['id']);
+                        final response =
+                            await ApiService.acceptOffer(offer['id']);
                         if (response.statusCode == 200) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Offer accepted! Order created.')),
+                            const SnackBar(
+                                content:
+                                    Text('Offer accepted! Order created.')),
                           );
                         }
                       } catch (e) {
                         debugPrint(e.toString());
                       }
                     },
-                    child: const Text('Accept', style: TextStyle(color: Colors.white)),
+                    child: Text('Accept',
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface)),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.red)),
+                    style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.red)),
                     onPressed: () async {
                       try {
-                        await Supabase.instance.client.from('offers').update({'status': 'declined'}).eq('id', offer['id']);
+                        await Supabase.instance.client.from('offers').update(
+                            {'status': 'declined'}).eq('id', offer['id']);
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Offer declined.')));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Offer declined.')));
                         }
                       } catch (e) {
                         debugPrint(e.toString());
                       }
                     },
-                    child: const Text('Decline', style: TextStyle(color: Colors.red)),
+                    child: const Text('Decline',
+                        style: TextStyle(color: Colors.red)),
                   ),
                 ),
               ],
@@ -464,5 +530,3 @@ class OfferBubbleCard extends StatelessWidget {
     );
   }
 }
-
-
